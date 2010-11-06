@@ -21,17 +21,14 @@ def main(global_config, **settings):
         'static',
         'gateway:static/'
         )
-    config.add_handler(
-        'main',
-        '/{action}',
-        'gateway.handlers:DashboardHandler',
-        )
-    config.add_handler(
-        'dashboard',
-        '/',
-        'gateway.handlers:DashboardHandler',
-        action='index'
-        )
+    config.add_handler('main','/:action',
+                       handler='gateway.handlers:Dashboard')
+    # config.add_handler(
+    #     'dashboard',
+    #     '/',
+    #     'gateway.handlers:DashboardHandler',
+    #     action='index'
+    #     )
 
     config.add_subscriber('gateway.subscribers.add_renderer_globals',
                           'pyramid.events.BeforeRender')

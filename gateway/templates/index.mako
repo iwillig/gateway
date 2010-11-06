@@ -1,13 +1,17 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-  <head>
-    <title>Gateway Interface</title>
-  </head>
-  <body>
-    <h1>Gateway Interface</h1>    
-    <ol> 
-    % for meter in meters:
-       <li>${meter.uuid}</li> 
-    % endfor
-    </ol>
-  </body>
-</html>
+<%inherit file="base.mako"/>
+
+<%def name="header()">
+   <title>home page</title>
+</%def>
+
+<%def name="content()">
+<ol id="">      
+  % for meter in meters:
+  <li>
+    <p><span>Name:</span>${meter.name}</p>
+    <p><span>UUID</span>${meter.uuid}</p>
+  </li> 
+  % endfor
+</ol>
+</%def>
+
