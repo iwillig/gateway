@@ -23,12 +23,10 @@ def main(global_config, **settings):
         )
     config.add_handler('main','/:action',
                        handler='gateway.handlers:Dashboard')
-    # config.add_handler(
-    #     'dashboard',
-    #     '/',
-    #     'gateway.handlers:DashboardHandler',
-    #     action='index'
-    #     )
+
+    config.add_handler('dashboard','/','gateway.handlers:Dashboard',action='index')
+
+    config.add_handler('meter','meter/:action/:id',handler='gateway.handlers:MeterHandler') 
 
     config.add_subscriber('gateway.subscribers.add_renderer_globals',
                           'pyramid.events.BeforeRender')

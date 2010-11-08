@@ -45,6 +45,13 @@ class Meter(Base):
         self.date = get_now() 
         self.uuid = str(uuid.uuid4())
 
+    @property
+    def url(self): 
+        return "/meter/index/%s" % self.id
+
+    def __str__(self): 
+        return "<Meter %s>" % self.uuid
+
 class Account(Base):
     """
     """

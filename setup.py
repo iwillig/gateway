@@ -12,6 +12,7 @@ requires = [
     'ipython',
     'pyramid',
     'pyramid_beaker',
+    'formalchemy',
     'SQLAlchemy',
     'transaction',
     'repoze.tm2',
