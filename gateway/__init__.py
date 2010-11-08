@@ -25,7 +25,7 @@ def main(global_config, **settings):
                        handler='gateway.handlers:Dashboard')
 
     config.add_handler('dashboard','/','gateway.handlers:Dashboard',action='index')
-
+    config.add_handler('meters','meters/:action/',handler='gateway.handlers:MetersHandler') 
     config.add_handler('meter','meter/:action/:id',handler='gateway.handlers:MeterHandler') 
 
     config.add_subscriber('gateway.subscribers.add_renderer_globals',

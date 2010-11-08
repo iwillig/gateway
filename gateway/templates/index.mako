@@ -1,7 +1,7 @@
 <%inherit file="base.mako"/>
 
 <%def name="header()">
-   <title>home page</title>
+   <title>Dashboard SharedSolar Gateway</title>
 </%def>
 
 <%def name="content()">
@@ -9,7 +9,12 @@
     Shared Solar</a> Project</h3>
 
 <h4>Manage and edit meters</h4> 
-<p>Edit, remove and manage meters</p>
+<ul>
+  <li><p>Edit, remove and manage meters</p></li>
+  <li><p><a href="/meters/add/"> Add a new meter</a></p></li>
+  <li><p>List of existing configured meters</p></li>
+</ul>
+
 <ol id="">      
   % for meter in meters:
   <li>

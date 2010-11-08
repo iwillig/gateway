@@ -8,7 +8,7 @@ import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Unicode, DateTime,\
-    ForeignKey, String, Float
+    ForeignKey, String, Float, Boolean
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -31,19 +31,17 @@ class Meter(Base):
     __tablename__ = "meter"
     
     id = Column(Integer, primary_key=True)
-    uuid = Column(String)
-    name = Column(Unicode(255), unique=True)
-    serial = Column(Integer) 
-    slot = Column(Integer) 
+    name = Column(Unicode(255), unique=True) 
+    location = Column(String)
+    status = Column(Boolean) 
     date = Column(DateTime) 
     
 
-    def __init__(self,name,serial,slot):
+    def __init__(self,name,location):
         self.name = name
-        self.serial = serial
-        self.slot = slot 
+        self.location = location 
+        self.status = False 
         self.date = get_now() 
-        self.uuid = str(uuid.uuid4())
 
     @property
     def url(self): 
@@ -58,7 +56,6 @@ class Account(Base):
     __tablename__ = "account" 
     id = Column(Integer, primary_key=True)
     pin = Column(String) 
-    uudi = Column(String) 
     name = Column(String)
     contact = Column(Integer) 
     secondary_contact = Column(Integer)         
@@ -67,7 +64,6 @@ class Account(Base):
         self.name = name 
         self.contact = contact
         self.secondary_contact = secondary_contact
-        self.uuid = str(uuid.uuid4())
         self.pin = self.get_pin() 
 
     def get_pin(self): 
@@ -75,6 +71,7 @@ class Account(Base):
         ints = "23456789" 
         return "%s%s" % ("".join(random.sample(chars,3)),
                       "".join(random.sample(ints,3)))
+
 class Circuit(Base):
     """
     """
