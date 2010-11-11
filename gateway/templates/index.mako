@@ -5,25 +5,43 @@
 </%def>
 
 <%def name="content()">
-<h3>Manage and edit the Gateway for the <a href="http://sharedsolar.org">
-    Shared Solar</a> Project</h3>
 
-<h4>Manage and edit meters</h4> 
-<ul>
-  <li><p>Edit, remove and manage meters</p></li>
-  <li><p><a href="/meters/add/"> Add a new meter</a></p></li>
-  <li><p>List of existing configured meters</p></li>
-</ul>
+<div id="manage-meter" class="intro-box">
+<h4>Manage and edit <strong>meters</strong></h4> 
+<p>Edit, remove and manage meters</p>
+<p><a href="/meters/add/"> Add a new meter</a></p>
 
-<ol id="">      
+<table border="0">
+  <tr>
+    <th>Meter uuid</th>
+    <th>Meter name</th>
+    <th>Meter location</th>
+    <th>Number of circuits</th>
+  </tr>
+  <hr />
   % for meter in meters:
-  <li>
-    <p>
-      <span>Name:</span> <a href="${meter.url}">${meter.name}</a>
-    </p>
-  </li> 
-  % endfor  
-</ol>
+  <tr>
+    <td><a href="${meter.url()}">${meter.uuid}</a></td>
+    <td>${meter.name}</td>
+    <td>${meter.location}</td>
+    <td>${len(meter.get_circuits())}</td>
+  </tr>
+  % endfor
+</table>
+  
+</ul>
+</div>
 
+
+<div id="manage-messages" class="intro-box">
+<h4>Manage and send SMS Messages</h4> 
+<p>SMS messages are at the core of how the gateway communicates. This
+  section of the Gateway allows you to send alerts and monitor
+  incoming traffic to the Gateway.</p>
+<ul> 
+  <li>Send <a href="#">SMS alerts</a> to notify consumers of system downtime</li>
+  <li>Monitor <a href="${request.application_url}/sms/index"> all
+      SMS</a>  messages</li>
+</div>
 </%def>
 

@@ -31,21 +31,35 @@ class Meter(Base):
     __tablename__ = "meter"
     
     id = Column(Integer, primary_key=True)
+    uuid = Column(String)
     name = Column(Unicode(255), unique=True) 
     location = Column(String)
     status = Column(Boolean) 
     date = Column(DateTime) 
+    battery = Column(Integer) 
+    panel_capacity = Column(Integer) 
     
-
-    def __init__(self,name,location):
+    def __init__(self,name,location,battery):
+        self.uuid = str(uuid.uuid4())
         self.name = name
         self.location = location 
         self.status = False 
         self.date = get_now() 
+        self.battery = battery
 
-    @property
+    def get_circuits(self): 
+        session = DBSession() 
+        return [x for x in 
+                session.query(Circuit).filter_by(meter=self.id)] 
+
     def url(self): 
-        return "/meter/index/%s" % self.id
+        return "/meter/index/%s" % self.uuid 
+
+    def edit_url(self): 
+        return "/meter/edit/%s" % self.uuid
+   
+    def remove_url(self): 
+        return "meter/remove/%s" % self.uuid
 
     def __str__(self): 
         return "<Meter %s>" % self.uuid
@@ -64,7 +78,31 @@ class Account(Base):
         self.name = name 
         self.contact = contact
         self.secondary_contact = secondary_contact
+
+
+class Circuit(Base):
+    """
+    """
+    __tablename__ = "circuit" 
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String)
+    date = Column(DateTime) 
+    pin = Column(String) 
+    meter = Column("meter",ForeignKey("meter.id"))
+    energy_max = Column(Float)
+    power_max = Column(Float)
+    status = Column(Integer) 
+    ip_address = Column(String) 
+
+    def __init__(self,meter,energy_max,power_max,ip_address):
+        self.date = get_now()
+        self.uuid = str(uuid.uuid4())
         self.pin = self.get_pin() 
+        self.meter = meter 
+        self.energy_max = energy_max
+        self.power_max = power_max
+        self.ip_address = ip_address
+        self.status = 1 
 
     def get_pin(self): 
         chars = "qwertyuipasdfghjkzxcvbnm"
@@ -72,27 +110,160 @@ class Account(Base):
         return "%s%s" % ("".join(random.sample(chars,3)),
                       "".join(random.sample(ints,3)))
 
-class Circuit(Base):
+    def get_meter(self): 
+        session = DBSession()
+        return session.query(Meter).get(self.meter)
+
+    def toggle_status(self): 
+        session = DBSession() 
+        if self.status == 0: 
+            session.add(TurnOn(circuit=self))
+        else:             
+            session.add(TurnOff(circuit=self))
+
+    def url(self): 
+        return "/circuit/index/%s" % self.uuid
+
+    def edit_url(self): 
+        return "/circuit/edit/%s" % self.uuid 
+
+    def remove_url(self): 
+        return "/circuit/remove/%s" % self.uuid 
+    
+    def toggle_url(self): 
+        return "/circuit/toggle/%s" % self.uuid
+
+    def toJSON(self): 
+        return { "id" : self.id,
+                 "ip_address" : self.ip_address,
+                 "date" : str(self.date),
+                 "url" : self.url(),
+                 "pin" : self.pin,
+                 "uuid" : self.uuid,
+                 "energy_max" : self.energy_max,
+                 "power_max" : self.power_max, 
+                 "status" : self.status } 
+
+class Message(Base):
     """
     """
-    __tablename__ = "circuit" 
+    __tablename__  = "sms_message" 
     id = Column(Integer, primary_key=True)
-    uudi = Column(String)
-    meter = Column("meter",ForeignKey("meter.id"))
-    account = Column("acccount",ForeignKey("account.id"))
-    engery_max = Column(Float)
-    power_max = Column(Float)
+    date = Column(DateTime)
+    uuid = Column(String) 
+    incoming = Column(Boolean) 
+    sent = Column(Boolean) 
+    text = Column(String) 
+    to = Column(Integer) 
+    origin = Column(Integer) 
+    
+    
+    def __init__(self,uuid,incoming,sent,text,origin,to=18182124554):
+        self.date = get_now() 
+        self.uuid = uuid
+        self.incoming = incoming
+        self.sent = sent 
+        self.text = text 
+        self.to = to 
+        self.origin = origin 
+
+    def toJSON(self): 
+        return { "from" : self.origin,
+                 "to"   : self.to,
+                 "uuid" : self.uuid,
+                 "text" : self.text,
+                 "id"   : self.id, } 
+        
+    def __unicode__(self): 
+        return "Messsage <%s>" % self.uuid
+
+class Logs(Base): 
+    __tablename__ = "logs"
+    id = Column(Integer, primary_key=True)
+    date = Column(DateTime)
+    uuid = Column(String) 
+    _type = Column('type', String(50))
+    __mapper_args__ = {'polymorphic_on': _type}
+    
+    def __init__(self): 
+        self.date = get_now() 
+        self.uuid = str(uuid.uuid4)
+
+class PrimaryLog(Logs): 
+    __tablename__ = "primary_log" 
+    __mapper_args__ = {'polymorphic_identity': 'primary_log'}
+    id = Column(Integer, ForeignKey('logs.id'), primary_key=True)
+    circuit  = Column("circuit",ForeignKey("circuit.id"))
+    watthours = Column(Integer) 
+    use_time = Column(Integer) 
     status = Column(Integer) 
+    time = Column(Integer) 
 
-    def __init__(self,meter,account,engery_max,power_max):
+    def __init__(self,circuit,watthours,use_time,status,time):
+        Logs.__init__(self,)
+        self.circuit = circuit
+        self.watthours = watthours
+        self.use_time = use_time 
+        self.time = time
+    
+
+class Job(Base):
+    __tablename__ = "jobs" 
+    id = Column(Integer, primary_key=True)
+    date = Column(DateTime)
+    uuid = Column(String) 
+    _type = Column('type', String(50))
+    __mapper_args__ = {'polymorphic_on': _type}
+    circuit = Column("circuit",ForeignKey('circuit.id'))
+    state = Column(Boolean)
+
+    def __init__(self,circuit,state=True):
+        self.date = get_now()
         self.uuid = str(uuid.uuid4())
-        self.meter = meter 
-        self.account = account
-        self.engery_max = engery_max
-        self.power_max = power_max
-        self.status = 1 
+        self.circuit = circuit
+        self.state = state
+        
 
-                       
+class AddCredit(Job):
+    __tablename__ = "addcredit" 
+    __mapper_args__ = {'polymorphic_identity': 'addcredit'}
+    id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
+    credit = Column(Integer) 
+
+    def __init__(self,credit,circuit,state=True):
+        Job.__init__(self,circuit,state) 
+        self.credit = credit
+        
+    def toString(self): 
+        return ""
+
+class TurnOff(Job):
+    __tablename__ = "turnoff" 
+    __mapper_args__ = {'polymorphic_identity': 'addcredit'}
+    id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
+    
+    def __init__(self,circuit,state=True):
+        Job.__init__(self,circuit,state)
+
+    def toString(self): 
+        return ""
+        
+class TurnOn(Job):
+    __tablename__ = "turnon"
+    __mapper_args__ = {'polymorphic_identity': 'addcredit'}
+    id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
+
+    def __init__(self,circuit,state=True):
+        Job.__init__(self,circuit,state)
+
+    def toString(self): 
+        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
+        
+
+        
+
+        
+        
 def populate():
     DBSession.flush()
     transaction.commit()

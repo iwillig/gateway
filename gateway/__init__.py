@@ -24,9 +24,27 @@ def main(global_config, **settings):
     config.add_handler('main','/:action',
                        handler='gateway.handlers:Dashboard')
 
-    config.add_handler('dashboard','/','gateway.handlers:Dashboard',action='index')
-    config.add_handler('meters','meters/:action/',handler='gateway.handlers:MetersHandler') 
-    config.add_handler('meter','meter/:action/:id',handler='gateway.handlers:MeterHandler') 
+    config.add_handler('dashboard','/',
+                       'gateway.handlers:Dashboard',action='index')
+    config.add_handler('meters','meters/:action/',
+                       handler='gateway.handlers:MetersHandler') 
+    config.add_handler('meter','meter/:action/:id',
+                       handler='gateway.handlers:MeterHandler') 
+
+    config.add_handler('circuit','circuit/:action/:id',
+                       handler='gateway.handlers:CircuitHandler')
+
+    config.add_handler('logs','logs/:action/:meter/:circuit/',
+                       handler='gateway.handlers:LoggingHandler') 
+
+    config.add_handler('alerts','alerts/:action/:meter/:circuit/',
+                       handler="gateway.handlers:AlertHandler")
+
+    config.add_handler('jobs','jobs/:action/:id',
+                       handler='gateway.handlers:JobHandler')
+
+    config.add_handler('sms','sms/:action',
+                       handler='gateway.handlers:SMSHandler') 
 
     config.add_subscriber('gateway.subscribers.add_renderer_globals',
                           'pyramid.events.BeforeRender')
