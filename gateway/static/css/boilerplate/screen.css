@@ -1,0 +1,107 @@
+/* -------------------------------------------------------------- 
+  
+   Boilerplate Screen Styles
+   * Version:   0.5 (2007-11-19)
+   
+-------------------------------------------------------------- */
+
+@import "lib/reset.css";
+@import "lib/typography.css";
+@import "lib/forms.css";
+@import "lib/plugins.css";
+
+
+/* Site
+-------------------------------------------------------------- */
+  
+  /* Put your site styles here */
+p { margin: 2px; } 
+
+.container { 
+    margin: 10px auto; 
+    width: 1000px;} 
+.header { 
+    background: white; 
+} 
+.navigation { 
+} 
+.menu { 
+    list-style-position:inside;    
+    list-style-type: none;
+    margin: 0px;} 
+
+.menu li { 
+    padding: 5px 20px 2px 20px;
+    margin: 0px ;
+    display: inline; } 
+.menu li.here { 
+    background: #e5ecf9;
+} 
+.content { 
+    padding: 20px;
+    background: #e5ecf9;
+} 
+.no-border td { 
+    border: none;
+} 
+.form { 
+    margin: 30px 10px 0px 10px; 
+    font-size: 120%;
+} 
+.hint { 
+    color: #808080;
+} 
+.form label { 
+    font-weight: normal; 
+} 
+.form input { } 
+
+.small-form label{ 
+    font-weight: normal ; 
+    color: #808080; 
+} 
+
+ol.breadcrumbs { 
+    margin: 1px 0px 0px 0px;
+    padding: 5px;
+    background: #e5ecf9;
+    border-top: 3px solid #0c162b;
+} 
+
+ol.breadcrumbs li { 
+    display: inline; 
+    padding: 5px;
+    font-weight: bold; 
+} 
+ol.breadcrumbs li a { 
+} 
+ol.breadcrumbs li.active { 
+} 
+.overview { 
+    font-size: 120%; 
+} 
+.overview td { 
+    border-bottom:1px solid #DDDDDD;
+}
+.actions ul { 
+    list-style: none;
+} 
+.actions ul li { 
+    padding: 5px;
+    margin: 5px;
+}
+.actions ul li a { 
+    font-weight: bold;
+    padding: 5px;
+    background: #99cc00; 
+} 
+
+ul.message li { 
+    width: 500px;
+} 
+.meter-list { 
+    list-style-type: none; 
+ } 
+.intro-box { 
+    padding: 5px;
+} 
