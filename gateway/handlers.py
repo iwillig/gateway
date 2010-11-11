@@ -138,6 +138,10 @@ class CircuitHandler(object):
     def toggle(self): 
         self.circuit.toggle_status() 
         return HTTPFound(location=self.circuit.url())
+    
+    @action() 
+    def graph(self): 
+        return Response("stuff")
 
     @action()
     def remove(self): 
@@ -186,9 +190,9 @@ class JobHandler(object):
         session = DBSession() 
         l = [] 
         for circuit in circuits: 
-            [l.apend(x) 
+            [l.append(x.toString()) 
              for x in session.query(Job).\
-                 filter_by(circuit=circuit.id)]
+                 filter_by(circuit=circuit)]
         return l
 
     @action() 

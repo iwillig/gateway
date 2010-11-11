@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relation
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -117,9 +117,11 @@ class Circuit(Base):
     def toggle_status(self): 
         session = DBSession() 
         if self.status == 0: 
-            session.add(TurnOn(circuit=self))
+            job = TurnOn(circuit=self)
+            session.add(job)
         else:             
-            session.add(TurnOff(circuit=self))
+            job = TurnOff(circuit=self) 
+            session.add(job)
 
     def url(self): 
         return "/circuit/index/%s" % self.uuid
@@ -177,30 +179,32 @@ class Message(Base):
     def __unicode__(self): 
         return "Messsage <%s>" % self.uuid
 
-class Logs(Base): 
-    __tablename__ = "logs"
+class Log(Base): 
+    __tablename__ = "log"
     id = Column(Integer, primary_key=True)
     date = Column(DateTime)
     uuid = Column(String) 
     _type = Column('type', String(50))
     __mapper_args__ = {'polymorphic_on': _type}
+    circuit_id = Column(Integer, ForeignKey('circuit.id'))
+    circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
+    
     
     def __init__(self): 
         self.date = get_now() 
         self.uuid = str(uuid.uuid4)
 
-class PrimaryLog(Logs): 
+class PrimaryLog(Log): 
     __tablename__ = "primary_log" 
     __mapper_args__ = {'polymorphic_identity': 'primary_log'}
-    id = Column(Integer, ForeignKey('logs.id'), primary_key=True)
-    circuit  = Column("circuit",ForeignKey("circuit.id"))
+    id = Column(Integer, ForeignKey('log.id'), primary_key=True)
     watthours = Column(Integer) 
     use_time = Column(Integer) 
     status = Column(Integer) 
     time = Column(Integer) 
 
     def __init__(self,circuit,watthours,use_time,status,time):
-        Logs.__init__(self,)
+        Log.__init__(self,)
         self.circuit = circuit
         self.watthours = watthours
         self.use_time = use_time 
@@ -212,14 +216,25 @@ class Job(Base):
     id = Column(Integer, primary_key=True)
     _type = Column('type', String(50))
     __mapper_args__ = {'polymorphic_on': _type}
-    #circuit  = Column("circuit",ForeignKey("circuit.id"))
-        
+    uuid  = Column(String) 
+    time = Column(DateTime) 
+    circuit_id = Column(Integer, ForeignKey('circuit.id'))
+    circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
+    
+    def __init__(self,circuit): 
+        self.uuid = str(uuid.uuid4())
+        self.time = get_now() 
+        self.circuit = circuit
 
 class AddCredit(Job):
     __tablename__ = "addcredit" 
     __mapper_args__ = {'polymorphic_identity': 'addcredit'}
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
     credit = Column(Integer) 
+
+    def __init__(self,credit,circuit): 
+        Job.__init__(self,circuit)
+        self.credit = credit 
         
     def toString(self): 
         return ""
@@ -228,23 +243,26 @@ class TurnOff(Job):
     __tablename__ = "turnoff" 
     __mapper_args__ = {'polymorphic_identity': 'turnoff'}
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
-    
+
+    def __init__(self,circuit): 
+        Job.__init__(self,circuit=circuit) 
 
     def toString(self): 
-        return ""
+        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 class TurnOn(Job):
     __tablename__ = "turnon"
     __mapper_args__ = {'polymorphic_identity': 'turnon'}
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
+    
+    def __init__(self,circuit): 
+        Job.__init__(circuit=circuit) 
 
     def toString(self): 
         return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 
-        
 
-        
         
 def populate():
     DBSession.flush()
