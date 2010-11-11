@@ -210,18 +210,9 @@ class PrimaryLog(Logs):
 class Job(Base):
     __tablename__ = "jobs" 
     id = Column(Integer, primary_key=True)
-    date = Column(DateTime)
-    uuid = Column(String) 
     _type = Column('type', String(50))
     __mapper_args__ = {'polymorphic_on': _type}
-    circuit = Column("circuit",ForeignKey('circuit.id'))
-    state = Column(Boolean)
-
-    def __init__(self,circuit,state=True):
-        self.date = get_now()
-        self.uuid = str(uuid.uuid4())
-        self.circuit = circuit
-        self.state = state
+    #circuit  = Column("circuit",ForeignKey("circuit.id"))
         
 
 class AddCredit(Job):
@@ -229,32 +220,23 @@ class AddCredit(Job):
     __mapper_args__ = {'polymorphic_identity': 'addcredit'}
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
     credit = Column(Integer) 
-
-    def __init__(self,credit,circuit,state=True):
-        Job.__init__(self,circuit,state) 
-        self.credit = credit
         
     def toString(self): 
         return ""
 
 class TurnOff(Job):
     __tablename__ = "turnoff" 
-    __mapper_args__ = {'polymorphic_identity': 'addcredit'}
+    __mapper_args__ = {'polymorphic_identity': 'turnoff'}
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
     
-    def __init__(self,circuit,state=True):
-        Job.__init__(self,circuit,state)
 
     def toString(self): 
         return ""
         
 class TurnOn(Job):
     __tablename__ = "turnon"
-    __mapper_args__ = {'polymorphic_identity': 'addcredit'}
+    __mapper_args__ = {'polymorphic_identity': 'turnon'}
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
-
-    def __init__(self,circuit,state=True):
-        Job.__init__(self,circuit,state)
 
     def toString(self): 
         return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)

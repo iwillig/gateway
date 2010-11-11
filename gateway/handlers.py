@@ -96,7 +96,7 @@ class MeterHandler(object):
     def edit(self): 
         return { "meter" : self.meter } 
             
-    @action(renderer="meter/remove.mako") 
+    @action() 
     def remove(self): 
         session  = DBSession()  
         session.delete(self.meter)        
