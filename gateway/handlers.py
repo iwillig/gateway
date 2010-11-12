@@ -3,6 +3,7 @@
 
 import datetime
 import simplejson
+from urlparse import parse_qs 
 from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
@@ -177,7 +178,7 @@ class LoggingHandler(object):
                 
     @action()
     def pp(self): 
-        params = self.request.params
+        params = parse_qs(self.request.body)
         session = DBSession() 
         if not self.meter or not self.circuit: 
             return Response(status=404)
