@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# vim: ai ts=4 sts=4 et sw=4 coding=utf-8
 
 import datetime
 import simplejson
@@ -183,13 +181,13 @@ class LoggingHandler(object):
         if not self.meter or not self.circuit: 
             return Response(status=404)
         log = PrimaryLog(circuit=self.circuit,
-                   watthours=params["wh"],
-                   use_time=params["tu"],
-                   credit=params["cr"],
-                   status=int(params["status"])
+                   watthours=params["wh"][0],
+                   use_time=params["tu"][0],
+                   credit=params["cr"][0],
+                   status=int(params["status"][0])
                          ) 
         self.circuit.credit = log.credit 
-        self.circuit.status = int(params["status"])
+        self.circuit.status = int(params["status"][0])  # fix 
         session.add(log) 
         session.merge(self.circuit)
         return Response("ok") 
