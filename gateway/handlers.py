@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4 coding=utf-8
 
-import transaction
+import datetime
 import simplejson
 from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
 from gateway.models import DBSession, Meter, Message, Circuit, \
-    PrimaryLog, Job
+    PrimaryLog, Job, AddCredit
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -102,7 +102,6 @@ class MeterHandler(object):
         session.delete(self.meter)        
         [session.delete(x) 
          for x in session.query(Circuit).filter_by(meter=self.meter.id)] 
-        transaction.commit()
         return HTTPFound(location="/")
 
 class CircuitHandler(object):
@@ -121,6 +120,7 @@ class CircuitHandler(object):
         breadcrumbs.append({"text": "Meter Overview", "url" : self.meter.url()})
         breadcrumbs.append({"text" : "Circuit Overview"}) 
         return { "breadcrumbs" : breadcrumbs,
+                 "jobs" : self.circuit.get_jobs(),
                  "circuit" : self.circuit } 
 
     @action(renderer="circuit/edit.mako")
@@ -142,6 +142,18 @@ class CircuitHandler(object):
     @action() 
     def graph(self): 
         return Response("stuff")
+    
+    @action()
+    def jobs(self): 
+        return Response([x.toJSON() for x in self.circuit.get_jobs()])
+    
+    @action()
+    def add_credit(self): 
+        session = DBSession() 
+        job = AddCredit(circuit=self.circuit,
+                  credit=self.request.params.get("amount"))
+        session.add(job)
+        return HTTPFound(location=self.circuit.url())
 
     @action()
     def remove(self): 
@@ -188,12 +200,12 @@ class JobHandler(object):
 
     def _get_jobs(self,circuits): 
         session = DBSession() 
-        l = [] 
+        l = []
         for circuit in circuits: 
             [l.append(x.toString()) 
              for x in session.query(Job).\
-                 filter_by(circuit=circuit)]
-        return l
+                 filter_by(circuit=circuit).filter_by(state=True)]
+        return "".join(l)
 
     @action() 
     def meter(self): 
@@ -205,7 +217,15 @@ class JobHandler(object):
         
     @action() 
     def job(self): # bad name because of legacy code 
-        return Response() 
+        session = DBSession()
+        job = session.query(Job).get(self.request.matchdict["id"])
+        if self.request.method == "DELETE": 
+            job.state = False
+            job.end = datetime.datetime.now()
+            session.merge(job)
+            return Response(job.toJSON()) 
+        else:
+            return Response(job.toJSON()) 
 
 class AlertHandler(object):
     """

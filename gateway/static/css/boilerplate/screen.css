@@ -89,11 +89,11 @@ ol.breadcrumbs li.active {
 .actions ul li { 
     padding: 5px;
     margin: 5px;
+    background: #99cc00; 
 }
 .actions ul li a { 
     font-weight: bold;
     padding: 5px;
-    background: #99cc00; 
 } 
 
 ul.message li { 
@@ -104,4 +104,11 @@ ul.message li {
  } 
 .intro-box { 
     padding: 5px;
+} 
+.jobs td { padding: 3px; } 
+.jobs .active { 
+    background: #d4e897; 
+} 
+.jobs .not-active { 
+    background: #e897ab;
 } 

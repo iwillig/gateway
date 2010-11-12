@@ -93,8 +93,9 @@ class Circuit(Base):
     power_max = Column(Float)
     status = Column(Integer) 
     ip_address = Column(String) 
+    credit = Column(Integer) 
 
-    def __init__(self,meter,energy_max,power_max,ip_address):
+    def __init__(self,meter,energy_max,power_max,ip_address,credit=0):
         self.date = get_now()
         self.uuid = str(uuid.uuid4())
         self.pin = self.get_pin() 
@@ -103,6 +104,7 @@ class Circuit(Base):
         self.power_max = power_max
         self.ip_address = ip_address
         self.status = 1 
+        self.credit = credit
 
     def get_pin(self): 
         chars = "qwertyuipasdfghjkzxcvbnm"
@@ -113,6 +115,10 @@ class Circuit(Base):
     def get_meter(self): 
         session = DBSession()
         return session.query(Meter).get(self.meter)
+
+    def get_jobs(self):
+        session = DBSession()
+        return session.query(Job).filter_by(circuit=self)
 
     def toggle_status(self): 
         session = DBSession() 
@@ -190,9 +196,10 @@ class Log(Base):
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
     
     
-    def __init__(self): 
+    def __init__(self,circuit): 
         self.date = get_now() 
         self.uuid = str(uuid.uuid4)
+        self.circuit = circuit
 
 class PrimaryLog(Log): 
     __tablename__ = "primary_log" 
@@ -204,7 +211,7 @@ class PrimaryLog(Log):
     time = Column(Integer) 
 
     def __init__(self,circuit,watthours,use_time,status,time):
-        Log.__init__(self,)
+        Log.__init__(self,circuit)
         self.circuit = circuit
         self.watthours = watthours
         self.use_time = use_time 
@@ -217,49 +224,66 @@ class Job(Base):
     _type = Column('type', String(50))
     __mapper_args__ = {'polymorphic_on': _type}
     uuid  = Column(String) 
-    time = Column(DateTime) 
+    start = Column(DateTime) 
+    end = Column(DateTime)
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
-    
-    def __init__(self,circuit): 
+    state = Column(Boolean)
+
+    def __init__(self,circuit,state=True): 
         self.uuid = str(uuid.uuid4())
-        self.time = get_now() 
+        self.start = get_now() 
         self.circuit = circuit
+        self.state = state 
+
+    def url(self): 
+        return "jobs/job/%s/" % self.id
+
+    def toJSON(self): 
+        return {"uuid": self.uuid,
+                "state" : self.state,
+                "date": self.start,
+                "type": self._type} 
 
 class AddCredit(Job):
     __tablename__ = "addcredit" 
     __mapper_args__ = {'polymorphic_identity': 'addcredit'}
+    description = "This job adds energy credit to the remote circuit"
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
-    credit = Column(Integer) 
+    credit = Column(Integer)     
 
     def __init__(self,credit,circuit): 
         Job.__init__(self,circuit)
         self.credit = credit 
         
     def toString(self): 
-        return ""
+        return "job=cr&id=%s&cid=%s&amt=%s;" % (self.id,
+                                                self.circuit.ip_address,
+                                                self.credit)
 
 class TurnOff(Job):
     __tablename__ = "turnoff" 
     __mapper_args__ = {'polymorphic_identity': 'turnoff'}
+    description = "This job turns off the circuit on the remote meter"
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
 
     def __init__(self,circuit): 
         Job.__init__(self,circuit=circuit) 
 
     def toString(self): 
-        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
+        return "job=con&id=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 class TurnOn(Job):
     __tablename__ = "turnon"
     __mapper_args__ = {'polymorphic_identity': 'turnon'}
+    description = "This job turns on the circuit off the remote meter"
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
     
     def __init__(self,circuit): 
         Job.__init__(circuit=circuit) 
 
     def toString(self): 
-        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
+        return "job=con&id=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 
 

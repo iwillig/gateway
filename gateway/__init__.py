@@ -41,7 +41,7 @@ def main(global_config, **settings):
     config.add_handler('alerts','alerts/:action/:meter/:circuit/',
                        handler="gateway.handlers:AlertHandler")
 
-    config.add_handler('jobs','jobs/:action/:id',
+    config.add_handler('jobs','jobs/:action/:id/',
                        handler='gateway.handlers:JobHandler')
 
     config.add_handler('sms','sms/:action',
