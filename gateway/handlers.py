@@ -168,10 +168,11 @@ class LoggingHandler(object):
         session = DBSession() 
         self.request = request
         matchdict = self.request.matchdict
+        circuit_id = matchdict["circuit"].replace("_",".") 
         self.meter = session.\
             query(Meter).filter_by(name=matchdict["meter"]).first()
         self.circuit = session.\
-            query(Circuit).filter_by(ip_address=matchdict["circuit"]).first() 
+            query(Circuit).filter_by(ip_address=circuit_id).first() 
 
                 
     @action()
@@ -184,8 +185,7 @@ class LoggingHandler(object):
                    watthours=params["wh"],
                    use_time=params["tu"],
                    credit=params["cr"],
-                   status=params["status"],
-                   time=params["ts"]) 
+                   status=params["status"]) 
         session.add(log) 
         return Response("ok") 
 

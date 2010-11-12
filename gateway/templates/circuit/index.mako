@@ -93,6 +93,7 @@
   </tr> 
   % endfor 
 </table>
-
+<hr /> 
+<h4>Logs associated with circuit</h4>
 
 </%def> 

@@ -34,7 +34,6 @@
       </tr>
     </table>  
     </td> 
-
     <td> 
       <div class="actions"> 
         <ul>
@@ -48,9 +47,7 @@
         </ul>
       </div>
     </td>
-
   </tr>
-
 </table>
 
 <hr /> 
@@ -75,5 +72,6 @@
     <th><strong>Circuit energy max: </strong></th>
   </tr>
 </table>
+<hr /> 
 
 </%def> 

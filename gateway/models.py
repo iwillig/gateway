@@ -209,13 +209,15 @@ class PrimaryLog(Log):
     use_time = Column(Integer) 
     status = Column(Integer) 
     time = Column(Integer) 
+    credit = Column(Integer) 
 
-    def __init__(self,circuit,watthours,use_time,status,time):
+    def __init__(self,circuit,credit,watthours,use_time,status):
         Log.__init__(self,circuit)
         self.circuit = circuit
         self.watthours = watthours
         self.use_time = use_time 
-        self.time = time
+        self.credit = credit
+        self.time = get_now()
     
 
 class Job(Base):
