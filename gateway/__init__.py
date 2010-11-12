@@ -21,11 +21,13 @@ def main(global_config, **settings):
         'static',
         'gateway:static/'
         )
+
     config.add_handler('main','/:action',
-                       handler='gateway.handlers:Dashboard')
+                      handler='gateway.handlers:Dashboard')
 
     config.add_handler('dashboard','/',
                        'gateway.handlers:Dashboard',action='index')
+
     config.add_handler('meters','meters/:action/',
                        handler='gateway.handlers:MetersHandler') 
 

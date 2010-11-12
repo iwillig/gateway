@@ -119,7 +119,7 @@ class CircuitHandler(object):
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append({"text": "Meter Overview", "url" : self.meter.url()})
         breadcrumbs.append({"text" : "Circuit Overview"}) 
-        return { "breadcrumbs" : breadcrumbs,
+        return { "breadcrumbs" : breadcrumbs,                 
                  "jobs" : self.circuit.get_jobs(),
                  "circuit" : self.circuit } 
 
@@ -185,8 +185,12 @@ class LoggingHandler(object):
                    watthours=params["wh"],
                    use_time=params["tu"],
                    credit=params["cr"],
-                   status=params["status"]) 
+                   status=int(params["status"])
+                         ) 
+        self.circuit.credit = log.credit 
+        self.circuit.status = int(params["status"])
         session.add(log) 
+        session.merge(self.circuit)
         return Response("ok") 
 
     @action()

@@ -14,7 +14,13 @@
         <tr>
           <td class="hint">Circuit ip address</td>
           <td>${circuit.ip_address}</td>
+          <td></td>
         </tr>
+        <tr>
+          <td class="hint">Circuit credit</td>
+          <td>${circuit.credit}</td>
+          <td></td>
+        </tr> 
         <tr>
           <td class="hint">Circuit pin :</td>
           <td>${circuit.pin}</td>
@@ -94,6 +100,21 @@
   % endfor 
 </table>
 <hr /> 
-<h4>Logs associated with circuit</h4>
+<h4>Last 20 logs associated with circuit</h4>
+<table border="">
+  <tr>
+    <th>Log id</th>
+    <th>Log uuid</th>
+    <th>Log date</th>
+  </tr>
+  % for log in circuit.get_logs()[0:20]: 
+    <tr>
+      <td>${log.id}</td>
+      <td> ${log.uuid} </td> 
+      <td>${log.date}</td>
+    </tr>
+  % endfor 
+</table>
+
 
 </%def> 

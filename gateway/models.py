@@ -120,6 +120,11 @@ class Circuit(Base):
         session = DBSession()
         return session.query(Job).filter_by(circuit=self)
 
+    def get_logs(self): 
+        session = DBSession() 
+        return session.query(PrimaryLog).\
+            filter_by(circuit=self).order_by(PrimaryLog.id.desc())
+
     def toggle_status(self): 
         session = DBSession() 
         if self.status == 0: 
@@ -198,7 +203,7 @@ class Log(Base):
     
     def __init__(self,circuit): 
         self.date = get_now() 
-        self.uuid = str(uuid.uuid4)
+        self.uuid = str(uuid.uuid4())
         self.circuit = circuit
 
 class PrimaryLog(Log): 
@@ -210,6 +215,7 @@ class PrimaryLog(Log):
     status = Column(Integer) 
     time = Column(Integer) 
     credit = Column(Integer) 
+    status = Column(Integer) 
 
     def __init__(self,circuit,credit,watthours,use_time,status):
         Log.__init__(self,circuit)
@@ -218,6 +224,7 @@ class PrimaryLog(Log):
         self.use_time = use_time 
         self.credit = credit
         self.time = get_now()
+        self.status = status
     
 
 class Job(Base):
