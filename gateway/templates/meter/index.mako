@@ -39,6 +39,8 @@
       <div class="actions"> 
         <ul>
           <li><a href="${meter.edit_url()}">Edit meter information</a></li>
+          <li><a href="/jobs/meter/${meter.name}/">View active job
+          queue</a></li>
           <li><a href="#">Toggle on/off</a></li>
           <li>
             <a href="${request.application_url}/${meter.remove_url()}">

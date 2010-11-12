@@ -279,6 +279,10 @@ class SMSHandler(object):
                  "breadcrumbs" : breadcrumbs } 
 
     @action() 
+    def ping(self): 
+        return Response("I love you") 
+
+    @action() 
     def send(self):
         session  = DBSession()  
         msgJson = simplejson.loads(self.request.body)

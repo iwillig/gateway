@@ -10,6 +10,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'ipdb', 
     'ipython',
+    'simplejson',
     'pyramid',
     'pyramid_beaker',
     'formalchemy',
