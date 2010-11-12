@@ -257,7 +257,7 @@ class AddCredit(Job):
         self.credit = credit 
         
     def toString(self): 
-        return "job=cr&id=%s&cid=%s&amt=%s;" % (self.id,
+        return "job=cr&jobid=%s&cid=%s&amt=%s;" % (self.id,
                                                 self.circuit.ip_address,
                                                 self.credit)
 
@@ -271,7 +271,7 @@ class TurnOff(Job):
         Job.__init__(self,circuit=circuit) 
 
     def toString(self): 
-        return "job=con&id=%s&cid=%s;" % (self.id,self.circuit.ip_address)
+        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 class TurnOn(Job):
     __tablename__ = "turnon"
@@ -283,7 +283,7 @@ class TurnOn(Job):
         Job.__init__(circuit=circuit) 
 
     def toString(self): 
-        return "job=con&id=%s&cid=%s;" % (self.id,self.circuit.ip_address)
+        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 
 
