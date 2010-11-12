@@ -280,7 +280,7 @@ class TurnOff(Job):
         Job.__init__(self,circuit=circuit) 
 
     def toString(self): 
-        return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
+        return "job=coffjobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
 class TurnOn(Job):
     __tablename__ = "turnon"

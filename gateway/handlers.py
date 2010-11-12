@@ -226,9 +226,9 @@ class JobHandler(object):
             job.state = False
             job.end = datetime.datetime.now()
             session.merge(job)
-            return Response(job.toJSON()) 
+            return Response(job.toString()) 
         else:
-            return Response(job.toJSON()) 
+            return Response(job.toString()) 
 
 class AlertHandler(object):
     """
