@@ -289,7 +289,7 @@ class TurnOn(Job):
     id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
     
     def __init__(self,circuit): 
-        Job.__init__(circuit=circuit) 
+        Job.__init__(self,circuit=circuit) 
 
     def toString(self): 
         return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
