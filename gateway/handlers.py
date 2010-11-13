@@ -7,6 +7,7 @@ from webob.exc import HTTPFound
 from pyramid.view import action
 from gateway.models import DBSession, Meter, Message, Circuit, \
     PrimaryLog, Job, AddCredit
+from gateway.messaging import sendMessageQueue
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -26,8 +27,7 @@ class Dashboard(object):
 
 class MetersHandler(object):
     """
-    """
-    
+    """    
     def __init__(self,request):
         self.request = request
         self.breadcrumbs = list(breadcrumbs) 
@@ -160,7 +160,6 @@ class CircuitHandler(object):
         session.delete(self.circuit)
         return HTTPFound(location=self.meter.url())
 
-
 class LoggingHandler(object):
     
     def __init__(self,request ):
@@ -275,10 +274,14 @@ class SMSHandler(object):
     @action(renderer="sms/index.mako") 
     def index(self):
         session  = DBSession()  
-        msgs = session.query(Message).all()
+        incoming_msgs = session.query(Message).\
+            filter_by(incoming=True).order_by(Message.id.desc())
+        outgoing_msgs = session.query(Message).\
+            filter_by(incoming=False).order_by(Message.id.desc())
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"})
-        return { "msgs" : msgs,
+        return { "incoming_msgs" : incoming_msgs,
+                 "outgoing_msgs" : outgoing_msgs,
                  "breadcrumbs" : breadcrumbs } 
 
     @action() 
@@ -294,9 +297,10 @@ class SMSHandler(object):
             incoming=True,
             sent=False,
             text=msgJson["text"],
-            origin=msgJson["from"])
+            origin=msgJson["from"])        
         session.add(message) 
-        return Response() 
+        sendMessageQueue.put_nowait(message.toDict())
+        return Response("ok")
 
     @action() 
     def received(self): 

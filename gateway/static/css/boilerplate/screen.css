@@ -112,3 +112,10 @@ ul.message li {
 .jobs .not-active { 
     background: #e897ab;
 } 
+.incoming { 
+    background: #fae6f7 ; 
+} 
+
+.outgoing { 
+    background: #e6fae9; 
+} 

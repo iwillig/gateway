@@ -7,45 +7,46 @@
 
 <%def name="content()"> 
 
-  <form method="" id="" action="">
-    <table width="" cellspacing="" cellpadding="" border="0">      
-      <tr>
-        <td>To :</td>
-        <td><input type="text" name="to" value="" /></td>
-      </tr>
-      <tr>
-        <td>Message</td>
-        <td>
-          <textarea name="message" 
-                    id="" rows="5" 
-                    cols="30" tabindex="">
-          </textarea>
-        </td>
-      </tr>
-      <tr>
-        <td></td>
-        <td><input type="submit" name="" value="Send Message" /></td>
-      </tr>
-    </table>
-  </form>
-
-  <hr /> 
    <table class="message">      
+     <h4>Incoming messages</h4>
      <tr> 
+       <th>Message id</th>
        <th>To</th> 
        <th>From</th>
        <th>Date</th> 
        <th>Message</th> 
      </tr>
-   % for msg in msgs: 
-     <tr>      
+   % for msg in incoming_msgs: 
+       <td>${msg.id}</td>
        <td>${msg.to}</td> 
        <td>${msg.origin}</td>
-       <td>${msg.date}</td>
+       <td>${msg.date.ctime()}</td>
        <td>${msg.text}</td>
      </tr>
    % endfor 
 
    </table> 
+   <table class="message">      
+     <h4>Outgoing messages</h4>
+     <tr> 
+       <th>Message id</th>
+       <th>To</th> 
+       <th>From</th>
+       <th>Date</th> 
+       <th>Message</th> 
+       <th>Sent</th>
+     </tr>
+   % for msg in outgoing_msgs: 
+       <td>${msg.id}</td>
+       <td>${msg.to}</td> 
+       <td>${msg.origin}</td>
+       <td>${msg.date.ctime()}</td>
+       <td>${msg.text}</td>
+       <td>${msg.sent}</td>
+     </tr>
+   % endfor 
+
+   </table> 
+
 
 </%def>

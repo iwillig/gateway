@@ -1,0 +1,5 @@
+*pyc
+/gateway.egg-info/*
+/gateway.db
+/gateway/static/favicon.ico
+/gateway/static/jquery-JsonML-plugin/

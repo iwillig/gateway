@@ -40,7 +40,7 @@
         <tr>
           <td class="hint">Circuit status :</td>
           <td>${circuit.status}</td>
-          <td></td>
+          <td class="hint">0 means the circuit if off, 1 means its on.</td>
         </tr>
       </table>
     </td>    
@@ -101,7 +101,7 @@
 </table>
 <hr /> 
 <h4>Last 20 logs associated with circuit</h4>
-<table border="">
+<table border="0">
   <tr>
     <th>Log id</th>
     <th>Log uuid</th>

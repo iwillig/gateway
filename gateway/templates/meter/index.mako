@@ -63,7 +63,7 @@
     <input type="submit" id="add-circuit" name="" value="Add circuit" />
 </div> 
 
-<table width="" class="circuits" cellspacing="" cellpadding="" border="0">
+<table class="circuits">
   <tr>
     <th><strong>Circuit ip address</strong></th>
     <th><strong>Circuit uuid: </strong></th>

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# vim: ai ts=4 sts=4 et sw=4 coding=utf-8
-
 import transaction
 import random
 import uuid 
@@ -118,7 +115,8 @@ class Circuit(Base):
 
     def get_jobs(self):
         session = DBSession()
-        return session.query(Job).filter_by(circuit=self)
+        return session.query(Job).\
+            filter_by(circuit=self).order_by(Job.id.desc())
 
     def get_logs(self): 
         session = DBSession() 
@@ -171,7 +169,7 @@ class Message(Base):
     origin = Column(Integer) 
     
     
-    def __init__(self,uuid,incoming,sent,text,origin,to=18182124554):
+    def __init__(self,uuid,incoming,sent,text,origin=1,to=1):
         self.date = get_now() 
         self.uuid = uuid
         self.incoming = incoming
@@ -180,13 +178,24 @@ class Message(Base):
         self.to = to 
         self.origin = origin 
 
-    def toJSON(self): 
+    def toDict(self): 
         return { "from" : self.origin,
                  "to"   : self.to,
                  "uuid" : self.uuid,
                  "text" : self.text,
                  "id"   : self.id, } 
-        
+
+    @staticmethod
+    def send_message(to=None,text=None): 
+        session = DBSession() 
+        session.add(Message(
+                uuid=str(uuid.uuid4()),
+                incoming=False,
+                sent=False,
+                text=text,
+                to=to))
+        transaction.commit()
+
     def __unicode__(self): 
         return "Messsage <%s>" % self.uuid
 
