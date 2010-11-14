@@ -28,6 +28,7 @@
    </table> 
    <table class="message">      
      <h4>Outgoing messages</h4>
+     <a href="/sms/received">Active outgoing messages</a>
      <tr> 
        <th>Message id</th>
        <th>To</th> 

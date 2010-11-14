@@ -6,7 +6,7 @@ from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
 from gateway.models import DBSession, Meter, Message, Circuit, \
-    PrimaryLog, Job, AddCredit
+    PrimaryLog, Job, AddCredit, Account
 from gateway.messaging import sendMessageQueue
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
@@ -81,10 +81,13 @@ class MeterHandler(object):
     def add_circuit(self): 
         session  = DBSession()  
         params = self.request.params
-        circuit = Circuit(meter=self.meter.id,
+        account = Account(phone=params.get("phone"))
+        circuit = Circuit(meter=self.meter,
+                          account=account,
                           ip_address=params.get("ip_address"),
                           energy_max=params.get("energy_max"),
                           power_max=params.get("power_max"))
+        session.add(account)
         session.add(circuit)                
         return Response(
             content_type="application/json",
@@ -106,11 +109,11 @@ class MeterHandler(object):
 class CircuitHandler(object):
     
     def __init__(self,request ):
-        session = DBSession() 
+        self.session = DBSession() 
         self.request = request
-        self.circuit = session.query(Circuit).filter_by(
+        self.circuit = self.session.query(Circuit).filter_by(
             uuid=self.request.matchdict["id"]).one()
-        self.meter = self.circuit.get_meter()
+        self.meter = self.circuit.meter
         self.breadcrumbs = breadcrumbs[:]
 
     @action(renderer="circuit/index.mako") 
@@ -148,17 +151,29 @@ class CircuitHandler(object):
     
     @action()
     def add_credit(self): 
-        session = DBSession() 
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
-        session.add(job)
+        self.session.add(job)
         return HTTPFound(location=self.circuit.url())
 
     @action()
     def remove(self): 
-        session = DBSession() 
-        session.delete(self.circuit)
+        self.session.delete(self.circuit)
         return HTTPFound(location=self.meter.url())
+
+class AccountHandler(object):
+    """
+    """
+    
+    def __init__(self,request ):
+        self.session = DBSession
+        self.request = request
+        self.account = self.session.\
+            query(Account).get(self.request.matchdict.get("id"))
+
+    def index(self): 
+        return Response(str(self.account))
+
 
 class LoggingHandler(object):
     
@@ -299,7 +314,7 @@ class SMSHandler(object):
             text=msgJson["text"],
             origin=msgJson["from"])        
         session.add(message) 
-        sendMessageQueue.put_nowait(message.toDict())
+        sendMessageQueue.put_nowait(message.toDict())  # parse the message
         return Response("ok")
 
     @action() 
@@ -307,6 +322,6 @@ class SMSHandler(object):
         session = DBSession() 
         return Response(
             content_type="application/json",                        
-            body=[x.toJSON() for x in session.\
+            body=[x.toDict() for x in session.\
                       query(Message).filter_by(incoming=False).\
                       filter_by(sent=False)]) 

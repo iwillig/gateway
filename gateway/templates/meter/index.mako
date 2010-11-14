@@ -54,6 +54,8 @@
 <h4>Circuits associated with ${meter.name}</h4>
 
 <div class="small-form">
+<label>Phone</lable>
+<input type="text" id="phone" name="phone" value="" />
 <label>Ip Address: </label>
 <input type="text" id="ip_address" name="ip_address" value="192.168.1.201" />
 <label>Energy Max: <label> 

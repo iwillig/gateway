@@ -5,7 +5,7 @@ import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Unicode, DateTime,\
-    ForeignKey, String, Float, Boolean
+    ForeignKey, String, Float, Boolean, Enum
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -46,8 +46,8 @@ class Meter(Base):
 
     def get_circuits(self): 
         session = DBSession() 
-        return [x for x in 
-                session.query(Circuit).filter_by(meter=self.id)] 
+        return [x for x in session.\
+                    query(Circuit).filter_by(meter=self)] 
 
     def url(self): 
         return "/meter/index/%s" % self.uuid 
@@ -66,15 +66,16 @@ class Account(Base):
     """
     __tablename__ = "account" 
     id = Column(Integer, primary_key=True)
-    pin = Column(String) 
+    pin = Column(String)
     name = Column(String)
-    contact = Column(Integer) 
-    secondary_contact = Column(Integer)         
+    phone = Column(Integer)
 
-    def __init__(self,name,contact,secondary_contact):
-        self.name = name 
-        self.contact = contact
-        self.secondary_contact = secondary_contact
+    def __init__(self,name="default",phone=None):
+        self.name = name
+        self.phone = phone
+
+    def url(self): 
+        return "account/index/%s" % self.id
 
 
 class Circuit(Base):
@@ -85,23 +86,30 @@ class Circuit(Base):
     uuid = Column(String)
     date = Column(DateTime) 
     pin = Column(String) 
-    meter = Column("meter",ForeignKey("meter.id"))
+    meter_id = Column("meter",ForeignKey("meter.id"))
+    meter  = relation(Meter, primaryjoin=meter_id == Meter.id)
     energy_max = Column(Float)
     power_max = Column(Float)
     status = Column(Integer) 
     ip_address = Column(String) 
     credit = Column(Integer) 
+    account_id  = Column(Integer, ForeignKey('account.id'))
+    account  = relation(Account, primaryjoin=account_id == Account.id)
 
-    def __init__(self,meter,energy_max,power_max,ip_address,credit=0):
+
+
+    def __init__(self,meter,account,
+                 energy_max,power_max,ip_address,status=1,credit=0):
         self.date = get_now()
         self.uuid = str(uuid.uuid4())
-        self.pin = self.get_pin() 
+        self.pin = self.get_pin()
         self.meter = meter 
         self.energy_max = energy_max
         self.power_max = power_max
         self.ip_address = ip_address
-        self.status = 1 
+        self.status = status
         self.credit = credit
+        self.account = account
 
     def get_pin(self): 
         chars = "qwertyuipasdfghjkzxcvbnm"
@@ -109,9 +117,10 @@ class Circuit(Base):
         return "%s%s" % ("".join(random.sample(chars,3)),
                       "".join(random.sample(ints,3)))
 
-    def get_meter(self): 
+    def get_meter(self):  # remove this dumb ass 
         session = DBSession()
         return session.query(Meter).get(self.meter)
+
 
     def get_jobs(self):
         session = DBSession()
@@ -199,7 +208,32 @@ class Message(Base):
     def __unicode__(self): 
         return "Messsage <%s>" % self.uuid
 
-class Log(Base): 
+class TokenBatch(Base): 
+    __tablename__ = "tokenbatch"
+    id = Column(Integer, primary_key=True)
+
+
+class Token(Base):
+    __tablename__  = "token" 
+
+    id = Column(Integer, primary_key=True)    
+    created = Column(DateTime) 
+    token = Column(Float) 
+    value = Column(Integer) 
+    state = Column(Enum("new","used"))
+    batch_id = Column(Integer, ForeignKey('tokenbatch.id'))
+    batch  = relation(TokenBatch, primaryjoin=batch_id == TokenBatch.id)
+
+    def __init__(self,token,batch,value,state="new"):
+        self.created = get_now()
+        self.token = token
+        self.value = value
+        self.state = state
+        self.batch = batch 
+        
+
+
+class Log(Base): # really a circuit log 
     __tablename__ = "log"
     id = Column(Integer, primary_key=True)
     date = Column(DateTime)
@@ -214,6 +248,20 @@ class Log(Base):
         self.date = get_now() 
         self.uuid = str(uuid.uuid4())
         self.circuit = circuit
+
+class SystemLog(Base): # to mark system errors
+    __tablename__ = "system_log" 
+    id = Column(Integer, ForeignKey('log.id'), primary_key=True)
+    uuid = Column(String) 
+    text = Column(String) 
+    time = Column(DateTime) 
+
+    def __init__(self,text):
+        self.uuid = str(uuid.uuid4())
+        self.text = text
+        self.time = get_now() 
+        
+
 
 class PrimaryLog(Log): 
     __tablename__ = "primary_log" 

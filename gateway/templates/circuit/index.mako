@@ -40,7 +40,11 @@
         <tr>
           <td class="hint">Circuit status :</td>
           <td>${circuit.status}</td>
-          <td class="hint">0 means the circuit if off, 1 means its on.</td>
+          <td class="hint">0 means the circuit is off, 1 means its on.</td>
+        </tr>
+        <tr>
+          <td class="hint">Account</td>
+          <td><a href="${request.application_url}/${circuit.account.url()}">${circuit.account.phone}</a></td>
         </tr>
       </table>
     </td>    
