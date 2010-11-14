@@ -7,6 +7,7 @@
 
 <%def name="content()"> 
 
+   <a href="${request.application_url}/sms/remove_all">Remove all messages</a>
    <table class="message">      
      <h4>Incoming messages</h4>
      <tr> 

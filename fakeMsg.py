@@ -2,14 +2,13 @@ import uuid
 import urllib2
 import simplejson
 
-account = "uyb538"
+account = "sce824"
 def make_request(msg): 
     return urllib2.Request(
-        data=simplejson.dumps({
-                { "text" : msg,
-                  "from" : "18185846103",
-                  "uuid" : str(uuid.uuid4()) } 
-                }),url="http://localhost:6543/sms/send")
+        data=simplejson.dumps({ "text" : msg,
+                                "from" : "18185846103",
+                                "uuid" : str(uuid.uuid4()) } 
+                              ),url="http://localhost:6543/sms/send")
 
 response = urllib2.urlopen(make_request("bal." + account))
 print("----------------------------") 
@@ -23,29 +22,29 @@ print("Testing french balance")
 print(response.read())
 print("----------------------------") 
 
-response = urllib2.urlopen(make_request("prim." + account + ".18185846103")) 
+response = urllib2.urlopen(make_request("prim." + account + ".18182124554")) 
 print("----------------------------") 
 print("set primary number english") 
 print(response.read())
 print("----------------------------") 
 
-response = urllib2.urlopen(make_request("tel." + account +  ".18185846103")) 
-print("----------------------------") 
-print("set primary number fr") 
-print(response.read())
-print("----------------------------") 
+# response = urllib2.urlopen(make_request("tel." + account +  ".18185846103")) 
+# print("----------------------------") 
+# print("set primary number fr") 
+# print(response.read())
+# print("----------------------------") 
 
-response = urllib2.urlopen(make_request("add." + account + ".12345")) 
-print("----------------------------") 
-print("add credit in en") 
-print(response.read())
-print("----------------------------") 
+# response = urllib2.urlopen(make_request("add." + account + ".12345")) 
+# print("----------------------------") 
+# print("add credit in en") 
+# print(response.read())
+# print("----------------------------") 
 
-response = urllib2.urlopen(make_request("recharge." + account  +".12345")) 
-print("----------------------------") 
-print(" add credit in fr") 
-print(response.read())
-print("----------------------------") 
+# response = urllib2.urlopen(make_request("recharge." + account  +".12345")) 
+# print("----------------------------") 
+# print(" add credit in fr") 
+# print(response.read())
+# print("----------------------------") 
 
 # response = urllib2.urlopen(make_request("on. " + account + ".12345")) 
 # print("----------------------------") 

@@ -18,23 +18,15 @@ class Dashboard(object):
     def __init__(self, request):
         self.request = request
         self.breadcrumbs = list(breadcrumbs)
+        self.session = DBSession()
 
     @action(renderer='index.mako')
     def index(self):
-        session  = DBSession()  
-        meters = session.query(Meter)
+        meters = self.session.query(Meter)
         return {"meters" :  meters, "breadcrumbs" : self.breadcrumbs} 
 
-class MetersHandler(object):
-    """
-    """    
-    def __init__(self,request):
-        self.request = request
-        self.breadcrumbs = list(breadcrumbs) 
-
     @action(renderer="meter/add.mako") 
-    def add(self): 
-        session  = DBSession()  
+    def add_meter(self): 
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append({"text" : "Add a new meter"})
         if self.request.method == "POST": 
@@ -42,13 +34,15 @@ class MetersHandler(object):
             meter = Meter(name=params.get("name"),
                           location=params.get("location"),
                           battery=params.get("battery"),)
-            session.add(meter)
+            self.session.add(meter)
             return HTTPFound(
                 location="%s%s" % (self.request.application_url,
                                    meter.url()))
         else: 
             return {"breadcrumbs": self.breadcrumbs} 
-
+    @action()
+    def add_tokens(self): 
+        return Response("stuff") 
 
 class MeterHandler(object):
     """
@@ -56,8 +50,8 @@ class MeterHandler(object):
     """    
     def __init__(self,request):
         self.request = request
-        session  = DBSession()  
-        self.meter = session.query(Meter).filter_by(
+        self.session  = DBSession()  
+        self.meter = self.session.query(Meter).filter_by(
             uuid=self.request.matchdict["id"]).one()
         self.breadcrumbs = breadcrumbs[:]
 
@@ -75,11 +69,10 @@ class MeterHandler(object):
             content_type="application/json",
             body=simplejson.dumps(
                 [x.toJSON() for x in session.query(
-                        Circuit).filter_by(meter=self.meter.id)])) 
+                        Circuit).filter_by(meter=self.meter)])) 
 
     @action(request_method='POST')
     def add_circuit(self): 
-        session  = DBSession()  
         params = self.request.params
         account = Account(phone=params.get("phone"))
         circuit = Circuit(meter=self.meter,
@@ -87,8 +80,8 @@ class MeterHandler(object):
                           ip_address=params.get("ip_address"),
                           energy_max=params.get("energy_max"),
                           power_max=params.get("power_max"))
-        session.add(account)
-        session.add(circuit)                
+        self.session.add(account)
+        self.session.add(circuit)                
         return Response(
             content_type="application/json",
             body=simplejson.dumps(circuit.toJSON()))
@@ -100,10 +93,9 @@ class MeterHandler(object):
             
     @action() 
     def remove(self): 
-        session  = DBSession()  
-        session.delete(self.meter)        
-        [session.delete(x) 
-         for x in session.query(Circuit).filter_by(meter=self.meter.id)] 
+        self.session.delete(self.meter)        
+        [self.session.delete(x) 
+         for x in self.session.query(Circuit).filter_by(meter=self.meter.id)] 
         return HTTPFound(location="/")
 
 class CircuitHandler(object):
@@ -229,11 +221,11 @@ class JobHandler(object):
         session = DBSession() 
         matchdict = self.request.matchdict
         meter = session.query(Meter).filter_by(name=matchdict["id"]).first()
-        circuits = list(session.query(Circuit).filter_by(meter=meter.id))
+        circuits = list(session.query(Circuit).filter_by(meter=meter))
         return Response(self._get_jobs(circuits))
         
     @action() 
-    def job(self): # bad name because of legacy code 
+    def job(self): 
         session = DBSession()
         job = session.query(Job).get(self.request.matchdict["id"])
         if self.request.method == "DELETE": 
@@ -285,19 +277,23 @@ class SMSHandler(object):
     def __init__(self,request):
         self.request = request
         self.breadcrumbs = breadcrumbs[:] 
+        self.session = DBSession()
 
     @action(renderer="sms/index.mako") 
     def index(self):
-        session  = DBSession()  
-        incoming_msgs = session.query(Message).\
+        incoming_msgs = self.session.query(Message).\
             filter_by(incoming=True).order_by(Message.id.desc())
-        outgoing_msgs = session.query(Message).\
+        outgoing_msgs = self.session.query(Message).\
             filter_by(incoming=False).order_by(Message.id.desc())
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"})
         return { "incoming_msgs" : incoming_msgs,
                  "outgoing_msgs" : outgoing_msgs,
                  "breadcrumbs" : breadcrumbs } 
+    @action() 
+    def remove_all(self): 
+        [self.session.delete(msg) for msg in self.session.query(Message).all()]
+        return HTTPFound(location="%ssms/" % self.request.application_url) 
 
     @action() 
     def ping(self): 
@@ -305,7 +301,6 @@ class SMSHandler(object):
 
     @action() 
     def send(self):
-        session  = DBSession()  
         msgJson = simplejson.loads(self.request.body)
         message = Message(
             uuid=msgJson["uuid"],
@@ -313,15 +308,15 @@ class SMSHandler(object):
             sent=False,
             text=msgJson["text"],
             origin=msgJson["from"])        
-        session.add(message) 
+        self.session.add(message) 
         sendMessageQueue.put_nowait(message.toDict())  # parse the message
-        return Response("ok")
+        return Response(message.uuid)
 
     @action() 
     def received(self): 
-        session = DBSession() 
         return Response(
             content_type="application/json",                        
-            body=[x.toDict() for x in session.\
+            body=[x.toDict() for x in self.session.\
                       query(Message).filter_by(incoming=False).\
                       filter_by(sent=False)]) 
+

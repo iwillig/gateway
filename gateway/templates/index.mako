@@ -9,7 +9,7 @@
 <div id="manage-meter" class="intro-box">
 <h4>Manage and edit <strong>meters</strong></h4> 
 <p>Edit, remove and manage meters</p>
-<p><a href="/meters/add/"> Add a new meter</a></p>
+<p><a href="${request.application_url}/add_meter"> Add a new meter</a></p>
 
 <table border="0">
   <tr>
@@ -32,6 +32,26 @@
 </ul>
 </div>
 
+<div id="manage-token" class="intro-box"> 
+  <h4>Manage and create Tokens</h4>
+  <form method="POST" id=""
+        action="${request.application_url}/add_tokens">
+    <table>
+      <tr>
+        <td class="hint">Number of tokens to be create</td>
+        <td><input type="text" name="amount" value="" /></td>
+      </tr>
+      <tr>
+        <td class="hint">Value for each token</td>
+        <td><input type="text" name="value" value="" /></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><input type="submit" name="" value="Add token" /></td>
+      </tr>
+    </table>
+  </form>
+</div>
 
 <div id="manage-messages" class="intro-box">
 <h4>Manage and send SMS Messages</h4> 

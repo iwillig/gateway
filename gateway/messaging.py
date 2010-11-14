@@ -4,17 +4,16 @@ import datetime
 import time
 from Queue import Queue
 from gateway.models import DBSession, Message,\
-    Circuit, Token, SystemLog
+    Circuit, Token, SystemLog, Account
 
 delimiter = "."
 sendMessageQueue = Queue() 
 
-def get_circuit(message): 
+def get_circuit(session,message): 
     """ 
     Tries to match message to a circuit 
     """ 
-    session = DBSession() 
-    (task,pin) = message["text"].split(delimiter) 
+    pin = message["text"].split(delimiter)[1]
     try:         
         return session.query(Circuit).filter_by(pin=pin).first()
     except Exception,e: 
@@ -28,12 +27,12 @@ def get_token(message):
     Tries to match message to token.
     """
     session = DBSession() 
-    (task,pin,token) = message["text"].split(delimiter) 
+    token = message["text"].split(delimiter)[2] 
     try:
         return session.query(Token).filter_by(token=token).first() 
     except Exception,e: 
         session.add(SystemLog("Unable to find token\
-error@%s message@%s" %(e,message["uuid"] ))) 
+error@%s message@%s" %(e,message["uuid"]))) 
         return False 
 
 def get_balance(message,lang="en"):     
@@ -58,16 +57,40 @@ def get_balance(message,lang="en"):
         pass # failt to match any circuit 
 
 def set_primary_contact(message,lang="en"): 
+    """
+    """
     session = DBSession() 
-    circuit = get_circuit(message) 
+    circuit = get_circuit(session,message) 
+    account = session.query(Account).get(circuit.account.id) # session error, hack
     if circuit:
-        account = circuit.account
-        import ipdb; ipdb.set_trace() 
-        account.phone = message.split(delimiter)[2] 
+        new_number = message["text"].split(delimiter)[2] 
+        old_number = account.phone
         if lang == "en": 
-            pass 
+            if new_number != message["from"]:
+                Message.send_message(
+                    message["from"],
+                    "The previous primary contact number %s\
+ has been replaced with the number %s." % (old_number,
+                                           new_number))
+                Message.send_message(
+                    new_number, 
+                    "The previous primary contact number %s\
+ has been replaced with the number %s." % (old_number,
+                                           new_number))                    
         elif lang == "fr": 
-            pass 
+            Message.send_message(
+                message["from"],
+"Votre numero de contact est desormais %s. Le numero %s ne\
+ sera plus utilise." % (new_number,
+                        old_number))
+            Message.send_message(
+                new_number, 
+"Votre numero de contact est desormais %s. Le numero %s ne\
+ sera plus utilise." % (new_number,
+                        old_number))
+        account.phone = new_number
+        session.merge(account) 
+        transaction.commit() 
     else: 
         pass # fail to match any circuit 
 
