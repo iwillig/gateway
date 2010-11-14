@@ -210,8 +210,7 @@ class Message(Base):
 
 class TokenBatch(Base): 
     __tablename__ = "tokenbatch"
-    id = Column(Integer, primary_key=True)
-
+    id = Column(Integer, primary_key=True)    
 
 class Token(Base):
     __tablename__  = "token" 
@@ -226,11 +225,17 @@ class Token(Base):
 
     def __init__(self,token,batch,value,state="new"):
         self.created = get_now()
-        self.token = token
+        self.token = self.get_random() 
         self.value = value
         self.state = state
         self.batch = batch 
-        
+
+
+    def get_random(self):     
+        r =  int(random.random() * 10**11)
+        if r > 10**10: return r 
+        else: return self.get_random() 
+
 
 
 class Log(Base): # really a circuit log 

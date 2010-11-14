@@ -9,10 +9,11 @@ from gateway.models import DBSession, Message,\
 delimiter = "."
 sendMessageQueue = Queue() 
 
-def get_circuit(session,message): 
+def get_circuit(message): 
     """ 
     Tries to match message to a circuit 
     """ 
+    session = DBSession() 
     pin = message["text"].split(delimiter)[1]
     try:         
         return session.query(Circuit).filter_by(pin=pin).first()
@@ -60,7 +61,7 @@ def set_primary_contact(message,lang="en"):
     """
     """
     session = DBSession() 
-    circuit = get_circuit(session,message) 
+    circuit = get_circuit(message) 
     account = session.query(Account).get(circuit.account.id) # session error, hack
     if circuit:
         new_number = message["text"].split(delimiter)[2] 

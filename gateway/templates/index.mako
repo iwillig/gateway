@@ -55,13 +55,8 @@
 
 <div id="manage-messages" class="intro-box">
 <h4>Manage and send SMS Messages</h4> 
-<p>SMS messages are at the core of how the gateway communicates. This
-  section of the Gateway allows you to send alerts and monitor
-  incoming traffic to the Gateway.</p>
-<ul> 
-  <li>Send <a href="#">SMS alerts</a> to notify consumers of system downtime</li>
-  <li>Monitor <a href="${request.application_url}/sms/index"> all
-      SMS</a>  messages</li>
+<a href="${request.application_url}/sms/index"> Check all SMS
+  messages</a> 
 </div>
 </%def>
 

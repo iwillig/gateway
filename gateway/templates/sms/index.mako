@@ -12,6 +12,7 @@
      <h4>Incoming messages</h4>
      <tr> 
        <th>Message id</th>
+       <th>Message uuid</th>
        <th>To</th> 
        <th>From</th>
        <th>Date</th> 
@@ -19,6 +20,7 @@
      </tr>
    % for msg in incoming_msgs: 
        <td>${msg.id}</td>
+       <td>${msg.uuid}</td>
        <td>${msg.to}</td> 
        <td>${msg.origin}</td>
        <td>${msg.date.ctime()}</td>

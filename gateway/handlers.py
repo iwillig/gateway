@@ -293,7 +293,7 @@ class SMSHandler(object):
     @action() 
     def remove_all(self): 
         [self.session.delete(msg) for msg in self.session.query(Message).all()]
-        return HTTPFound(location="%ssms/" % self.request.application_url) 
+        return HTTPFound(location="%s/sms/index" % self.request.application_url) 
 
     @action() 
     def ping(self): 
