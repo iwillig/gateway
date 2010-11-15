@@ -367,7 +367,6 @@ class MessageHandler(object):
     
     @action(request_method="POST")
     def remove(self): 
-        print(self.request) 
         self.message.sent = True
         self.session.merge(self.message)
         return Response("ok") 
