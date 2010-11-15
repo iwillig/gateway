@@ -354,7 +354,7 @@ class MessageHandler(object):
         self.session = DBSession() 
         self.request = request
         self.message = self.session.\
-            query(Message).filter_by(uuid=self.request.matchdict["id"].first())
+            query(Message).filter_by(uuid=self.request.matchdict["id"]).first()
 
     @action()
     def index(self):
@@ -362,6 +362,7 @@ class MessageHandler(object):
     
     @action(request_method="POST")
     def remove(self): 
+        print(self.request) 
         self.message.sent = True
         self.session.merge(self.message)
         return Response("ok") 
