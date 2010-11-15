@@ -118,4 +118,10 @@ ul.message li {
 
 .outgoing { 
     background: #e6fae9; 
-} 
+}
+
+#auth { 
+ float: right; 
+ width: 100px;
+ font-size: 20px;
+}  

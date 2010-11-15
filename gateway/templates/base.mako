@@ -43,6 +43,13 @@
             % endif
         % endfor 
         </ol>
+        <div id="auth">
+        % if logged_in: 
+              <a href="${request.application_url}/user/logout">Log out</a>
+        % else: 
+              <a href="${request.application_url}/user/login">Log in</a>
+       % endif 
+        </div>
         <div class="content">
           ${self.content()}
         </div>
