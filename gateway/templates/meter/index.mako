@@ -15,6 +15,7 @@
 </%def>
 
 <%def name="content()">
+
 <h3>Meter overview page</h3> 
 <table class="no-border" border="0">
   <tr>

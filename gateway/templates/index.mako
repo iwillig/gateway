@@ -6,20 +6,20 @@
 
 <%def name="content()">
 
-<div id="manage-meter" class="intro-box">
-<h4>Manage and edit <strong>meters</strong></h4> 
-<p>Edit, remove and manage meters</p>
-<p><a href="${request.application_url}/add_meter"> Add a new meter</a></p>
-
-<table border="0">
-  <tr>
-    <th>Meter uuid</th>
-    <th>Meter name</th>
-    <th>Meter location</th>
-    <th>Number of circuits</th>
-  </tr>
-  <hr />
-  % for meter in meters:
+% if logged_in:
+   <div id="manage-meter" class="intro-box">
+      <h4>Manage and edit <strong>meters</strong></h4> 
+      <p>Edit, remove and manage meters</p>
+      <p><a href="${request.application_url}/add_meter"> Add a new meter</a></p>
+      <table>
+        <tr>
+          <th>Meter uuid</th>
+          <th>Meter name</th>
+          <th>Meter location</th>
+          <th>Number of circuits</th>
+         </tr>
+      <hr />
+   % for meter in meters:
   <tr>
     <td><a href="${meter.url()}">${meter.uuid}</a></td>
     <td>${meter.name}</td>
@@ -75,6 +75,10 @@
 <h4>Manage and send SMS Messages</h4> 
 <a href="${request.application_url}/sms/index"> Check all SMS
   messages</a> 
+% else: 
+
+% endif
+
 </div>
 </%def>
 
