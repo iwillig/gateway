@@ -2,21 +2,27 @@ import transaction
 import random
 import uuid 
 import datetime
-
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Unicode, DateTime,\
     ForeignKey, String, Float, Boolean, Enum
-
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
-
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker, relation
-
 from zope.sqlalchemy import ZopeTransactionExtension
+from pyramid.security import Allow
+from pyramid.security import Everyone
+
 
 DBSession = scoped_session (sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
+
+
+class RootFactory(object):
+    __acl__ = [ (Allow, Everyone, 'view'),
+                (Allow, 'group:admins', 'admin') ]
+    def __init__(self, request):
+        pass
 
 def get_now(): 
     return datetime.datetime.now()
