@@ -5,9 +5,13 @@ from urlparse import parse_qs
 from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
+from pyramid.security import authenticated_userid
+from pyramid.security import remember
+from pyramid.security import forget
 from gateway.models import DBSession, Meter, Message, Circuit, \
     PrimaryLog, Job, AddCredit, Account, TokenBatch, Token
 from gateway.messaging import sendMessageQueue
+from gateway.security import USERS
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -20,16 +24,17 @@ class Dashboard(object):
         self.breadcrumbs = breadcrumbs[:]
         self.session = DBSession()
 
-    @action(renderer='index.mako')
+    @action(renderer='index.mako',permission="view")
     def index(self):
         meters = self.session.query(Meter)
         tokenBatchs = self.session.query(TokenBatch).all() 
         return {
+            "logged_in" : authenticated_userid(self.request),
             "tokenBatchs" : tokenBatchs,
             "meters" :  meters, 
             "breadcrumbs" : self.breadcrumbs} 
 
-    @action(renderer="meter/add.mako") 
+    @action(renderer="meter/add.mako",permission="admin") 
     def add_meter(self): 
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append({"text" : "Add a new meter"})
@@ -45,7 +50,7 @@ class Dashboard(object):
 
         else: 
             return {"breadcrumbs": self.breadcrumbs} 
-    @action()
+    @action(permission="admin")
     def add_tokens(self): 
         self.request.params
         batch =  TokenBatch() 
@@ -56,6 +61,41 @@ class Dashboard(object):
                     value = self.request.params["value"],
                     batch = batch))
         return HTTPFound(location=self.request.application_url)
+
+class UserHandler(object):
+    
+    def __init__(self,request ):
+        self.request = request
+        
+    @action(renderer="login.mako")
+    def login(self): 
+        came_from = self.request.params.get('came_from',)
+        message = ''
+        login = ''
+        password = ''
+        if 'form.submitted' in self.request.params:
+              login = self.request.params['login']
+              password = self.request.params['password']
+              if USERS.get(login) == password:
+                  headers = remember(self.request, login)
+                  return HTTPFound(location = "/",
+                                   headers = headers)
+              message = 'Failed login' 
+        return dict(
+            message = message,
+            url = self.request.application_url + '/login',
+            came_from = came_from,
+            login = login,
+            password = password,
+            )
+
+    def logout(self): 
+        headers = forget(self.request)
+        return HTTPFound(
+            headers = headers,
+            location=self.request.application_url)
+        
+
 
 class MeterHandler(object):
     """
@@ -68,12 +108,14 @@ class MeterHandler(object):
             uuid=self.request.matchdict["id"]).one()
         self.breadcrumbs = breadcrumbs[:]
 
-    @action(renderer="meter/index.mako") 
+    @action(renderer="meter/index.mako",permission="admin") 
     def index(self):       
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "Meter Overview"})
-        return { "meter" : self.meter, 
-                 "breadcrumbs" : breadcrumbs } 
+        return { 
+            "logged_in" : authenticated_userid(self.request),
+            "meter" : self.meter, 
+            "breadcrumbs" : breadcrumbs } 
     
     @action()
     def get_circuits(self):
@@ -84,7 +126,7 @@ class MeterHandler(object):
                 [x.toJSON() for x in session.query(
                         Circuit).filter_by(meter=self.meter)])) 
 
-    @action(request_method='POST')
+    @action(request_method='POST',permission="admin")
     def add_circuit(self): 
         params = self.request.params
         account = Account(phone=params.get("phone"))
@@ -100,11 +142,11 @@ class MeterHandler(object):
             body=simplejson.dumps(circuit.toJSON()))
   
 
-    @action(renderer="meter/edit.mako")
+    @action(renderer="meter/edit.mako",permission="admin")
     def edit(self): 
         return { "meter" : self.meter } 
             
-    @action() 
+    @action(permission="admin") 
     def remove(self): 
         self.session.delete(self.meter)        
         [self.session.delete(x) 
@@ -121,16 +163,18 @@ class CircuitHandler(object):
         self.meter = self.circuit.meter
         self.breadcrumbs = breadcrumbs[:]
 
-    @action(renderer="circuit/index.mako") 
+    @action(renderer="circuit/index.mako",permission="admin") 
     def index(self): 
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append({"text": "Meter Overview", "url" : self.meter.url()})
         breadcrumbs.append({"text" : "Circuit Overview"}) 
-        return { "breadcrumbs" : breadcrumbs,                 
-                 "jobs" : self.circuit.get_jobs(),
-                 "circuit" : self.circuit } 
+        return { 
+            "logged_in" : authenticated_userid(self.request),
+            "breadcrumbs" : breadcrumbs,                 
+            "jobs" : self.circuit.get_jobs(),
+            "circuit" : self.circuit } 
 
-    @action(renderer="circuit/edit.mako")
+    @action(renderer="circuit/edit.mako",permission="admin")
     def edit(self): 
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append(
@@ -138,10 +182,12 @@ class CircuitHandler(object):
         breadcrumbs.append(
             {"text" : "Circuit Overview", "url" : self.circuit.url()}) 
         breadcrumbs.append({"text" : "Circuit Edit",}) 
-        return { "breadcrumbs" : breadcrumbs,
-                 "circuit" : self.circuit } 
+        return { 
+            "logged_in" : authenticated_userid(self.request),
+            "breadcrumbs" : breadcrumbs,
+            "circuit" : self.circuit } 
 
-    @action()
+    @action(permission="admin")
     def toggle(self): 
         self.circuit.toggle_status() 
         return HTTPFound(location=self.circuit.url())
@@ -154,14 +200,14 @@ class CircuitHandler(object):
     def jobs(self): 
         return Response([x.toJSON() for x in self.circuit.get_jobs()])
     
-    @action()
+    @action(permission="admin")
     def add_credit(self): 
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
         self.session.add(job)
         return HTTPFound(location=self.circuit.url())
 
-    @action()
+    @action(permission="admin")
     def remove(self): 
         self.session.delete(self.circuit)
         return HTTPFound(location=self.meter.url())
@@ -193,8 +239,11 @@ class LoggingHandler(object):
             query(Circuit).filter_by(ip_address=circuit_id).first() 
 
                 
-    @action()
+    @action() # permission="admin"
     def pp(self): 
+        """
+        Primary log action. Should force the meter to provide authentication
+        """
         params = parse_qs(self.request.body)
         session = DBSession() 
         if not self.meter or not self.circuit: 
@@ -289,14 +338,13 @@ class TokenHandler(object):
     def __init__(self,request ):
         self.request = request
         self.session = DBSession() 
-    
+
+    @action(permission="admin") 
     def batch(self): 
         batch = self.session.\
             query(TokenBatch).filter_by(uuid=self.request.matchdict["id"]).first()
         return Response(simplejson.dumps([x.toDict() for x in batch.get_tokens()]))
         
-
-
 
 class SMSHandler(object):    
     
@@ -305,7 +353,7 @@ class SMSHandler(object):
         self.breadcrumbs = breadcrumbs[:] 
         self.session = DBSession()
 
-    @action(renderer="sms/index.mako") 
+    @action(renderer="sms/index.mako",permission="admin") 
     def index(self):
         incoming_msgs = self.session.query(Message).\
             filter_by(incoming=True).order_by(Message.id.desc())
@@ -313,10 +361,13 @@ class SMSHandler(object):
             filter_by(incoming=False).order_by(Message.id.desc())
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"})
-        return { "incoming_msgs" : incoming_msgs,
-                 "outgoing_msgs" : outgoing_msgs,
-                 "breadcrumbs" : breadcrumbs } 
-    @action() 
+        return { 
+            "logged_in" : authenticated_userid(self.request),
+            "incoming_msgs" : incoming_msgs,
+            "outgoing_msgs" : outgoing_msgs,
+            "breadcrumbs" : breadcrumbs } 
+
+    @action(permission="admin") 
     def remove_all(self): 
         [self.session.delete(msg) for msg in self.session.query(Message).all()]
         return HTTPFound(location="%s/sms/index" % self.request.application_url) 
