@@ -34,14 +34,18 @@
         </ul>
       </div>
         <ol class="breadcrumbs">
-        % for crumb in breadcrumbs: 
-            % if crumb.get("url"):
-              <li>&#187; <a href="${crumb.get("url")}"> 
-               ${crumb.get("text")}</a></li>
-            % else:
-              <li class="active">&#187; ${crumb.get("text")}</li> 
-            % endif
-        % endfor 
+
+        % if breadcrumbs:
+            % for crumb in breadcrumbs: 
+                % if crumb.get("url"):
+                   <li>&#187; <a href="${crumb.get("url")}"> 
+                    ${crumb.get("text")}</a></li>
+                % else:
+                    <li class="active">&#187; ${crumb.get("text")}</li> 
+               % endif
+            % endfor 
+        % endif 
+
         </ol>
         <div id="auth">
         % if logged_in: 
