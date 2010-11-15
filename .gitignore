@@ -3,3 +3,11 @@
 /gateway.db
 /gateway/static/favicon.ico
 /gateway/static/jquery-JsonML-plugin/
+/build/lib/gateway/__init__.py
+/build/lib/gateway/handlers.py
+/build/lib/gateway/messaging.py
+/build/lib/gateway/models.py
+/build/lib/gateway/security.py
+/build/lib/gateway/subscribers.py
+/build/lib/gateway/tests.py
+/dist/gateway-0.0-py2.7.egg

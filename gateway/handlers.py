@@ -1,4 +1,3 @@
-
 import datetime
 import simplejson
 from urlparse import parse_qs 
@@ -155,7 +154,7 @@ class MeterHandler(object):
 
 class CircuitHandler(object):
     
-    def __init__(self,request ):
+    def __init__(self,request):
         self.session = DBSession() 
         self.request = request
         self.circuit = self.session.query(Circuit).filter_by(
@@ -192,10 +191,14 @@ class CircuitHandler(object):
         self.circuit.toggle_status() 
         return HTTPFound(location=self.circuit.url())
     
-    @action() 
-    def graph(self): 
-        return Response("stuff")
-    
+    @action(renderer="circuit/build_graph.mako",permission="admin") 
+    def build_graph(self): 
+        return {"circuit" : self.circuit } 
+
+    @action(renderer="circuit/show_graph.mako",permission="admin") 
+    def show_graph(self): 
+        return {} 
+
     @action()
     def jobs(self): 
         return Response([x.toJSON() for x in self.circuit.get_jobs()])
@@ -344,8 +347,25 @@ class TokenHandler(object):
         batch = self.session.\
             query(TokenBatch).filter_by(uuid=self.request.matchdict["id"]).first()
         return Response(simplejson.dumps([x.toDict() for x in batch.get_tokens()]))
-        
 
+
+class MessageHandler(object):
+    def __init__(self,request ):
+        self.session = DBSession() 
+        self.request = request
+        self.message = self.session.\
+            query(Message).filter_by(uuid=self.request.matchdict["id"].first())
+
+    @action()
+    def index(self):
+        return Response(simplejson.dumps(self.message.toDict())) 
+    
+    @action(request_method="POST")
+    def remove(self): 
+        self.message.sent = True
+        self.session.merge(self.message)
+        return Response("ok") 
+        
 class SMSHandler(object):    
     
     def __init__(self,request):
@@ -374,7 +394,7 @@ class SMSHandler(object):
 
     @action() 
     def ping(self): 
-        return Response("I love you") 
+        return Response("ok") 
 
     @action() 
     def send(self):
@@ -393,7 +413,7 @@ class SMSHandler(object):
     def received(self): 
         return Response(
             content_type="application/json",                        
-            body=[x.toDict() for x in self.session.\
+            body=simplejson.dumps([x.toDict() for x in self.session.\
                       query(Message).filter_by(incoming=False).\
-                      filter_by(sent=False)]) 
+                      filter_by(sent=False)])) 
 

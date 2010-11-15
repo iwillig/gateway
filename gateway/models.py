@@ -200,6 +200,7 @@ class Message(Base):
 
     def toDict(self): 
         return { "from" : self.origin,
+                 "time" : str(self.date),
                  "to"   : self.to,
                  "uuid" : self.uuid,
                  "text" : self.text,

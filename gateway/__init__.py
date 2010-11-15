@@ -51,6 +51,8 @@ def main(global_config, **settings):
                        handler='gateway.handlers:JobHandler')
     config.add_handler('sms','sms/:action',
                        handler='gateway.handlers:SMSHandler') 
+    config.add_handler('message','message/:action/:id',
+                       handler='gateway.handlers:MessageHandler') 
     config.add_handler('account','account/:action/:id',
                        handler='gateway.handlers:AccountHandler')
     config.add_handler('token','token/:action/:id',
