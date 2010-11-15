@@ -69,10 +69,12 @@ class Account(Base):
     pin = Column(String)
     name = Column(String)
     phone = Column(Integer)
+    lang = Column(String)
 
-    def __init__(self,name="default",phone=None):
+    def __init__(self,name="default",phone=None,lang="en"):
         self.name = name
         self.phone = phone
+        self.lang = lang
 
     def url(self): 
         return "account/index/%s" % self.id
@@ -187,6 +189,9 @@ class Message(Base):
         self.to = to 
         self.origin = origin 
 
+    def url(self): 
+        return "sms/message" 
+
     def toDict(self): 
         return { "from" : self.origin,
                  "to"   : self.to,
@@ -211,13 +216,26 @@ class Message(Base):
 class TokenBatch(Base): 
     __tablename__ = "tokenbatch"
     id = Column(Integer, primary_key=True)    
+    uuid = Column(String)
+    created = Column(DateTime)
+    
+    def __init__(self):
+        self.uuid = str(uuid.uuid4())
+        self.created = get_now()
+    
+    def url(self): 
+        return "token/batch/%s" % self.uuid
+
+    def get_tokens(self): 
+        session = DBSession()
+        return session.query(Token).filter_by(batch=self)
 
 class Token(Base):
     __tablename__  = "token" 
 
     id = Column(Integer, primary_key=True)    
     created = Column(DateTime) 
-    token = Column(Float) 
+    token = Column(Integer) 
     value = Column(Integer) 
     state = Column(Enum("new","used"))
     batch_id = Column(Integer, ForeignKey('tokenbatch.id'))
@@ -225,18 +243,25 @@ class Token(Base):
 
     def __init__(self,token,batch,value,state="new"):
         self.created = get_now()
-        self.token = self.get_random() 
+        self.token = token
         self.value = value
         self.state = state
         self.batch = batch 
 
-
-    def get_random(self):     
+    @staticmethod
+    def get_random():     
         r =  int(random.random() * 10**11)
         if r > 10**10: return r 
-        else: return self.get_random() 
+        else: return Token.get_random() 
 
-
+    def toDict(self): 
+        return { 
+            "id" : self.id,
+            "state" : self.state,
+            "value" : self.value,
+            "token" : self.token,
+            "created" : self.created.ctime()} 
+        
 
 class Log(Base): # really a circuit log 
     __tablename__ = "log"
@@ -256,7 +281,7 @@ class Log(Base): # really a circuit log
 
 class SystemLog(Base): # to mark system errors
     __tablename__ = "system_log" 
-    id = Column(Integer, ForeignKey('log.id'), primary_key=True)
+    id = Column(Integer, primary_key=True)
     uuid = Column(String) 
     text = Column(String) 
     time = Column(DateTime) 

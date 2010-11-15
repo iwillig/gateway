@@ -51,6 +51,24 @@
       </tr>
     </table>
   </form>
+  <h4>Existing token batches</h4>
+  <table>    
+    <tr>
+      <th>Batch uuid</th>
+      <th>Batch id</th>
+      <th>Batch created on</th>
+      <th>Number of tokens in batch</th>
+    </tr>
+  % for batch in tokenBatchs:   
+    <tr>
+      <td><a href="${batch.url()}">${batch.uuid}</a></td>
+      <td>${batch.id}</td>
+      <td>${batch.created.ctime()}</td>
+      <td>${batch.get_tokens().count()}</td>
+    </tr>
+  % endfor 
+  </table>
+
 </div>
 
 <div id="manage-messages" class="intro-box">

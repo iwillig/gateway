@@ -6,7 +6,7 @@ from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
 from gateway.models import DBSession, Meter, Message, Circuit, \
-    PrimaryLog, Job, AddCredit, Account
+    PrimaryLog, Job, AddCredit, Account, TokenBatch, Token
 from gateway.messaging import sendMessageQueue
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
@@ -17,13 +17,17 @@ class Dashboard(object):
     """
     def __init__(self, request):
         self.request = request
-        self.breadcrumbs = list(breadcrumbs)
+        self.breadcrumbs = breadcrumbs[:]
         self.session = DBSession()
 
     @action(renderer='index.mako')
     def index(self):
         meters = self.session.query(Meter)
-        return {"meters" :  meters, "breadcrumbs" : self.breadcrumbs} 
+        tokenBatchs = self.session.query(TokenBatch).all() 
+        return {
+            "tokenBatchs" : tokenBatchs,
+            "meters" :  meters, 
+            "breadcrumbs" : self.breadcrumbs} 
 
     @action(renderer="meter/add.mako") 
     def add_meter(self): 
@@ -36,13 +40,22 @@ class Dashboard(object):
                           battery=params.get("battery"),)
             self.session.add(meter)
             return HTTPFound(
-                location="%s%s" % (self.request.application_url,
-                                   meter.url()))
+                 location="%s%s" % (self.request.application_url,
+                                    meter.url()))
+
         else: 
             return {"breadcrumbs": self.breadcrumbs} 
     @action()
     def add_tokens(self): 
-        return Response("stuff") 
+        self.request.params
+        batch =  TokenBatch() 
+        self.session.add(batch)
+        for number in xrange(0,int(self.request.params["amount"])):
+            self.session.add(Token(
+                    token=Token.get_random(),
+                    value = self.request.params["value"],
+                    batch = batch))
+        return HTTPFound(location=self.request.application_url)
 
 class MeterHandler(object):
     """
@@ -270,6 +283,19 @@ class AlertHandler(object):
         No credit alert 
         """
         return Response() 
+
+class TokenHandler(object):
+    
+    def __init__(self,request ):
+        self.request = request
+        self.session = DBSession() 
+    
+    def batch(self): 
+        batch = self.session.\
+            query(TokenBatch).filter_by(uuid=self.request.matchdict["id"]).first()
+        return Response(simplejson.dumps([x.toDict() for x in batch.get_tokens()]))
+        
+
 
 
 class SMSHandler(object):    

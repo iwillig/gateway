@@ -54,15 +54,39 @@
 <h4>Circuits associated with ${meter.name}</h4>
 
 <div class="small-form">
-<label>Phone</lable>
-<input type="text" id="phone" name="phone" value="" />
-<label>Ip Address: </label>
-<input type="text" id="ip_address" name="ip_address" value="192.168.1.201" />
-<label>Energy Max: <label> 
-    <input type="text" id="energy_max" name="" value="100" />
-<label>Power Max: </label>
-    <input type="text" id="power_max"  name="" value="100" />
-    <input type="submit" id="add-circuit" name="" value="Add circuit" />
+  <table>
+    <tr>
+      <td><label>Account language</label></td>
+      <td>
+        <select id="lang"> 
+          <option value="en">English</option>
+          <option value="fr">French</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td><label>Phone</lable></td>
+      <td><input type="text" id="phone" name="phone" value="" /></td>      
+    </tr>
+    <tr>
+      <td><label>Ip Address: </label></td>
+      <td><input type="text" id="ip_address" name="ip_address" value="192.168.1.201" /></td>
+    </tr>
+    <tr>
+      <td><label>Energy Max: <label></td>
+      <td><input type="text" id="energy_max" name="" value="100"
+      /></td>      
+    </tr>
+    <tr>
+      <td><label>Power Max: </label></td>
+      <td><input type="text" id="power_max"  name="" value="100"
+      /></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><input type="submit" id="add-circuit" name="" value="Add circuit" /></td>
+    </tr>
+</table>
 </div> 
 
 <table class="circuits">

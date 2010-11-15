@@ -42,9 +42,14 @@
           <td>${circuit.status}</td>
           <td class="hint">0 means the circuit is off, 1 means its on.</td>
         </tr>
+
         <tr>
-          <td class="hint">Account</td>
+          <td class="hint">Account phone</td>
           <td><a href="${request.application_url}/${circuit.account.url()}">${circuit.account.phone}</a></td>
+        </tr>
+        <tr>
+          <td class="hint">Account language</td>
+          <td>${circuit.account.lang}</td>
         </tr>
       </table>
     </td>    

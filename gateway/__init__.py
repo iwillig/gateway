@@ -39,6 +39,8 @@ def main(global_config, **settings):
                        handler='gateway.handlers:SMSHandler') 
     config.add_handler('account','account/:action/:id',
                        handler='gateway.handlers:AccountHandler')
+    config.add_handler('token','token/:action/:id',
+                       handler='gateway.handlers:TokenHandler')
     config.add_subscriber('gateway.subscribers.add_renderer_globals',
                           'pyramid.events.BeforeRender')
     config.end()

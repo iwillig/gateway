@@ -7,7 +7,8 @@
 <%def name="content()"> 
 <h3>Add a new meter to the gateway</h3> 
 <table class="form" width="" cellspacing="" cellpadding="" border="0">
-  <form method="POST" id="add-meter" action=".">
+  <form method="POST" id="add-meter" 
+        action="${request.application_url}/add_meter">
     <tr>
       <td><label>Meter name: </label></td>
       <td><input type="text" name="name" value="" /> </td>

@@ -4,7 +4,7 @@ import datetime
 import time
 from Queue import Queue
 from gateway.models import DBSession, Message,\
-    Circuit, Token, SystemLog, Account
+    Circuit, Token, SystemLog, Account, AddCredit, TurnOn, TurnOff
 
 delimiter = "."
 sendMessageQueue = Queue() 
@@ -96,23 +96,39 @@ def set_primary_contact(message,lang="en"):
         pass # fail to match any circuit 
 
 def add_credit(message,lang="en"): 
+    """
+    Allows consumer to add credit to their account.
+    Sends an outgoing message to the consumer. 
+    """
+    session = DBSession()
     circuit = get_circuit(message)
     token = get_token(message)
     if circuit and token:
+        session.add(AddCredit(circuit=circuit,credit=token.value))
         if lang == "en": 
-            pass 
+            Message.send_message(
+                message["from"],"Credit has been\
+ added to account %s. Status: %s" % (circuit.pin,circuit.status))
         elif lang == "fr": 
-            pass 
+            Message.send_message(message["from"],"Merci ! Le solde\
+ de la ligne %s est desormais. La ligne est %s." % (circuit.pin,circuit.status))
+        transaction.commit()
+    else: 
+        pass 
 
 def turn_circuit_on(message,lang="en"): 
+    session = DBSession()
     circuit = get_circuit(message)
     if circuit:
-        if lang == "en": 
-            pass 
+        session.add(TurnOn(circuit))
+        transaction.commit()
 
 def turn_circuit_off(message,lang="en"): 
-    # get lang from account
-    pass 
+    session = DBSession() 
+    circuit = get_circuit(message)
+    if circuit:
+        session.add(TurnOff(circuit))
+        transaction.commit()
 
 def use_history(message,lang="en"): 
     if lang == "en": 

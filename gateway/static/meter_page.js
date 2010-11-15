@@ -9,6 +9,7 @@ function loadPage(postURL,getURL) {
 
   $("#add-circuit").click(function() { 
     var phone = $("#phone").val();
+    var lang = $("#lang").val(); 
     var energy_max = $("#energy_max").val(); 
     var power_max = $("#power_max").val(); 
     var ip_address = $("#ip_address").val(); 
@@ -16,6 +17,7 @@ function loadPage(postURL,getURL) {
       type: 'POST',
       url: postURL,
       data: {
+        "lang" : lang,
         "phone" : phone,
         "ip_address" : ip_address,
         "energy_max" : energy_max,
