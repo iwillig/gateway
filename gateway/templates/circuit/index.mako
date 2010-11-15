@@ -10,7 +10,12 @@
 <table class="no-border" border="0">
   <tr>
     <td>
-      <table class="overview" border="0">
+      <table class="overview">
+        <tr>
+          <td class="hint">Circuit id</td>
+          <td>${circuit.id}</td>
+          <td></td>
+        </tr>
         <tr>
           <td class="hint">Circuit ip address</td>
           <td>${circuit.ip_address}</td>
