@@ -48,7 +48,10 @@ class Dashboard(object):
                                     meter.url()))
 
         else: 
-            return {"breadcrumbs": self.breadcrumbs} 
+            return {
+                "logged_in" : authenticated_userid(self.request),
+                "breadcrumbs": self.breadcrumbs} 
+
     @action(permission="admin")
     def add_tokens(self): 
         self.request.params
@@ -193,11 +196,13 @@ class CircuitHandler(object):
     
     @action(renderer="circuit/build_graph.mako",permission="admin") 
     def build_graph(self): 
-        return {"circuit" : self.circuit } 
+        return {
+            "logged_in" : authenticated_userid(self.request),
+            "circuit" : self.circuit } 
 
     @action(renderer="circuit/show_graph.mako",permission="admin") 
     def show_graph(self): 
-        return {} 
+        return { "logged_in" : authenticated_userid(self.request)} 
 
     @action()
     def jobs(self): 
