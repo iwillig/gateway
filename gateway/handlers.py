@@ -108,7 +108,7 @@ class MeterHandler(object):
     def remove(self): 
         self.session.delete(self.meter)        
         [self.session.delete(x) 
-         for x in self.session.query(Circuit).filter_by(meter=self.meter.id)] 
+         for x in self.session.query(Circuit).filter_by(meter=self.meter)] 
         return HTTPFound(location="/")
 
 class CircuitHandler(object):
