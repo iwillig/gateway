@@ -59,6 +59,7 @@ def get_balance(message,lang="en"):
 
 def set_primary_contact(message,lang="en"): 
     """
+    Allows users to set their primary contact number
     """
     session = DBSession() 
     circuit = get_circuit(message) 
@@ -67,12 +68,12 @@ def set_primary_contact(message,lang="en"):
         new_number = message["text"].split(delimiter)[2] 
         old_number = account.phone
         if lang == "en": 
-            if new_number != message["from"]:
-                Message.send_message(
-                    message["from"],
-                    "The previous primary contact number %s\
+            Message.send_message(
+                message["from"],
+                "The previous primary contact number %s\
  has been replaced with the number %s." % (old_number,
                                            new_number))
+            if new_number != message["from"]:
                 Message.send_message(
                     new_number, 
                     "The previous primary contact number %s\
@@ -84,9 +85,10 @@ def set_primary_contact(message,lang="en"):
 "Votre numero de contact est desormais %s. Le numero %s ne\
  sera plus utilise." % (new_number,
                         old_number))
-            Message.send_message(
-                new_number, 
-"Votre numero de contact est desormais %s. Le numero %s ne\
+            if new_number != message["from"]:
+                Message.send_message(
+                    new_number, 
+                    "Votre numero de contact est desormais %s. Le numero %s ne\
  sera plus utilise." % (new_number,
                         old_number))
         account.phone = new_number
@@ -120,15 +122,32 @@ def turn_circuit_on(message,lang="en"):
     session = DBSession()
     circuit = get_circuit(message)
     if circuit:
+        if circuit.account.lang == "en" : 
+            Message.send_message(message["from"],"Account %s is %s.\
+Remaining credit: %s" % (circuit.pin,circuit.status,circuit.credit))
+        elif circuit.account.lang == "fr" : 
+            Message.send_message(message["from"],"%s La ligne %s est %s.\
+ Solde restant: %s." % (circuit.status,circuit.pin,circuit.status,circuit.credit))
         session.add(TurnOn(circuit))
         transaction.commit()
+    else: 
+        pass # 
 
 def turn_circuit_off(message,lang="en"): 
     session = DBSession() 
     circuit = get_circuit(message)
     if circuit:
+        if circuit.account.lang == "en": 
+            pass 
+        elif circuit.account.lang == "fr": 
+            pass 
         session.add(TurnOff(circuit))
         transaction.commit()
+    else: 
+        pass # 
+
+def set_primary_lang(message): 
+    pass 
 
 def use_history(message,lang="en"): 
     if lang == "en": 
@@ -168,6 +187,9 @@ def parse_message():
                 use_history(message)
             elif text.startswith("conso"): 
                 use_history(message,"fr")
+            # allow users to set their primary contact language 
+            elif text.startswith("english"): 
+                set_primary_lang(message) 
             else: 
                 # fall through if it does not
                 Message.send_message(message["from"],
