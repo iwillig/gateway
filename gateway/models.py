@@ -177,9 +177,8 @@ class Message(Base):
     incoming = Column(Boolean) 
     sent = Column(Boolean) 
     text = Column(String) 
-    to = Column(Integer) 
-    origin = Column(Integer) 
-    
+    to = Column(Numeric) 
+    origin = Column(Numeric)
     
     def __init__(self,uuid,incoming,sent,text,origin=1,to=1):
         self.date = get_now() 
