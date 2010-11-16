@@ -60,7 +60,7 @@ class Dashboard(object):
         for number in xrange(0,int(self.request.params["amount"])):
             self.session.add(Token(
                     token=Token.get_random(),
-                    value = self.request.params["value"],
+                    value = int(self.request.params["value"]),
                     batch = batch))
         return HTTPFound(location=self.request.application_url)
 
@@ -409,7 +409,7 @@ class SMSHandler(object):
             incoming=True,
             sent=False,
             text=msgJson["text"],
-            origin=msgJson["from"])        
+            origin=int(msgJson["from"]))        
         self.session.add(message) 
         sendMessageQueue.put_nowait(message.toDict())  # parse the message
         return Response(message.uuid)
