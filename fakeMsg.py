@@ -2,14 +2,14 @@ import uuid
 import urllib2
 import simplejson
 
-account = "bph583"
-token = 94215924356
+account = "arm284"
+token = 45171148916
 def make_request(msg): 
     return urllib2.Request(
         data=simplejson.dumps({ "text" : msg,
                                 "from" : "18185846103",
                                 "uuid" : str(uuid.uuid4()) } 
-                              ),url="http://localhost:6543/sms/send")
+                              ),url="http://173.203.94.233/sms/send")
 
 response = urllib2.urlopen(make_request("bal." + account))
 print("----------------------------") 

@@ -244,7 +244,7 @@ class Token(Base):
     created = Column(DateTime) 
     token = Column(Integer) 
     value = Column(Integer) 
-    state = Column(Enum("new","used"))
+    state = Column(String)
     batch_id = Column(Integer, ForeignKey('tokenbatch.id'))
     batch  = relation(TokenBatch, primaryjoin=batch_id == TokenBatch.id)
 

@@ -4,7 +4,8 @@ from pyramid.authorization import ACLAuthorizationPolicy
 
 
 def main(global_config, **settings):
-    """ This function returns a Pylons WSGI application.
+    """ 
+    This function returns a Pylons WSGI application.
     """
     from paste.deploy.converters import asbool
     from pyramid.configuration import Configurator
