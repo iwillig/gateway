@@ -100,7 +100,7 @@ class Circuit(Base):
     power_max = Column(Float)
     status = Column(Integer) 
     ip_address = Column(String) 
-    credit = Column(Integer) 
+    credit = Column(Float) 
     account_id  = Column(Integer, ForeignKey('account.id'))
     account  = relation(Account, primaryjoin=account_id == Account.id)
 
@@ -299,11 +299,11 @@ class PrimaryLog(Log):
     __tablename__ = "primary_log" 
     __mapper_args__ = {'polymorphic_identity': 'primary_log'}
     id = Column(Integer, ForeignKey('log.id'), primary_key=True)
-    watthours = Column(Integer) 
-    use_time = Column(Integer) 
+    watthours = Column(Float) 
+    use_time = Column(Float) 
     status = Column(Integer) 
     created = Column(String) 
-    credit = Column(Integer) 
+    credit = Column(Float) 
     status = Column(Integer) 
 
     def __init__(self,circuit,credit,watthours,use_time,status):
