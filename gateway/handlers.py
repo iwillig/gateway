@@ -262,7 +262,7 @@ class LoggingHandler(object):
                    credit=params["cr"][0],
                    status=int(params["status"][0])
                          ) 
-        self.circuit.credit = log.credit 
+        self.circuit.credit = int(log.credit)
         self.circuit.status = int(params["status"][0])  # fix 
         session.add(log) 
         session.merge(self.circuit)
