@@ -74,7 +74,7 @@ class Account(Base):
     id = Column(Integer, primary_key=True)
     pin = Column(String)
     name = Column(String)
-    phone = Column(Integer)
+    phone = Column(String)
     lang = Column(String)
 
     def __init__(self,name="default",phone=None,lang="en"):

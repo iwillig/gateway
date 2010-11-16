@@ -131,18 +131,18 @@ class MeterHandler(object):
     @action(request_method='POST',permission="admin")
     def add_circuit(self): 
         params = self.request.params
-        account = Account(phone=params.get("phone"))
+        account = Account(
+            lang=params.get("lang"),
+            phone=params.get("phone"))
         circuit = Circuit(meter=self.meter,
                           account=account,
                           ip_address=params.get("ip_address"),
-                          energy_max=params.get("energy_max"),
-                          power_max=params.get("power_max"))
+                          energy_max=int(params.get("energy_max")),
+                          power_max=int(params.get("power_max")))
         self.session.add(account)
         self.session.add(circuit)                
-        return Response(
-            content_type="application/json",
-            body=simplejson.dumps(circuit.toJSON()))
-  
+        return HTTPFound(location="%s%s" % (
+                self.request.application_url,self.meter.url()))
 
     @action(renderer="meter/edit.mako",permission="admin")
     def edit(self): 
