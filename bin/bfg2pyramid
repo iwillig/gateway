@@ -1,0 +1,9 @@
+#!/home/nitin/gateway-ivan/gateway/bin/python
+# EASY-INSTALL-ENTRY-SCRIPT: 'pyramid==1.0a2','console_scripts','bfg2pyramid'
+__requires__ = 'pyramid==1.0a2'
+import sys
+from pkg_resources import load_entry_point
+
+sys.exit(
+   load_entry_point('pyramid==1.0a2', 'console_scripts', 'bfg2pyramid')()
+)

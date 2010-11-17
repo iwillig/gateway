@@ -1,0 +1,27 @@
+Metadata-Version: 1.0
+Name: pyramid-beaker
+Version: 0.1
+Summary: Beaker session factory backend for Pyramid
+Home-page: http://www.repoze.org
+Author: Chris McDonough, Agendaless Consulting
+Author-email: repoze-dev@lists.repoze.org
+License: BSD-derived (http://www.repoze.org/LICENSE.txt)
+Description: pyramid_beaker
+        ==============
+        
+        Provides a session factory for the `Pyramid <http://docs.pylonshq.com>`_ web
+        framework backed by the `Beaker <http://beaker.groovie.org/>`_ sessioning
+        system.
+        
+        
+        
+        0.1
+        ---
+        
+        - Initial release.
+        
+Keywords: web wsgi pylons pyramid
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Framework :: Pylons
+Classifier: Programming Language :: Python

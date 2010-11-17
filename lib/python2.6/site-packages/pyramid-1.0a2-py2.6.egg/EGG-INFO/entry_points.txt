@@ -1,0 +1,14 @@
+        [paste.paster_create_template]
+        pyramid_starter=pyramid.paster:StarterProjectTemplate
+        pyramid_starter_zcml=pyramid.paster:StarterZCMLProjectTemplate
+        pyramid_zodb=pyramid.paster:ZODBProjectTemplate
+        pyramid_routesalchemy=pyramid.paster:RoutesAlchemyProjectTemplate
+        pyramid_alchemy=pyramid.paster:AlchemyProjectTemplate
+        pylons_basic=pyramid.paster:PylonsBasicProjectTemplate
+        pylons_minimal=pyramid.paster:PylonsMinimalProjectTemplate
+        pylons_sqla=pyramid.paster:PylonsSQLAlchemyProjectTemplate
+        [paste.paster_command]
+        pshell=pyramid.paster:PShellCommand
+        [console_scripts]
+        bfg2pyramid = pyramid.fixers.fix_bfg_imports:main
+      

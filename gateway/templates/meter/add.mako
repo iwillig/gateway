@@ -16,7 +16,7 @@
       must be unique.</td>
     </tr>
     <tr>
-      <td><label>Meter location: </lable></td>
+      <td><label>Meter location: </label></td>
       <td><input type="text" name="location" value="" /></td>
       <td class="hint">Locations should be the physical locations of
       the meter, or close as possible.</td>
