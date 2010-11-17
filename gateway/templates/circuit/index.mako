@@ -104,9 +104,9 @@
     </td>
     <td>${job._type} </td>
     <td>${job.state}</td>
-    <td>${job.start.ctime()}</td>
+    <td>${job.start}</td>
     % if job.end: 
-       <td>${job.end.ctime()}</td>
+       <td>${job.end}</td>
     % else: 
        <td></td>
     % endif 

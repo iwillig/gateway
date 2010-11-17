@@ -30,7 +30,8 @@ def get_token(message):
     session = DBSession() 
     token = message["text"].split(delimiter)[2] 
     try:
-        return session.query(Token).filter_by(token=token).first() 
+        return session.query(Token).\
+            filter_by(state="new").filter_by(token=token).first() 
     except Exception,e: 
         session.add(SystemLog("Unable to find token\
 error@%s message@%s" %(e,message["uuid"]))) 
@@ -63,8 +64,9 @@ def set_primary_contact(message,lang="en"):
     """
     session = DBSession() 
     circuit = get_circuit(message) 
-    account = session.query(Account).get(circuit.account.id) # session error, hack
     if circuit:
+        account = session.\
+            query(Account).get(circuit.account.id) 
         new_number = message["text"].split(delimiter)[2] 
         old_number = account.phone
         if lang == "en": 
@@ -114,6 +116,7 @@ def add_credit(message,lang="en"):
         elif lang == "fr": 
             Message.send_message(message["from"],"Merci ! Le solde\
  de la ligne %s est desormais. La ligne est %s." % (circuit.pin,circuit.status))
+        token.state = "used"
         transaction.commit()
     else: 
         pass 
@@ -156,44 +159,44 @@ def use_history(message,lang="en"):
         pass 
 
 def parse_message(): 
-    while True: 
-        message = sendMessageQueue.get()
-        # check to see if message matchs any known task
-        if message:
-            text = message["text"].lower()  
-            # allow consumers to check their balance
-            if text.startswith("bal"):
-                get_balance(message)
-            elif text.startswith("solde"): 
-                get_balance(message,"fr")                
-            # allow consumers to set their primary contact 
-            elif text.startswith("prim"): 
-                set_primary_contact(message)
-            elif text.startswith("tel"): 
-                set_primary_contact(message,"fr")             
-            # allow consumers to add credit to their circuits
-            elif text.startswith("add"): 
-                add_credit(message) 
-            elif text.startswith("recharge"): 
-                add_credit(message,"fr") 
-            # allow consumers to turn circuits on 
-            elif text.startswith("on"): 
-                turn_circuit_on(message)
-            # allow consumers to turn circuit off
-            elif text.startswith("off"): 
-                turn_circuit_off(message)
-            # allows consumers to get their use history
-            elif text.startswith("use"): 
-                use_history(message)
-            elif text.startswith("conso"): 
-                use_history(message,"fr")
-            # allow users to set their primary contact language 
-            elif text.startswith("english"): 
-                set_primary_lang(message) 
-            else: 
-                # fall through if it does not
-                Message.send_message(message["from"],
-                                     "Unable to processs your message") 
-        time.sleep(3) 
+# check to see if message matchs any known task
+    message = sendMessageQueue.get() 
+
+    if message:
+        text = message["text"].lower()  
+        # allow consumers to check their balance
+        if text.startswith("bal"):
+            get_balance(message)
+        elif text.startswith("solde"): 
+            get_balance(message,"fr")                
+        # allow consumers to set their primary contact 
+        elif text.startswith("prim"): 
+            set_primary_contact(message)
+        elif text.startswith("tel"): 
+            set_primary_contact(message,"fr")             
+        # allow consumers to add credit to their circuits
+        elif text.startswith("add"): 
+            add_credit(message) 
+        elif text.startswith("recharge"): 
+            add_credit(message,"fr") 
+        # allow consumers to turn circuits on 
+        elif text.startswith("on"): 
+            turn_circuit_on(message)
+        # allow consumers to turn circuit off
+        elif text.startswith("off"): 
+            turn_circuit_off(message)
+        # allows consumers to get their use history
+        elif text.startswith("use"): 
+            use_history(message)
+        elif text.startswith("conso"): 
+            use_history(message,"fr")
+        # allow users to set their primary contact language 
+        elif text.startswith("english"): 
+            set_primary_lang(message) 
+        else: 
+            # fall through if it does not
+            Message.send_message(message["from"],
+                                 "Unable to processs your message") 
+    time.sleep(3) 
 
 process_messages = threading.Thread(target=parse_message)
