@@ -63,7 +63,6 @@
       <ul> 
         <li><a href="${circuit.edit_url()}">Edit circuit information</a></li> 
         <li><a href="${circuit.remove_url()}">Remove circuit</a></li>
-        <hr />
         <li><a href="${circuit.toggle_url()}">Toggle on/off</a></li>
         <li>
           <form method="POST" id=""
