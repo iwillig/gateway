@@ -8,8 +8,6 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'ipdb', 
-    'ipython',
     'simplejson',
     'pyramid',
     'pyramid_beaker',

@@ -60,7 +60,7 @@ class Dashboard(object):
         for number in xrange(0,int(self.request.params["amount"])):
             self.session.add(Token(
                     token=Token.get_random(),
-                    value = self.request.params["value"],
+                    value = int(self.request.params["value"]),
                     batch = batch))
         return HTTPFound(location=self.request.application_url)
 
@@ -131,18 +131,18 @@ class MeterHandler(object):
     @action(request_method='POST',permission="admin")
     def add_circuit(self): 
         params = self.request.params
-        account = Account(phone=params.get("phone"))
+        account = Account(
+            lang=params.get("lang"),
+            phone=params.get("phone"))
         circuit = Circuit(meter=self.meter,
                           account=account,
                           ip_address=params.get("ip_address"),
-                          energy_max=params.get("energy_max"),
-                          power_max=params.get("power_max"))
+                          energy_max=int(params.get("energy_max")),
+                          power_max=int(params.get("power_max")))
         self.session.add(account)
         self.session.add(circuit)                
-        return Response(
-            content_type="application/json",
-            body=simplejson.dumps(circuit.toJSON()))
-  
+        return HTTPFound(location="%s%s" % (
+                self.request.application_url,self.meter.url()))
 
     @action(renderer="meter/edit.mako",permission="admin")
     def edit(self): 
@@ -262,7 +262,7 @@ class LoggingHandler(object):
                    credit=params["cr"][0],
                    status=int(params["status"][0])
                          ) 
-        self.circuit.credit = log.credit 
+        self.circuit.credit = float(log.credit)
         self.circuit.status = int(params["status"][0])  # fix 
         session.add(log) 
         session.merge(self.circuit)
@@ -367,7 +367,6 @@ class MessageHandler(object):
     
     @action(request_method="POST")
     def remove(self): 
-        print(self.request) 
         self.message.sent = True
         self.session.merge(self.message)
         return Response("ok") 
@@ -410,7 +409,7 @@ class SMSHandler(object):
             incoming=True,
             sent=False,
             text=msgJson["text"],
-            origin=msgJson["from"])        
+            origin=int(msgJson["from"]))        
         self.session.add(message) 
         sendMessageQueue.put_nowait(message.toDict())  # parse the message
         return Response(message.uuid)

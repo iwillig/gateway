@@ -4,7 +4,7 @@ import uuid
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Unicode, DateTime,\
-    ForeignKey, String, Float, Boolean, Enum
+    ForeignKey, String, Float, Boolean,Numeric
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session
@@ -74,7 +74,7 @@ class Account(Base):
     id = Column(Integer, primary_key=True)
     pin = Column(String)
     name = Column(String)
-    phone = Column(Integer)
+    phone = Column(String)
     lang = Column(String)
 
     def __init__(self,name="default",phone=None,lang="en"):
@@ -100,7 +100,7 @@ class Circuit(Base):
     power_max = Column(Float)
     status = Column(Integer) 
     ip_address = Column(String) 
-    credit = Column(Integer) 
+    credit = Column(Float) 
     account_id  = Column(Integer, ForeignKey('account.id'))
     account  = relation(Account, primaryjoin=account_id == Account.id)
 
@@ -124,11 +124,6 @@ class Circuit(Base):
         ints = "23456789" 
         return "%s%s" % ("".join(random.sample(chars,3)),
                       "".join(random.sample(ints,3)))
-
-    def get_meter(self):  # remove this dumb ass 
-        session = DBSession()
-        return session.query(Meter).get(self.meter)
-
 
     def get_jobs(self):
         session = DBSession()
@@ -182,9 +177,8 @@ class Message(Base):
     incoming = Column(Boolean) 
     sent = Column(Boolean) 
     text = Column(String) 
-    to = Column(Integer) 
-    origin = Column(Integer) 
-    
+    to = Column(Numeric) 
+    origin = Column(Numeric)
     
     def __init__(self,uuid,incoming,sent,text,origin=1,to=1):
         self.date = get_now() 
@@ -200,7 +194,7 @@ class Message(Base):
 
     def toDict(self): 
         return { "from" : self.origin,
-                 "time" : str(self.date),
+                 "time" : self.date,
                  "to"   : self.to,
                  "uuid" : self.uuid,
                  "text" : self.text,
@@ -228,7 +222,7 @@ class TokenBatch(Base):
     
     def __init__(self):
         self.uuid = str(uuid.uuid4())
-        self.created = get_now()
+        self.created = datetime.datetime.now()
     
     def url(self): 
         return "token/batch/%s" % self.uuid
@@ -242,14 +236,14 @@ class Token(Base):
 
     id = Column(Integer, primary_key=True)    
     created = Column(DateTime) 
-    token = Column(Integer) 
-    value = Column(Integer) 
-    state = Column(Enum("new","used"))
+    token = Column(Numeric) 
+    value = Column(Numeric) 
+    state = Column(String)
     batch_id = Column(Integer, ForeignKey('tokenbatch.id'))
     batch  = relation(TokenBatch, primaryjoin=batch_id == TokenBatch.id)
 
     def __init__(self,token,batch,value,state="new"):
-        self.created = get_now()
+        self.created = datetime.datetime.now()
         self.token = token
         self.value = value
         self.state = state
@@ -265,8 +259,8 @@ class Token(Base):
         return { 
             "id" : self.id,
             "state" : self.state,
-            "value" : self.value,
-            "token" : self.token,
+            "value" : int(self.value),
+            "token" : int(self.token),
             "created" : self.created.ctime()} 
         
 
@@ -291,12 +285,12 @@ class SystemLog(Base): # to mark system errors
     id = Column(Integer, primary_key=True)
     uuid = Column(String) 
     text = Column(String) 
-    time = Column(DateTime) 
+    created = Column(String) 
 
     def __init__(self,text):
         self.uuid = str(uuid.uuid4())
         self.text = text
-        self.time = get_now() 
+        self.created = get_now() 
         
 
 
@@ -304,11 +298,11 @@ class PrimaryLog(Log):
     __tablename__ = "primary_log" 
     __mapper_args__ = {'polymorphic_identity': 'primary_log'}
     id = Column(Integer, ForeignKey('log.id'), primary_key=True)
-    watthours = Column(Integer) 
-    use_time = Column(Integer) 
+    watthours = Column(Float) 
+    use_time = Column(Float) 
     status = Column(Integer) 
-    time = Column(Integer) 
-    credit = Column(Integer) 
+    created = Column(String) 
+    credit = Column(Float) 
     status = Column(Integer) 
 
     def __init__(self,circuit,credit,watthours,use_time,status):
@@ -317,7 +311,7 @@ class PrimaryLog(Log):
         self.watthours = watthours
         self.use_time = use_time 
         self.credit = credit
-        self.time = get_now()
+        self.created = get_now()
         self.status = status
     
 
@@ -327,8 +321,8 @@ class Job(Base):
     _type = Column('type', String(50))
     __mapper_args__ = {'polymorphic_on': _type}
     uuid  = Column(String) 
-    start = Column(DateTime) 
-    end = Column(DateTime)
+    start = Column(String) 
+    end = Column(String)
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
     state = Column(Boolean)
