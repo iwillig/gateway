@@ -1,4 +1,8 @@
 *pyc
+/lib/*
+/include/*
+/nbproject/*
+/bin/*
 /gateway.egg-info/*
 /gateway.db
 /gateway/static/favicon.ico
