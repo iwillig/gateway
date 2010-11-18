@@ -35,20 +35,21 @@ class Meter(Base):
     
     id = Column(Integer, primary_key=True)
     uuid = Column(String)
-    name = Column(Unicode(255), unique=True) 
+    name = Column(String) 
     location = Column(String)
     status = Column(Boolean) 
     date = Column(DateTime) 
     battery = Column(Integer) 
     panel_capacity = Column(Integer) 
     
-    def __init__(self,name,location,battery):
+    def __init__(self,name,location,battery,panel_capacity):
         self.uuid = str(uuid.uuid4())
         self.name = name
         self.location = location 
         self.status = False 
         self.date = get_now() 
         self.battery = battery
+        self.panel_capacity = panel_capacity
 
     def get_circuits(self): 
         session = DBSession() 
@@ -143,7 +144,7 @@ class Circuit(Base):
         else:             
             job = TurnOff(circuit=self) 
             session.add(job)
-
+            
     def url(self): 
         return "/circuit/index/%s" % self.uuid
 

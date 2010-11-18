@@ -41,7 +41,8 @@ class Dashboard(object):
             params = self.request.params
             meter = Meter(name=params.get("name"),
                           location=params.get("location"),
-                          battery=params.get("battery"),)
+                          battery=params.get("battery"),
+                          panel_capacity=params.get("panel"))
             self.session.add(meter)
             return HTTPFound(
                  location="%s%s" % (self.request.application_url,
