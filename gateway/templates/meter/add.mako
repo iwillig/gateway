@@ -21,9 +21,15 @@
       <td class="hint">Locations should be the physical locations of
       the meter, or close as possible.</td>
     </tr>
+
     <tr>
       <td><label>Battery Capacity: </label></td>
       <td><input type="text" name="battery" value="100" /></td>
+      <td class="hint">The battery capacity of the meter system.</td>
+    </tr>
+    <tr>
+      <td><label>Panel Capacity: </label></td>
+      <td><input type="text" name="panel" value="100" /></td>
       <td class="hint">The battery capacity of the meter system.</td>
     </tr>
     <tr>

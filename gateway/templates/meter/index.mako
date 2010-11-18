@@ -31,7 +31,7 @@
       </tr>
       <tr>
         <td class="hint">Meter battery capacity:</td>
-        <td>${meter.battery}</td>
+        <td>${str(meter.battery)}</td>
       </tr>
     </table>  
     </td> 
@@ -104,11 +104,11 @@
 
   % for circuit in meter.get_circuits(): 
   <tr>
-    <td>${circuit.ip_address}</td>
+    <td>${str(circuit.ip_address)}</td>
     <td><a href="${circuit.url()}">${circuit.uuid}</a></td>
-    <td>${circuit.pin}</td>
-    <td>${circuit.power_max}</td>
-    <td>${circuit.energy_max}</td>
+    <td>${str(circuit.pin)}</td>
+    <td>${str(circuit.power_max)}</td>
+    <td>${str(circuit.energy_max)}</td>
   </tr>  
   % endfor 
 
