@@ -131,7 +131,8 @@ Remaining credit: %s" % (circuit.pin,circuit.status,circuit.credit))
         elif circuit.account.lang == "fr" : 
             Message.send_message(message["from"],"%s La ligne %s est %s.\
  Solde restant: %s." % (circuit.status,circuit.pin,circuit.status,circuit.credit))
-        session.add(TurnOn(circuit))
+        job = TurnOn(circuit)
+        session.add(job)
         transaction.commit()
     else: 
         pass # 
@@ -164,7 +165,9 @@ def parse_message():
 
     if message:
         text = message["text"].lower()  
-        # allow consumers to check their balance
+        # allow consumers to check their balance        
+        if text.startswith("job"): # collect all jobs
+            pass 
         if text.startswith("bal"):
             get_balance(message)
         elif text.startswith("solde"): 

@@ -65,6 +65,9 @@
         <li><a href="${circuit.remove_url()}">Remove circuit</a></li>
         <li><a href="${circuit.toggle_url()}">Toggle on/off</a></li>
         <li>
+          <a href="${request.application_url}/circuit/build_graph/${circuit.uuid}">
+            Build Graph</a></li>
+        <li>
           <form method="POST" id=""
                 action="${request.application_url}/circuit/add_credit/${circuit.uuid}">
             <label>Amount</label>
@@ -84,8 +87,8 @@
   <tr>
     <th>Job id</th>
     <th>Job description</th>
-    <th>Job uuid</th>
     <th>Job type</th> 
+    <th>Job message</th>
     <th>Job active</th>
     <th>Job start time</th>
     <th>Job end time</th>
@@ -96,12 +99,12 @@
      % else:
         <tr class="not-active">
      % endif 
-    <td>${job.id}</td>
+    <td><a href="${request.application_url}/${job.url()}">${job.id}</a></td>
     <td>${job.description}</td>
-    <td>
-      <a href="${request.application_url}/${job.url()}">${job.uuid}</a>
-    </td>
     <td>${job._type} </td>
+    <td><a 
+           href="${request.application_url}/${job.message.url()}">
+        ${job.message}</a></td>
     <td>${job.state}</td>
     <td>${job.start}</td>
     % if job.end: 

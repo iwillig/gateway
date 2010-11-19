@@ -40,8 +40,9 @@ class Dashboard(object):
         if self.request.method == "POST": 
             params = self.request.params
             meter = Meter(name=params.get("name"),
+                          phone=params.get("phone"),
                           location=params.get("location"),
-                          battery=params.get("battery"),)
+                          battery=params.get("battery"))
             self.session.add(meter)
             return HTTPFound(
                  location="%s%s" % (self.request.application_url,
@@ -200,9 +201,16 @@ class CircuitHandler(object):
             "logged_in" : authenticated_userid(self.request),
             "circuit" : self.circuit } 
 
-    @action(renderer="circuit/show_graph.mako",permission="admin") 
+    @action(permission="admin") 
     def show_graph(self): 
-        return { "logged_in" : authenticated_userid(self.request)} 
+        params = self.request.params        
+        y = params["yaxis"] # power credit watt-hours         
+        _from = params["from"]
+        import ipdb; ipdb.set_trace() 
+        # logs = self.session.query(PrimaryLog).\
+        #     filter_by(PrimaryLog.created.day > ).\
+        #     filter_by(PrimaryLog.created.day < params["to"])        
+        # return Response(str(logs))
 
     @action()
     def jobs(self): 
@@ -304,7 +312,7 @@ class JobHandler(object):
             session.merge(job)
             return Response(job.toString()) 
         else:
-            return Response(job.toString()) 
+            return Response(simplejson.dumps(job.toJSON())) 
 
 class AlertHandler(object):
     """

@@ -67,7 +67,7 @@
       </td>
     </tr>
     <tr>
-      <td><label>Phone</lable></td>
+      <td><label>Account Phone</lable></td>
       <td><input type="text" id="phone" name="phone" value="" /></td>      
     </tr>
     <tr>

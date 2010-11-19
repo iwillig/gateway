@@ -35,6 +35,7 @@ class Meter(Base):
     
     id = Column(Integer, primary_key=True)
     uuid = Column(String)
+    phone = Column(String) 
     name = Column(Unicode(255), unique=True) 
     location = Column(String)
     status = Column(Boolean) 
@@ -42,9 +43,10 @@ class Meter(Base):
     battery = Column(Integer) 
     panel_capacity = Column(Integer) 
     
-    def __init__(self,name,location,battery):
+    def __init__(self,name,phone,location,battery):
         self.uuid = str(uuid.uuid4())
         self.name = name
+        self.phone = phone
         self.location = location 
         self.status = False 
         self.date = get_now() 
@@ -170,19 +172,19 @@ class Circuit(Base):
 class Message(Base):
     """
     """
-    __tablename__  = "sms_message" 
+    __tablename__  = "message" 
     id = Column(Integer, primary_key=True)
     date = Column(DateTime)
     uuid = Column(String) 
     incoming = Column(Boolean) 
     sent = Column(Boolean) 
     text = Column(String) 
-    to = Column(Numeric) 
-    origin = Column(Numeric)
+    to = Column(String) 
+    origin = Column(String)
     
-    def __init__(self,uuid,incoming,sent,text,origin=1,to=1):
+    def __init__(self,incoming,sent,text,origin=1,to=1):
         self.date = get_now() 
-        self.uuid = uuid
+        self.uuid = str(uuid.uuid4())
         self.incoming = incoming
         self.sent = sent 
         self.text = text 
@@ -190,7 +192,7 @@ class Message(Base):
         self.origin = origin 
 
     def url(self): 
-        return "sms/message" 
+        return "sms/message/%s" % self.uuid 
 
     def toDict(self): 
         return { "from" : int(self.origin),
@@ -324,24 +326,37 @@ class Job(Base):
     uuid  = Column(String) 
     start = Column(String) 
     end = Column(String)
+    state = Column(Boolean)
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
-    state = Column(Boolean)
+    message_id = Column(Integer,ForeignKey('message.id'))
+    message = relation(Message,primaryjoin=message_id == Message.id)
 
     def __init__(self,circuit,state=True): 
         self.uuid = str(uuid.uuid4())
         self.start = get_now() 
         self.circuit = circuit
-        self.state = state 
+        self.state = state
+        self.message = Message(incoming=False,
+                               sent=False,
+                               to=self.circuit.meter.phone,
+                               text=self.toString())
+        session = DBSession() 
+        session.add(self.message)
+        transaction.commit() 
 
     def url(self): 
         return "jobs/job/%s/" % self.id
 
     def toJSON(self): 
         return {"uuid": self.uuid,
+                "message" : self.message.uuid,
                 "state" : self.state,
                 "date": self.start,
                 "type": self._type} 
+
+    def toString(self): 
+        return "job"
 
 class AddCredit(Job):
     __tablename__ = "addcredit" 
@@ -353,7 +368,7 @@ class AddCredit(Job):
     def __init__(self,credit,circuit): 
         Job.__init__(self,circuit)
         self.credit = credit 
-        
+
     def toString(self): 
         return "job=cr&jobid=%s&cid=%s&amt=%s;" % (self.id,
                                                 self.circuit.ip_address,

@@ -16,6 +16,13 @@
       must be unique.</td>
     </tr>
     <tr>
+      <td><label>Meter phone: </label></td>
+      <td><input type="text" name="phone" value="" /> </td>
+      <td class="hint">Meter phone number, this is how the Gateway
+      send information to the Meter. This should not be a account
+      number</td>
+    </tr>
+    <tr>
       <td><label>Meter location: </label></td>
       <td><input type="text" name="location" value="" /></td>
       <td class="hint">Locations should be the physical locations of
