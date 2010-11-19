@@ -2,6 +2,7 @@ import transaction
 import random
 import uuid 
 import datetime
+from dateutil import parser 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, DateTime,\
     ForeignKey, String, Float, Boolean,Numeric
@@ -309,7 +310,7 @@ class PrimaryLog(Log):
     watthours = Column(Float) 
     use_time = Column(Float) 
     status = Column(Integer) 
-    created = Column(String) 
+    created = Column(DateTime) 
     credit = Column(Float) 
     status = Column(Integer) 
 
@@ -321,7 +322,16 @@ class PrimaryLog(Log):
         self.credit = credit
         self.created = get_now()
         self.status = status
-    
+
+    def get_property(self,string): 
+        if string == "credit": 
+            return self.credit
+        elif string == "watt": 
+            return self.watthours
+        elif string == "power": 
+            return self.use_time
+        else: 
+            raise NameError("Unable to find Property") 
 
 class Job(Base):
     __tablename__ = "jobs" 

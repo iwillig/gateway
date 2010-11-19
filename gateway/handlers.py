@@ -2,6 +2,7 @@ import datetime
 import uuid
 import simplejson
 from urlparse import parse_qs 
+from dateutil import parser
 from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
@@ -211,10 +212,22 @@ class CircuitHandler(object):
             "logged_in" : authenticated_userid(self.request),
             "circuit" : self.circuit } 
 
-    @action(permission="admin") 
+    @action(renderer="circuit/show_graph.mako",permission="admin") 
     def show_graph(self): 
+        query = self.session.query(PrimaryLog)
         params = self.request.params        
-        return Response(params)
+        # parse the date from the request
+        origin = parser.parse(params["from"]) 
+        to = parser.parse(params["to"])
+        yaxis = params["yaxis"] 
+        # logs = query.\
+        #      filter(PrimaryLog.created > origin).\
+        #      filter(PrimaryLog.created < to)
+        logs = query.filter(PrimaryLog.credit > 20) 
+        return { 
+            "logged_in" : authenticated_userid(self.request),
+            "x" : [str(x.created) for x in logs  ], 
+            "y" : [x.get_property(yaxis) for x in logs ]}  
 
     @action()
     def jobs(self): 
