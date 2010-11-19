@@ -1,4 +1,5 @@
 import datetime
+import uuid
 import simplejson
 from urlparse import parse_qs 
 from webob import Response
@@ -9,7 +10,7 @@ from pyramid.security import remember
 from pyramid.security import forget
 from gateway.models import DBSession, Meter, Message, Circuit, \
     PrimaryLog, Job, AddCredit, Account, TokenBatch, Token
-from gateway.messaging import sendMessageQueue
+from gateway.messaging import parse_message
 from gateway.security import USERS
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
@@ -42,7 +43,9 @@ class Dashboard(object):
             meter = Meter(name=params.get("name"),
                           phone=params.get("phone"),
                           location=params.get("location"),
-                          battery=params.get("battery"))
+                          battery=params.get("battery"),
+                          communication=params.get("communication"),
+                          panel_capacity=params.get("panel"))
             self.session.add(meter)
             return HTTPFound(
                  location="%s%s" % (self.request.application_url,
@@ -194,6 +197,13 @@ class CircuitHandler(object):
     def toggle(self): 
         self.circuit.toggle_status() 
         return HTTPFound(location=self.circuit.url())
+
+    @action(permission="admin") 
+    def remove_jobs(self): 
+        [self.session.delete(job) for job in self.circuit.get_jobs()]
+        return HTTPFound(
+            location="%s%s" % (self.request.application_url,
+                                self.circuit.url()))
     
     @action(renderer="circuit/build_graph.mako",permission="admin") 
     def build_graph(self): 
@@ -204,13 +214,7 @@ class CircuitHandler(object):
     @action(permission="admin") 
     def show_graph(self): 
         params = self.request.params        
-        y = params["yaxis"] # power credit watt-hours         
-        _from = params["from"]
-        import ipdb; ipdb.set_trace() 
-        # logs = self.session.query(PrimaryLog).\
-        #     filter_by(PrimaryLog.created.day > ).\
-        #     filter_by(PrimaryLog.created.day < params["to"])        
-        # return Response(str(logs))
+        return Response(params)
 
     @action()
     def jobs(self): 
@@ -221,6 +225,12 @@ class CircuitHandler(object):
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
         self.session.add(job)
+        self.session.flush()
+        msg = Message.\
+            send_message(to=job.circuit.meter.phone,
+                         job=job.uuid,
+                         text=job.toString())
+        self.session.add(msg)
         return HTTPFound(location=self.circuit.url())
 
     @action(permission="admin")
@@ -312,7 +322,7 @@ class JobHandler(object):
             session.merge(job)
             return Response(job.toString()) 
         else:
-            return Response(simplejson.dumps(job.toJSON())) 
+            return Response(simplejson.dumps(job.toDict())) 
 
 class AlertHandler(object):
     """
@@ -418,8 +428,8 @@ class SMSHandler(object):
             sent=False,
             text=msgJson["text"],
             origin=int(msgJson["from"]))        
+        parse_message(message.toDict())
         self.session.add(message) 
-        sendMessageQueue.put_nowait(message.toDict())  # parse the message
         return Response(message.uuid)
 
     @action() 

@@ -24,7 +24,7 @@
     <td><a href="${meter.url()}">${meter.uuid}</a></td>
     <td>${meter.name}</td>
     <td>${meter.location}</td>
-    <td>${len(meter.get_circuits())}</td>
+    <td>${str(len(meter.get_circuits()))}</td>
   </tr>
   % endfor
 </table>
@@ -62,9 +62,9 @@
   % for batch in tokenBatchs:   
     <tr>
       <td><a href="${batch.url()}">${batch.uuid}</a></td>
-      <td>${batch.id}</td>
+      <td>${str(batch.id)}</td>
       <td>${batch.created.ctime()}</td>
-      <td>${batch.get_tokens().count()}</td>
+      <td>${str(batch.get_tokens().count())}</td>
     </tr>
   % endfor 
   </table>

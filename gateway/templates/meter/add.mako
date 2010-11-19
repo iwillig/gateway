@@ -23,6 +23,17 @@
       number</td>
     </tr>
     <tr>
+      <td><label>Meter communication: </label></td>
+      <td>
+        <select name="communication"> 
+          <option value="sms">SMS</option> 
+          <option value="http">Http/Data</option>
+        </select>
+      </td>
+      <td class="hint">Define how the meter communicates with the
+      gateway</td>
+    </tr>
+    <tr>
       <td><label>Meter location: </label></td>
       <td><input type="text" name="location" value="" /></td>
       <td class="hint">Locations should be the physical locations of
@@ -31,6 +42,11 @@
     <tr>
       <td><label>Battery Capacity: </label></td>
       <td><input type="text" name="battery" value="100" /></td>
+      <td class="hint">The battery capacity of the meter system.</td>
+    </tr>
+    <tr>
+      <td><label>Panel Capacity: </label></td>
+      <td><input type="text" name="panel" value="100" /></td>
       <td class="hint">The battery capacity of the meter system.</td>
     </tr>
     <tr>

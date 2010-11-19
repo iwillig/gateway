@@ -13,44 +13,44 @@
       <table class="overview">
         <tr>
           <td class="hint">Circuit id</td>
-          <td>${circuit.id}</td>
+          <td>${str(circuit.id)}</td>
           <td></td>
         </tr>
         <tr>
           <td class="hint">Circuit ip address</td>
-          <td>${circuit.ip_address}</td>
+          <td>${str(circuit.ip_address)}</td>
           <td></td>
         </tr>
         <tr>
           <td class="hint">Circuit credit</td>
-          <td>${circuit.credit}</td>
+          <td>${str(circuit.credit)}</td>
           <td></td>
         </tr> 
         <tr>
           <td class="hint">Circuit pin :</td>
-          <td>${circuit.pin}</td>
+          <td>${str(circuit.pin)}</td>
           <td class="hint">Circuit pins are used by consumers via sms
             messages</td>
         </tr>
         <tr>
           <td class="hint">Circuit energy max :</td>
-          <td>${circuit.energy_max}</td>
+          <td>${str(circuit.energy_max)}</td>
           <td></td>
         </tr>
         <tr>
           <td class="hint">Circuit power max :</td>
-          <td>${circuit.power_max}</td>
+          <td>${str(circuit.power_max)}</td>
           <td></td>
         </tr>
         <tr>
           <td class="hint">Circuit status :</td>
-          <td>${circuit.status}</td>
+          <td>${str(circuit.status)}</td>
           <td class="hint">0 means the circuit is off, 1 means its on.</td>
         </tr>
 
         <tr>
           <td class="hint">Account phone</td>
-          <td><a href="${request.application_url}/${circuit.account.url()}">${circuit.account.phone}</a></td>
+          <td><a href="${request.application_url}/${circuit.account.url()}">${str(circuit.account.phone)}</a></td>
         </tr>
         <tr>
           <td class="hint">Account language</td>
@@ -83,12 +83,14 @@
 </table>
 <hr />
 <h4>Jobs associated with circuit</h4>
-<table class="jobs" border="0">
+<a 
+   href="${request.application_url}/circuit/remove_jobs/${circuit.uuid}">
+   Clear job queue</a>
+<table class="jobs">
   <tr>
     <th>Job id</th>
     <th>Job description</th>
     <th>Job type</th> 
-    <th>Job message</th>
     <th>Job active</th>
     <th>Job start time</th>
     <th>Job end time</th>
@@ -102,10 +104,8 @@
     <td><a href="${request.application_url}/${job.url()}">${job.id}</a></td>
     <td>${job.description}</td>
     <td>${job._type} </td>
-    <td><a 
-           href="${request.application_url}/${job.message.url()}">
-        ${job.message}</a></td>
     <td>${job.state}</td>
+    <td>${str(job.state)}</td>
     <td>${job.start}</td>
     % if job.end: 
        <td>${job.end}</td>

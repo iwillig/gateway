@@ -1,6 +1,5 @@
 <%inherit file="../base.mako"/>
 
-
 <%def name="header()"> 
    <title>SMS logs</title>
 </%def>
@@ -21,11 +20,11 @@
    % for msg in incoming_msgs: 
      <tr>
        <td><a href="${request.application_url}/${msg.url()}">${msg.uuid}</a></td>
-       <td>${msg.id}</td>
-       <td>${msg.to}</td> 
-       <td>${msg.origin}</td>
+       <td>${str(msg.id)}</td>
+       <td>${str(msg.to)}</td> 
+       <td>${str(msg.origin)}</td>
        <td>${msg.date.ctime()}</td>
-       <td>${msg.text}</td>
+       <td>${str(msg.text)}</td>
      </tr>
    % endfor 
 
@@ -45,12 +44,12 @@
    % for msg in outgoing_msgs: 
      <tr>       
        <td><a href="${request.application_url}">${msg.uuid}</a></td>
-       <td>${msg.id}</td>
-       <td>${msg.to}</td> 
-       <td>${msg.origin}</td>
-       <td>${msg.date.ctime()}</td>
+       <td>${str(msg.id)}</td>
+       <td>${str(msg.to)}</td> 
+       <td>${str(msg.origin)}</td>
+       <td>${str(msg.date.ctime())}</td>
        <td>${msg.text}</td>
-       <td>${msg.sent}</td>
+       <td>${str(msg.sent)}</td>
     </tr>
    % endfor 
 

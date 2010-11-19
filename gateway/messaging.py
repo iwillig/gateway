@@ -133,7 +133,6 @@ Remaining credit: %s" % (circuit.pin,circuit.status,circuit.credit))
  Solde restant: %s." % (circuit.status,circuit.pin,circuit.status,circuit.credit))
         job = TurnOn(circuit)
         session.add(job)
-        transaction.commit()
     else: 
         pass # 
 
@@ -159,10 +158,7 @@ def use_history(message,lang="en"):
     elif lang == "fr":
         pass 
 
-def parse_message(): 
-# check to see if message matchs any known task
-    message = sendMessageQueue.get() 
-
+def parse_message(message): 
     if message:
         text = message["text"].lower()  
         # allow consumers to check their balance        

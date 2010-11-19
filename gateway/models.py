@@ -3,7 +3,7 @@ import random
 import uuid 
 import datetime
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, Unicode, DateTime,\
+from sqlalchemy import Column, Integer, DateTime,\
     ForeignKey, String, Float, Boolean,Numeric
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
@@ -36,14 +36,16 @@ class Meter(Base):
     id = Column(Integer, primary_key=True)
     uuid = Column(String)
     phone = Column(String) 
-    name = Column(Unicode(255), unique=True) 
+    name = Column(String) 
     location = Column(String)
     status = Column(Boolean) 
     date = Column(DateTime) 
     battery = Column(Integer) 
     panel_capacity = Column(Integer) 
+    communication = Column(String) # sms or http 
     
-    def __init__(self,name,phone,location,battery):
+    def __init__(self,name,phone,location,battery,
+                 panel_capacity,communication="sms"):
         self.uuid = str(uuid.uuid4())
         self.name = name
         self.phone = phone
@@ -51,6 +53,8 @@ class Meter(Base):
         self.status = False 
         self.date = get_now() 
         self.battery = battery
+        self.panel_capacity = panel_capacity
+        self.communication = communication
 
     def get_circuits(self): 
         session = DBSession() 
@@ -106,8 +110,6 @@ class Circuit(Base):
     account_id  = Column(Integer, ForeignKey('account.id'))
     account  = relation(Account, primaryjoin=account_id == Account.id)
 
-
-
     def __init__(self,meter,account,
                  energy_max,power_max,ip_address,status=1,credit=0):
         self.date = get_now()
@@ -145,7 +147,7 @@ class Circuit(Base):
         else:             
             job = TurnOff(circuit=self) 
             session.add(job)
-
+            
     def url(self): 
         return "/circuit/index/%s" % self.uuid
 
@@ -181,15 +183,18 @@ class Message(Base):
     text = Column(String) 
     to = Column(String) 
     origin = Column(String)
-    
-    def __init__(self,incoming,sent,text,origin=1,to=1):
+    job = Column(String,nullable=True)
+
+    def __init__(self,text,uuid,job=None,
+                 incoming=True,sent=False,origin=1,to=1):
         self.date = get_now() 
-        self.uuid = str(uuid.uuid4())
+        self.uuid = uuid
         self.incoming = incoming
         self.sent = sent 
         self.text = text 
         self.to = to 
         self.origin = origin 
+        self.job = job
 
     def url(self): 
         return "message/index/%s" % self.uuid 
@@ -204,18 +209,18 @@ class Message(Base):
                  "id"   : self.id, } 
 
     @staticmethod
-    def send_message(to=None,text=None): 
-        session = DBSession() 
-        session.add(Message(
+    def send_message(to=None,text=None,job=None): 
+        message = Message(
                 uuid=str(uuid.uuid4()),
                 incoming=False,
                 sent=False,
                 text=text,
-                to=to))
-        transaction.commit()
+                to=to)
+        return message 
 
     def __unicode__(self): 
         return "Messsage <%s>" % self.uuid
+
 
 class TokenBatch(Base): 
     __tablename__ = "tokenbatch"
@@ -329,26 +334,17 @@ class Job(Base):
     state = Column(Boolean)
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
-    message_id = Column(Integer,ForeignKey('message.id'))
-    message = relation(Message,primaryjoin=message_id == Message.id)
 
     def __init__(self,circuit,state=True): 
         self.uuid = str(uuid.uuid4())
         self.start = get_now() 
         self.circuit = circuit
         self.state = state
-        self.message = Message(incoming=False,
-                               sent=False,
-                               to=self.circuit.meter.phone,
-                               text=self.toString())
-        session = DBSession() 
-        session.add(self.message)
-        transaction.commit() 
 
     def url(self): 
         return "jobs/job/%s/" % self.id
 
-    def toJSON(self): 
+    def toDict(self): 
         return {"uuid": self.uuid,
                 "message" : self.message.uuid,
                 "state" : self.state,

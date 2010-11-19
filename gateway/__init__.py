@@ -11,7 +11,6 @@ def main(global_config, **settings):
     from pyramid.configuration import Configurator
     from gateway.models import initialize_sql
     from gateway.security import groupfinder
-    from gateway.messaging import process_messages
 
     db_string = settings.get('db_string')
     if db_string is None:
@@ -61,7 +60,4 @@ def main(global_config, **settings):
     config.add_subscriber('gateway.subscribers.add_renderer_globals',
                           'pyramid.events.BeforeRender')
     config.end()
-    # start the thread
-    process_messages.setDaemon(True) 
-    process_messages.start() 
     return config.make_wsgi_app()
