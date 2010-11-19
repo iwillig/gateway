@@ -192,12 +192,12 @@ class Message(Base):
         self.origin = origin 
 
     def url(self): 
-        return "sms/message/%s" % self.uuid 
+        return "message/index/%s" % self.uuid 
 
     def toDict(self): 
         return { "from" : int(self.origin),
                  "time" : str(self.date),
-                 "time" : self.date,
+                 "time" : str(self.date),
                  "to"   : int(self.to),
                  "uuid" : self.uuid,
                  "text" : self.text,
