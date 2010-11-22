@@ -2,8 +2,8 @@ import uuid
 import urllib2
 import simplejson
 
-account = "mzp429"
-token = 43010575571
+account = "ymp459"
+token = 43384175794
 def make_request(msg): 
     return urllib2.Request(
         data=simplejson.dumps({ "text" : msg,
@@ -63,19 +63,55 @@ print("----------------------------")
 
 response = urllib2.urlopen(make_request("use." + account)) 
 print("----------------------------") 
-print(" turn the circuit off fr/en ") 
+print("testing use en") 
 print(response.read())
 print("----------------------------") 
 
 response = urllib2.urlopen(make_request("conso." + account)) 
 print("----------------------------") 
-print(" turn the circuit off fr/en ") 
+print("testing use fr") 
 print(response.read())
 print("----------------------------") 
 
 
 response = urllib2.urlopen(make_request("this should fail" + account)) 
 print("----------------------------") 
-print(" test failure ") 
+print("test failure") 
+print(response.read())
+print("----------------------------") 
+
+# test meter messages 
+#Job=pp&cid=<>&wh=<>&...
+#Job=sp&cid=<>&a=<>&...
+#Job=alerts&alert=ce&cid=<>&..
+
+cid = "192.168.1.201"
+
+# test primary log 
+response = urllib2.urlopen(
+    make_request("Job=pp&cid=" + cid  + "&wh=10.00&tu=12.12&cr=21.12&status=1")) 
+print("----------------------------") 
+print("testing primary log") 
+print(response.read())
+print("----------------------------") 
+# test secondary 
+response = urllib2.urlopen(
+    make_request("Job=sp&cid=" + cid + "1&wh=10.00&tu=12.12&cr=21.12&status=1")) 
+print("----------------------------") 
+print("testing secondary log") 
+print(response.read())
+print("----------------------------") 
+# test 
+response = urllib2.urlopen(
+    make_request("Job=alerts&alert=ce&cid=" + cid )) 
+print("----------------------------") 
+print("testing alert ce") 
+print(response.read())
+print("----------------------------") 
+
+response = urllib2.urlopen(
+    make_request("Job=alerts&alert=nocw&cid=" + cid )) 
+print("----------------------------") 
+print("testing alert no credit") 
 print(response.read())
 print("----------------------------") 

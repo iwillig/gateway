@@ -1,10 +1,11 @@
 import transaction
-import threading
 import datetime
+import threading
 import time
 from Queue import Queue
+from urlparse import parse_qs 
 from gateway.models import DBSession, Message,\
-    Circuit, Token, SystemLog, Account, AddCredit, TurnOn, TurnOff
+    Circuit, Token, SystemLog, Account, AddCredit, TurnOn, TurnOff, PrimaryLog
 
 delimiter = "."
 sendMessageQueue = Queue() 
@@ -20,7 +21,6 @@ def get_circuit(message):
     except Exception,e: 
         session.add(SystemLog("Unable to find circuit\
 error@%s message@%s " % (e,message["uuid"])))
-        transaction.commit() 
         return False
 
 def get_token(message): 
@@ -41,6 +41,7 @@ def get_balance(message,lang="en"):
     """
     Allows users to check blance
     """
+    session = DBSession() 
     circuit = get_circuit(message)
     if circuit:
         if lang == "en": 
@@ -49,12 +50,11 @@ def get_balance(message,lang="en"):
                                      circuit.credit,
                                      datetime.datetime.now().ctime())
         elif lang =="fr": 
-            response = "%s unites. Il restait %s unites sur\
-    la ligne %s le %s." % (circuit.credit,
+            response = "%s unites. Il restait %s unites surla ligne %s le %s." % (circuit.credit,
                             circuit.credit,
                             circuit.pin,
                             datetime.datetime.now().ctime())
-        Message.send_message(to=message["from"],text=response) 
+            session.add(Message.send_message(to=message["from"],text=response))
     else: 
         pass # failt to match any circuit 
 
@@ -70,32 +70,31 @@ def set_primary_contact(message,lang="en"):
         new_number = message["text"].split(delimiter)[2] 
         old_number = account.phone
         if lang == "en": 
-            Message.send_message(
+            session.add(Message.send_message(
                 message["from"],
                 "The previous primary contact number %s\
  has been replaced with the number %s." % (old_number,
-                                           new_number))
+                                           new_number)))
             if new_number != message["from"]:
-                Message.send_message(
+                session.add(Message.send_message(
                     new_number, 
                     "The previous primary contact number %s\
  has been replaced with the number %s." % (old_number,
-                                           new_number))                    
+                                           new_number)))
         elif lang == "fr": 
-            Message.send_message(
+            session.add(Message.send_message(
                 message["from"],
 "Votre numero de contact est desormais %s. Le numero %s ne\
  sera plus utilise." % (new_number,
-                        old_number))
+                        old_number)))
             if new_number != message["from"]:
-                Message.send_message(
+                session.add(Message.send_message(
                     new_number, 
                     "Votre numero de contact est desormais %s. Le numero %s ne\
  sera plus utilise." % (new_number,
-                        old_number))
+                        old_number)))
         account.phone = new_number
         session.merge(account) 
-        transaction.commit() 
     else: 
         pass # fail to match any circuit 
 
@@ -108,35 +107,49 @@ def add_credit(message,lang="en"):
     circuit = get_circuit(message)
     token = get_token(message)
     if circuit and token:
-        session.add(AddCredit(circuit=circuit,credit=token.value))
+        job = AddCredit(circuit=circuit,credit=token.value)
+        session.add(Message.send_message(to=circuit.meter.phone,
+                             text=job.toString()))
+        session.add(job)
         if lang == "en": 
-            Message.send_message(
+            session.add(Message.send_message(
                 message["from"],"Credit has been\
- added to account %s. Status: %s" % (circuit.pin,circuit.status))
+ added to account %s. Status: %s" % (circuit.pin,circuit.status)))
         elif lang == "fr": 
-            Message.send_message(message["from"],"Merci ! Le solde\
- de la ligne %s est desormais. La ligne est %s." % (circuit.pin,circuit.status))
+            session.add(Message.send_message(message["from"],"Merci ! Le solde\
+ de la ligne %s est desormais. La ligne est %s." % (circuit.pin,circuit.status)))
         token.state = "used"
-        transaction.commit()
     else: 
         pass 
 
 def turn_circuit_on(message,lang="en"): 
+    """
+    Allows the consumer to turn their account on. 
+    """
     session = DBSession()
     circuit = get_circuit(message)
     if circuit:
         if circuit.account.lang == "en" : 
-            Message.send_message(message["from"],"Account %s is %s.\
-Remaining credit: %s" % (circuit.pin,circuit.status,circuit.credit))
+            session.add(Message.send_message(message["from"],"Account %s is %s.\
+Remaining credit: %s" % (circuit.pin,circuit.status,circuit.credit)))
         elif circuit.account.lang == "fr" : 
-            Message.send_message(message["from"],"%s La ligne %s est %s.\
- Solde restant: %s." % (circuit.status,circuit.pin,circuit.status,circuit.credit))
+            session.add(Message.\
+                            send_message(message["from"],
+                                         "%s La ligne %s est %s.Solde\
+ restant: %s." % (circuit.status,circuit.pin,circuit.status,circuit.credit)))
         job = TurnOn(circuit)
+        msg = Message.send_message(
+            to=circuit.meter.phone,
+            text=job.toString())
+        session.add(msg) 
         session.add(job)
     else: 
         pass # 
 
 def turn_circuit_off(message,lang="en"): 
+    """
+    Allows the consumer to turn off their account. 
+    """
     session = DBSession() 
     circuit = get_circuit(message)
     if circuit:
@@ -144,27 +157,72 @@ def turn_circuit_off(message,lang="en"):
             pass 
         elif circuit.account.lang == "fr": 
             pass 
-        session.add(TurnOff(circuit))
-        transaction.commit()
+        job = TurnOff(circuit) 
+        msg = Message.send_message(
+            to=circuit.meter.phone,
+            text=job.toString())
+        session.add(job)
+        session.add(msg) 
     else: 
         pass # 
 
 def set_primary_lang(message): 
-    pass 
+    """
+    Allows consumer to set their account lang 
+    """ 
 
 def use_history(message,lang="en"): 
+    """
+    Calculates use based on last 30 days of account activity  
+    """
     if lang == "en": 
         pass 
     elif lang == "fr":
         pass 
+
+def parse_meter_message(message):
+    """
+    Parse message from the Meter
+    """
+    session = DBSession() 
+    parsed_message = parse_qs(message["text"].lower())
+    job = parsed_message["job"][0] 
+    circuit = session.query(Circuit).\
+        filter_by(ip_address=parsed_message["cid"][0]).first()
+    if job == "pp": # primary log 
+        log = PrimaryLog(circuit=circuit,
+                         watthours=parsed_message["wh"][0],
+                         use_time=parsed_message["tu"][0],
+                         credit=parsed_message["cr"][0],
+                         status=int(parsed_message["status"][0]))
+        session.add(log)
+    elif job == "sp": # secondary log 
+        pass 
+    elif job == "alerts": 
+        alert = parsed_message['alert'][0]
+        if alert == "nocw": 
+            if circuit.account.lang == "en": # send english alert
+                alert = "Your electricity account %s has been turned off due to insuffcient funds, as of %s" % (circuit.pin,datetime.datetime.now().ctime())
+                session.add(Message.send_message(to=circuit.account.phone,
+                                                 text=alert))
+            elif circuit.account.lang == "fr":  # send french 
+                pass 
+        if alert == "lcw": 
+            if circuit.account.lang == "en": 
+                alert = "Your electricity account {account} balance is low.Your remaining balance is less than 10, as of {time}." 
+                session.add(Message.send_message(to=circuit.account.phone,
+                                                 text=alert))
+            elif circuit.account.lang == "fr": 
+                pass 
+
 
 def parse_message(message): 
     if message:
         text = message["text"].lower()  
         # allow consumers to check their balance        
         if text.startswith("job"): # collect all jobs
-            pass 
-        if text.startswith("bal"):
+            parse_meter_message(message)
+        elif text.startswith("bal"):
             get_balance(message)
         elif text.startswith("solde"): 
             get_balance(message,"fr")                

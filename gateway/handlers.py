@@ -1,5 +1,4 @@
 import datetime
-import uuid
 import simplejson
 from urlparse import parse_qs 
 from dateutil import parser
@@ -93,8 +92,7 @@ class UserHandler(object):
             url = self.request.application_url + '/login',
             came_from = came_from,
             login = login,
-            password = password,
-            )
+            password = password,)
 
     def logout(self): 
         headers = forget(self.request)
@@ -291,8 +289,7 @@ class LoggingHandler(object):
                    watthours=params["wh"][0],
                    use_time=params["tu"][0],
                    credit=params["cr"][0],
-                   status=int(params["status"][0])
-                         ) 
+                   status=int(params["status"][0]))
         self.circuit.credit = float(log.credit)
         self.circuit.status = int(params["status"][0])  # fix 
         session.add(log) 

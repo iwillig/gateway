@@ -184,7 +184,6 @@ class Message(Base):
     text = Column(String) 
     to = Column(String) 
     origin = Column(String)
-    job = Column(String,nullable=True)
 
     def __init__(self,text,uuid,job=None,
                  incoming=True,sent=False,origin=1,to=1):
@@ -195,7 +194,6 @@ class Message(Base):
         self.text = text 
         self.to = to 
         self.origin = origin 
-        self.job = job
 
     def url(self): 
         return "message/index/%s" % self.uuid 
@@ -210,7 +208,7 @@ class Message(Base):
                  "id"   : self.id, } 
 
     @staticmethod
-    def send_message(to=None,text=None,job=None): 
+    def send_message(to=None,text=None): 
         message = Message(
                 uuid=str(uuid.uuid4()),
                 incoming=False,
@@ -272,6 +270,20 @@ class Token(Base):
             "token" : int(self.token),
             "created" : self.created.ctime()} 
         
+class Alert(Base): 
+    __tablename__ = 'alert' 
+    id = Column(Integer, primary_key=True)
+    date = Column(DateTime)
+    text = Column(String)
+    message_id = Column(Integer,ForeignKey('messaage.id'))
+    message = relation(Message,primaryjoin=message_id == Message.id) 
+    circuit_id = Column(Integer, ForeignKey('circuit.id'))
+    circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
+    
+    def __init__(self,text,circuit,message): 
+        self.date = get_now()
+        self.circuit = circuit
+        self.message = message
 
 class Log(Base): # really a circuit log 
     __tablename__ = "log"
@@ -356,7 +368,6 @@ class Job(Base):
 
     def toDict(self): 
         return {"uuid": self.uuid,
-                "message" : self.message.uuid,
                 "state" : self.state,
                 "date": self.start,
                 "type": self._type} 
@@ -404,7 +415,6 @@ class TurnOn(Job):
     def toString(self): 
         return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
-
 
         
 def populate():
