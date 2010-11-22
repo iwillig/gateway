@@ -91,11 +91,10 @@
     <th>Job id</th>
     <th>Job description</th>
     <th>Job type</th> 
-    <th>Job active</th>
     <th>Job start time</th>
     <th>Job end time</th>
   </tr>
-  % for job in jobs: 
+    % for job in jobs: 
      % if job.state == True:
         <tr class="active"> 
      % else:
@@ -104,7 +103,6 @@
     <td><a href="${request.application_url}/${job.url()}">${job.id}</a></td>
     <td>${job.description}</td>
     <td>${job._type} </td>
-    <td>${job.state}</td>
     <td>${str(job.state)}</td>
     <td>${job.start}</td>
     % if job.end: 
