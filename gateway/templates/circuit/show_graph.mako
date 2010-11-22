@@ -5,10 +5,10 @@
     <script type="text/javascript" src="/static/highcharts/highcharts.js"></script>
     <script type="text/javascript" src="/static/use.js"></script>
     <script type="text/javascript">
-      var x=[1,2,3,4];
-      var y=[1,2,3,4];		
-      //var x = ${str(x)} ; 
-      //var y = ${str(y)} ; 
+      //var x=[1,2,3,4];
+      //var y=[1,2,3,4];		
+      var x = ${str(x)} ; 
+      var y = ${str(y)} ; 
       var chart;
 		jQuery(document).ready(function() {
 			chart = new Highcharts.Chart({
