@@ -3,10 +3,9 @@
 <%def name="header()"> 
     <title>Circuit Page</title>
     <script type="text/javascript" src="/static/highcharts/highcharts.js"></script>
-    <script type="text/javascript" src="/static/use.js"></script>
     <script type="text/javascript">
-      //var x=[1,2,3,4];
-      //var y=[1,2,3,4];		
+      //var x=['Nov 11 2010','Nov 12 2010','Nov 13 2010','Nov 14 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010'];
+      //var y=[1,2,3,4,1,2,3,4,5,6,7,8,9,10];		
       var x = ${str(x)} ; 
       var y = ${str(y)} ; 
       var chart;
@@ -16,7 +15,7 @@
 					renderTo: 'container',
 					defaultSeriesType: 'line',
 					marginRight: 130,
-					marginBottom: 25
+					marginBottom: 45
 				},
 				title: {
 					text: 'Circuit Graph',
@@ -27,7 +26,15 @@
 					x: -20
 				},
 				xAxis: {
-					categories: x
+					categories: x,
+					labels: {
+            					rotation: 45,
+            					style: {
+                					font: 'normal 13px Verdana, sans-serif'
+            				}
+            				}
+
+					
 				},
 				yAxis: {
 					title: {
