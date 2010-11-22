@@ -174,51 +174,67 @@ class Circuit(Base):
 
 class Message(Base):
     """
+    Abstract class for all messages 
     """
     __tablename__  = "message" 
+    _type = Column('type', String(50))
+    __mapper_args__ = {'polymorphic_on': _type}
     id = Column(Integer, primary_key=True)
     date = Column(DateTime)
-    uuid = Column(String) 
-    incoming = Column(Boolean) 
     sent = Column(Boolean) 
-    text = Column(String) 
-    to = Column(String) 
-    origin = Column(String)
+    number = Column(String) 
+    uuid = Column(String)
 
-    def __init__(self,text,uuid,job=None,
-                 incoming=True,sent=False,origin=1,to=1):
+    def __init__(self,number,uuid,sent=False):
         self.date = get_now() 
-        self.uuid = uuid
-        self.incoming = incoming
         self.sent = sent 
-        self.text = text 
-        self.to = to 
-        self.origin = origin 
+        self.number = number
+        self.uuid = uuid 
 
     def url(self): 
         return "message/index/%s" % self.uuid 
 
     def toDict(self): 
-        return { "from" : int(self.origin),
+        return { "number" : int(self.number),
                  "time" : str(self.date),
-                 "time" : str(self.date),
-                 "to"   : int(self.to),
                  "uuid" : self.uuid,
                  "text" : self.text,
                  "id"   : self.id, } 
 
-    @staticmethod
-    def send_message(to=None,text=None): 
-        message = Message(
-                uuid=str(uuid.uuid4()),
-                incoming=False,
-                sent=False,
-                text=text,
-                to=to)
-        return message 
-
     def __unicode__(self): 
         return "Messsage <%s>" % self.uuid
+
+class IncomingMessage(Message):
+    """
+    A class that repsents an incoming message
+    """
+    __tablename__ = "incoming_message" 
+    __mapper_args__ = {'polymorphic_identity': 'incoming_message'}
+    id = Column(Integer,ForeignKey('message.id'), primary_key=True)
+    text = Column(String)
+
+    def __init__(self,number,text,uuid,sent=True):
+        Message.__init__(self,number,uuid)
+        self.text = text
+        
+class OutgoingMessage(Message):
+    """ 
+    A class that repents an outgoing sms message
+    """
+    __tablename__ = "outgoing_message" 
+    __mapper_args__ = {'polymorphic_identity': 'outgoing_message'}
+    id = Column(Integer, ForeignKey('message.id'), primary_key=True)
+    text = Column(String) 
+    incoming = Column(String,nullable=True) 
+
+    def __init__(self,number,text,incoming=None):
+        Message.__init__(self,number,str(uuid.uuid4())) 
+        self.text = text 
+        self.incoming = incoming
+
+    def get_incoming(self): 
+        session = DBSession() 
+        return session.query(IncomingMessage).filter_by(uuid=self.incoming).first()
 
 
 class TokenBatch(Base): 
@@ -275,7 +291,7 @@ class Alert(Base):
     id = Column(Integer, primary_key=True)
     date = Column(DateTime)
     text = Column(String)
-    message_id = Column(Integer,ForeignKey('messaage.id'))
+    message_id = Column(Integer,ForeignKey('message.id'))
     message = relation(Message,primaryjoin=message_id == Message.id) 
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
@@ -374,6 +390,26 @@ class Job(Base):
 
     def toString(self): 
         return "job"
+
+
+class JobMessage(Message): 
+    """
+    A class that repsents the text message for each message
+    """ 
+    __tablename__ = "job_message" 
+    __mapper_args__ = {'polymorphic_identity': 'job_message'}
+    id = Column(Integer,ForeignKey('message.id'), primary_key=True)
+    job_id = Column(Integer, ForeignKey('jobs.id'))
+    job = relation(Job, primaryjoin=job_id == Job.id)
+
+    def __init__(self,job): 
+        Message.__init__(self,job.circuit.meter.phone,str(uuid.uuid4())) 
+        self.uuid = str(uuid.uuid4())
+        self.job = job 
+
+    @property
+    def text(self): 
+        return self.job.toString() 
 
 class AddCredit(Job):
     __tablename__ = "addcredit" 

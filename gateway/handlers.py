@@ -8,8 +8,19 @@ from pyramid.view import action
 from pyramid.security import authenticated_userid
 from pyramid.security import remember
 from pyramid.security import forget
-from gateway.models import DBSession, Meter, Message, Circuit, \
-    PrimaryLog, Job, AddCredit, Account, TokenBatch, Token
+
+from gateway.models import DBSession
+from gateway.models import Meter
+from gateway.models import Circuit
+from gateway.models import PrimaryLog
+from gateway.models import Job
+from gateway.models import AddCredit
+from gateway.models import Account
+from gateway.models import TokenBatch
+from gateway.models import Token
+from gateway.models import Message
+from gateway.models import JobMessage
+from gateway.models import IncomingMessage
 from gateway.messaging import parse_message
 from gateway.security import USERS
 
@@ -235,13 +246,8 @@ class CircuitHandler(object):
     def add_credit(self): 
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
-        self.session.add(job)
-        self.session.flush()
-        msg = Message.\
-            send_message(to=job.circuit.meter.phone,
-                         job=job.uuid,
-                         text=job.toString())
-        self.session.add(msg)
+        self.session.add(job)        
+        self.session.add(JobMessage(job))
         return HTTPFound(location=self.circuit.url())
 
     @action(permission="admin")
@@ -407,17 +413,12 @@ class SMSHandler(object):
         self.session = DBSession()
 
     @action(renderer="sms/index.mako",permission="admin") 
-    def index(self):
-        incoming_msgs = self.session.query(Message).\
-            filter_by(incoming=True).order_by(Message.id.desc())
-        outgoing_msgs = self.session.query(Message).\
-            filter_by(incoming=False).order_by(Message.id.desc())
+    def index(self):        
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"})
         return { 
             "logged_in" : authenticated_userid(self.request),
-            "incoming_msgs" : incoming_msgs,
-            "outgoing_msgs" : outgoing_msgs,
+            "messages" : self.session.query(Message).order_by(Message._type),
             "breadcrumbs" : breadcrumbs } 
 
     @action(permission="admin") 
@@ -432,14 +433,13 @@ class SMSHandler(object):
     @action() 
     def send(self):
         msgJson = simplejson.loads(self.request.body)
-        message = Message(
-            uuid=msgJson["uuid"],
-            incoming=True,
-            sent=False,
-            text=msgJson["text"],
-            origin=int(msgJson["from"]))        
-        parse_message(message.toDict())
+        message = IncomingMessage(
+            msgJson["from"],
+            msgJson["text"],
+            msgJson["uuid"])        
         self.session.add(message) 
+        self.session.flush()
+        parse_message(message)
         return Response(message.uuid)
 
     @action() 
@@ -447,6 +447,6 @@ class SMSHandler(object):
         return Response(
             content_type="application/json",                        
             body=simplejson.dumps([x.toDict() for x in self.session.\
-                      query(Message).filter_by(incoming=False).\
-                      filter_by(sent=False)])) 
+                      query(Message).filter_by(_type="outgoing_message").
+                                   filter_by(sent=False)]))
 
