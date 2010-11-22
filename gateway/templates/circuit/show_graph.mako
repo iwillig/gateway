@@ -4,9 +4,8 @@
     <title>Circuit Page</title>
     <script type="text/javascript">
 
-      var x = ${x} ; 
-      var y = ${y} ; 
-
+      var x = ${str(x)} ; 
+      var y = ${str(y)} ; 
     </script>
 </%def> 
 <%def name="content()"> 
