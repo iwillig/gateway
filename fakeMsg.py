@@ -2,8 +2,8 @@ import uuid
 import urllib2
 import simplejson
 
-account = "ymp459"
-token = 43384175794
+account = "eaf592"
+token = 79697375123
 def make_request(msg): 
     return urllib2.Request(
         data=simplejson.dumps({ "text" : msg,
