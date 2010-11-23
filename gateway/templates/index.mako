@@ -73,6 +73,13 @@
 
 <div id="manage-messages" class="intro-box">
 <h4>Manage and send SMS Messages</h4> 
+<form method="POST" id=""
+      action="${request.application_url}/send_message">
+  <input type="text" name="number" value="" />
+  <input type="text" name="text" value="" />
+  <input type="submit" name="" value="Send Test Message" />
+</form>
+
 <a href="${request.application_url}/sms/index"> Check all SMS
   messages</a> 
 % else: 

@@ -31,7 +31,7 @@
        % if msg._type == "incoming_message": 
           <td>${msg.number}</td>
        % elif msg._type == "outgoing_message": 
-          <td>${str(msg.get_incoming().text)}</td>
+          <td>${str(msg.get_incoming())}</td>
        % else: 
           <td></td>
        % endif 

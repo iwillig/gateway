@@ -21,6 +21,7 @@ from gateway.models import Token
 from gateway.models import Message
 from gateway.models import JobMessage
 from gateway.models import IncomingMessage
+from gateway.models import OutgoingMessage
 from gateway.messaging import parse_message
 from gateway.security import USERS
 
@@ -77,6 +78,15 @@ class Dashboard(object):
                     token=Token.get_random(),
                     value = int(self.request.params["value"]),
                     batch = batch))
+        return HTTPFound(location=self.request.application_url)
+
+    @action(permission="admin")
+    def send_message(self): 
+        params = self.request.params
+        self.session.add(
+            OutgoingMessage(
+                number=params.get("number"),
+                text=params.get("text")))
         return HTTPFound(location=self.request.application_url)
 
 class UserHandler(object):
@@ -452,9 +462,12 @@ class SMSHandler(object):
 
     @action() 
     def received(self): 
+        all = [] 
+        all.append([x.toDict() for x in self.session.\
+                        query(Message).filter_by(_type="outgoing_message").filter_by(sent=False)])
+        all.append([x.toDict() for x in self.session.\
+                        query(Message).filter_by(_type="job_message").filter_by(sent=False)])
         return Response(
             content_type="application/json",                        
-            body=simplejson.dumps([x.toDict() for x in self.session.\
-                      query(Message).filter_by(_type="outgoing_message").
-                                   filter_by(sent=False)]))
+            body=simplejson.dumps(all))
 
