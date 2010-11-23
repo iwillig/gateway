@@ -25,6 +25,7 @@ from gateway.models import IncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.messaging import parse_message
 from gateway.security import USERS
+from gateway.utils import get_fields
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -174,8 +175,10 @@ class MeterHandler(object):
                 self.request.application_url,self.meter.url()))
 
     @action(renderer="meter/edit.mako",permission="admin")
-    def edit(self): 
-        return { "meter" : self.meter } 
+    def edit(self):         
+        return {
+            "form" : get_fields(self.meter),
+            "meter" : self.meter } 
 
     @action(permission="admin") 
     def update(self): 

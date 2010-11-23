@@ -60,6 +60,7 @@ class Meter(Base):
         session = DBSession() 
         return [x for x in session.\
                     query(Circuit).filter_by(meter=self)] 
+                        
 
     def url(self): 
         return "/meter/index/%s" % self.uuid 
