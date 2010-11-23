@@ -8,6 +8,7 @@ from pyramid.view import action
 from pyramid.security import authenticated_userid
 from pyramid.security import remember
 from pyramid.security import forget
+from sqlalchemy import or_
 
 from gateway.models import DBSession
 from gateway.models import Meter
@@ -462,12 +463,7 @@ class SMSHandler(object):
 
     @action() 
     def received(self): 
-        all = [] 
-        all.append([x.toDict() for x in self.session.\
-                        query(Message).filter_by(_type="outgoing_message").filter_by(sent=False)])
-        all.append([x.toDict() for x in self.session.\
-                        query(Message).filter_by(_type="job_message").filter_by(sent=False)])
         return Response(
             content_type="application/json",                        
-            body=simplejson.dumps(all))
-
+            body=simplejson.dumps([x.toDict() for x in self.session.query(Message).filter(
+                        or_(Message._type == "job_message", Message._type == "outgoing_message")).all()])) 
