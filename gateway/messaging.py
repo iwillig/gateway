@@ -230,12 +230,14 @@ def parse_meter_message(message):
             session.merge(circuit)
         elif job == "sp": # secondary log 
             pass 
+        elif job == "delete": 
+            pass # remove the job
         elif job == "alerts": 
             alert = parsed_message['alert'][0]
             if alert == "nocw": 
                 if circuit.account.lang == "en": # send english alert
                     alert = "Your electricity account %s has \
-    been turned off due to insuffcient funds, as of %s" % (circuit.pin,datetime.datetime.now().ctime())
+been turned off due to insuffcient funds, as of %s" % (circuit.pin,datetime.datetime.now().ctime())
                     session.add(OutgoingMessage(circuit.account.phone,
                                                 text=alert,
                                                 incoming=message.uuid))
@@ -286,6 +288,6 @@ def parse_message(message):
         set_primary_lang(message) 
     else: 
         # fall through we can not match a message
-        session = DBSession() 
+        session = DBSession()
         session.add(OutgoingMessage(message.number,"Unable to processs your message",incoming=message.uuid))
 

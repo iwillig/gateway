@@ -2,7 +2,6 @@ import transaction
 import random
 import uuid 
 import datetime
-from dateutil import parser 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, DateTime,\
     ForeignKey, String, Float, Boolean,Numeric
@@ -111,11 +110,11 @@ class Circuit(Base):
     account_id  = Column(Integer, ForeignKey('account.id'))
     account  = relation(Account, primaryjoin=account_id == Account.id)
 
-    def __init__(self,meter,account,
+    def __init__(self,meter,account,pin,
                  energy_max,power_max,ip_address,status=1,credit=0):
         self.date = get_now()
         self.uuid = str(uuid.uuid4())
-        self.pin = self.get_pin()
+        self.pin = pin
         self.meter = meter 
         self.energy_max = energy_max
         self.power_max = power_max
@@ -124,7 +123,8 @@ class Circuit(Base):
         self.credit = credit
         self.account = account
 
-    def get_pin(self): 
+    @staticmethod
+    def get_pin(): 
         chars = "qwertyuipasdfghjkzxcvbnm"
         ints = "23456789" 
         return "%s%s" % ("".join(random.sample(chars,3)),

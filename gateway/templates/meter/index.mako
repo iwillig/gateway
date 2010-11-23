@@ -78,10 +78,16 @@
       <td><label>Account Phone</lable></td>
       <td><input type="text" id="phone" name="phone" value="" /></td>      
     </tr>
+
     <tr>
       <td><label>Ip Address: </label></td>
       <td><input type="text" id="ip_address" name="ip_address" 
                  value="192.168.1.201" /></td>
+    </tr>
+    <tr>
+      <td><label>Circuit pin: </label></td>
+      <td><input type="text" id="pin" name="pin" 
+                 value="" /></td>
     </tr>
     <tr>
       <td><label>Energy Max: <label></td>

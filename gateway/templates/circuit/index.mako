@@ -120,12 +120,14 @@
     <th>Log id</th>
     <th>Log uuid</th>
     <th>Log date</th>
+    <th>Log credit</th>
   </tr>
   % for log in circuit.get_logs()[0:20]: 
     <tr>
       <td>${log.id}</td>
       <td> ${log.uuid} </td> 
-      <td>${log.date}</td>
+      <td>${log.date.ctime()}</td>
+      <td>${log.credit}</td>
     </tr>
   % endfor 
 </table>

@@ -145,11 +145,15 @@ class MeterHandler(object):
     @action(request_method='POST',permission="admin")
     def add_circuit(self): 
         params = self.request.params
+        pin = params.get("pin") 
+        if len(pin) == 0: 
+            pin = Circuit.get_pin()
         account = Account(
             lang=params.get("lang"),
             phone=params.get("phone"))
-        circuit = Circuit(meter=self.meter,
+        circuit = Circuit(meter=self.meter,                          
                           account=account,
+                          pin=pin,
                           ip_address=params.get("ip_address"),
                           energy_max=int(params.get("energy_max")),
                           power_max=int(params.get("power_max")))
@@ -161,7 +165,11 @@ class MeterHandler(object):
     @action(renderer="meter/edit.mako",permission="admin")
     def edit(self): 
         return { "meter" : self.meter } 
-            
+
+    @action(permission="admin") 
+    def update(self): 
+        return Response(self.request)
+
     @action(permission="admin") 
     def remove(self): 
         self.session.delete(self.meter)        
@@ -235,7 +243,7 @@ class CircuitHandler(object):
         logs = query.filter(PrimaryLog.credit > 20) 
         return { 
             "logged_in" : authenticated_userid(self.request),
-            "x" : [str(x.created) for x in logs  ], 
+            "x" : [str(x.created.ctime()) for x in logs  ], 
             "y" : [x.get_property(yaxis) for x in logs ]}  
 
     @action()
