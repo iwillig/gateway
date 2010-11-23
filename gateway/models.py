@@ -426,7 +426,7 @@ class AddCredit(Job):
     def toString(self): 
         return "job=cr&jobid=%s&cid=%s&amt=%s;" % (self.id,
                                                 self.circuit.ip_address,
-                                                self.credit)
+                                                float(self.credit))
 
 class TurnOff(Job):
     __tablename__ = "turnoff" 
