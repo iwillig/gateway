@@ -29,11 +29,6 @@
        <td>${msg.number} </td>
        <td>${msg.uuid}</td>
        <td>${msg.text}</td>
-        % if msg.type == "outgoing_message": 
-          <td>${msg.get_incoming().text}</td>
-        % else: 
-          <td></td>
-        % endif
      </tr>
      % endfor 
      
