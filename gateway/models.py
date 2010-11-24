@@ -79,7 +79,6 @@ class Account(Base):
     """
     __tablename__ = "account" 
     id = Column(Integer, primary_key=True)
-    pin = Column(String)
     name = Column(String)
     phone = Column(String)
     lang = Column(String)
@@ -178,8 +177,8 @@ class Message(Base):
     Abstract class for all messages 
     """
     __tablename__  = "message" 
-    _type = Column('type', String(50))
-    __mapper_args__ = {'polymorphic_on': _type}
+    type = Column('type', String(50))
+    __mapper_args__ = {'polymorphic_on': type}
     id = Column(Integer, primary_key=True)
     date = Column(DateTime)
     sent = Column(Boolean) 

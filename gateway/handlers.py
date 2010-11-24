@@ -25,7 +25,9 @@ from gateway.models import IncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.messaging import parse_message
 from gateway.security import USERS
-from gateway.utils import get_fields
+from gateway.utils import get_fields, model_from_request,\
+    slick_grid_header, slick_grid_data
+import pprint 
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -183,12 +185,9 @@ class MeterHandler(object):
 
     @action(permission="admin") 
     def update(self): 
-        params = self.request.params
-        keys = params.keys() 
-        keys.remove("submit") 
-        for key in keys:
-            self.meter.__setattr__(key,params.get(key))            
-        self.session.merge(self.meter)
+        meter = model_from_request(self.request,
+                                   self.meter)
+        self.session.merge(meter)
         return HTTPFound(
             location="%s%s" % (self.request.application_url,self.meter.url()))
 
@@ -212,35 +211,32 @@ class CircuitHandler(object):
     @action(renderer="circuit/index.mako",permission="admin") 
     def index(self): 
         breadcrumbs = self.breadcrumbs
-        breadcrumbs.append([{"text": "Meter Overview", "url" : self.meter.url()},
-                            {"text" : "Circuit Overview"}]) 
         return { 
             "logged_in" : authenticated_userid(self.request),
-            "breadcrumbs" : breadcrumbs,                 
+            "breadcrumbs" : breadcrumbs.extend([
+                    {"text": "Meter Overview", "url" : self.meter.url()},
+                    {"text" : "Circuit Overview"}]) ,                 
             "jobs" : self.circuit.get_jobs(),
-            #"fields" : get_fields(self.circuit),
+            "fields" : get_fields(self.circuit),
             "circuit" : self.circuit } 
 
     @action(renderer="circuit/edit.mako",permission="admin")
     def edit(self): 
         breadcrumbs = self.breadcrumbs
-        breadcrumbs.extend([
-            {"text": "Meter Overview", "url" : self.meter.url()},
-            {"text" : "Circuit Overview", "url" : self.circuit.url()},
-            {"text" : "Circuit Edit",}]) 
         return { 
             "logged_in" : authenticated_userid(self.request),
-            "breadcrumbs" : breadcrumbs,
+            "breadcrumbs" : breadcrumbs.extend([
+                    {"text": "Meter Overview", "url" : self.meter.url()},
+                    {"text" : "Circuit Overview", "url" : self.circuit.url()},
+                    {"text" : "Circuit Edit",}]),
+            "fields" : get_fields(self.circuit),
             "circuit" : self.circuit } 
 
     @action(permission="admin")
     def update(self): 
-        params = self.request.params
-        keys = params.keys() 
-        keys.remove("submit") 
-        for key in keys:
-            self.circuit.__setattr__(key,params.get(key))            
-        self.session.merge(self.meter)        
+        circuit = model_from_request(
+            self.request,self.circuit)
+        self.session.merge(circuit)        
         return HTTPFound(
             location="%s%s" % (self.request.application_url,
                            self.circuit.url()))
@@ -310,6 +306,17 @@ class AccountHandler(object):
     def index(self): 
         return Response(str(self.account))
 
+    @action(renderer="account/edit.mako",permission="admin")
+    def edit(self): 
+        return { "account" : self.account,
+                 "fields" : get_fields(self.account)} 
+    
+    @action(permission="admin") 
+    def update(self): 
+        account = model_from_request(self.request,
+                                     self.account)
+        self.session.add(account) 
+        return Response() 
 
 class LoggingHandler(object):
     
@@ -457,11 +464,13 @@ class SMSHandler(object):
     @action(renderer="sms/index.mako",permission="admin") 
     def index(self):        
         breadcrumbs = self.breadcrumbs[:]
-        breadcrumbs.append({"text" : "SMS Message"})
+        messages = self.session.query(Message).order_by(Message.type)
         return { 
-            "logged_in" : authenticated_userid(self.request),
-            "messages" : self.session.query(Message).order_by(Message._type),
-            "breadcrumbs" : breadcrumbs } 
+            "logged_in"   : authenticated_userid(self.request),
+            "messages"    : messages,
+            "grid_header" : simplejson.dumps(slick_grid_header(Message)),
+            "data"        : simplejson.dumps(slick_grid_data(messages)),
+            "breadcrumbs" : breadcrumbs.append({"text" : "SMS Message"}) } 
 
     @action(permission="admin") 
     def remove_all(self): 
@@ -488,5 +497,9 @@ class SMSHandler(object):
     def received(self): 
         return Response(
             content_type="application/json",                        
-            body=simplejson.dumps([x.toDict() for x in self.session.query(Message).filter_by(sent=False).filter(
-                        or_(Message._type == "job_message", Message._type == "outgoing_message")).all()])) 
+            body=simplejson.\
+                dumps([x.toDict() 
+                       for x in self.session.\
+                           query(Message).filter_by(sent=False).filter(
+                                       or_(Message.type == "job_message", 
+                                           Message.type == "outgoing_message")).all()])) 

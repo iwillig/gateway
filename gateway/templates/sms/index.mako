@@ -1,6 +1,31 @@
                 <%inherit file="../base.mako"/>
 
 <%def name="header()"> 
+   <script type="text/javascript" 
+           src="${request.application_url}/static/SlickGrid/lib/jquery.event.drag-2.0.min.js"></script>   
+   <script 
+      type="text/javascript" 
+      src="${request.application_url}/static/SlickGrid/slick.grid.js"></script>
+   
+   <link rel="stylesheet" 
+         href="${request.application_url}/static/css/slick.grid.css" 
+         type="text/css" 
+         media="screen"  />
+
+   <script type="text/javascript">
+     var grid ; 
+     var columns = ${grid_header};
+     var data = ${data} 
+
+     $(document).ready(function() {
+      var options = {
+          enableColumnReorder: true, 
+      };
+     grid = new Slick.Grid($("#sms-grid"), data, columns, options);
+      });     
+
+   </script>
+
    <title>SMS logs</title>
 </%def>
 
@@ -14,29 +39,6 @@
          queue</a> 
      </li>
    </ul>
-   <table class="message">      
-     <tr> 
-       <th>Message id</th>
-       <th>Message type</th>
-       <th>Message</th> 
-       <th>Sent?</th>
-       <th>Origin</th>
-     </tr>
-   % for msg in messages: 
-     <tr>
-       <td>${str(msg.id)}</td>
-       <td>${msg._type}</td>
-       <td>${str(msg.text)}</td>
-       <td>${msg.sent}</td>
-       % if msg._type == "incoming_message": 
-          <td>${msg.number}</td>
-       % elif msg._type == "outgoing_message": 
-          <td>${str(msg.get_incoming())}</td>
-       % else: 
-          <td></td>
-       % endif 
-     </tr>     
-   % endfor 
-
+   <div id="sms-grid" style="height:500px;"></div>
    </table> 
 </%def>

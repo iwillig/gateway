@@ -5,16 +5,15 @@
 </%def> 
 
 <%def name="content()"> 
-<h3>Edit circuit ${circuit.pin}</h3>
-<a 
-   href="${request.application_url}${circuit.url()}">Back to circuit page</a>
+<h3>Edit account ${account.phone}</h3>
+
 <table class="form">
 <form method="POST" id="" 
-      action="${request.application_url}/circuit/update/${circuit.uuid}">
+      action="${request.application_url}/account/update/${account.id}">
   
   % for key,value in fields.iteritems(): 
   
-  % if key != "Meter":
+  % if key != "Lang":
      <tr>
        <td><label>${key}</label></td>
        <td><input type="text" 
@@ -25,11 +24,20 @@
      </tr>
   % endfor   
      <tr>
+       <td><label>Language</labe></td>
+       <td>
+         <select name="lang"> 
+           <option value="en">English</option>
+           <option value="fr">French</option>
+         </select>
+       </td>
+     </tr>
+     <tr>
        <td></td>
        <td>
          <input type="submit" 
                 name="submit" 
-                value="Update circuit" /></td>
+                value="Update account" /></td>
      </tr>
 </form>
 </table>

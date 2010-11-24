@@ -13,11 +13,15 @@
    <script type="text/javascript"
            src="${request.application_url}/static/jquery.buildin.templates.js"></script>
 
+   <link rel="stylesheet" 
+         href="${request.application_url}/static/css/boilerplate/screen.css" 
+         type="text/css" 
+         media="screen" />
 
-    <link rel="stylesheet" 
-          href="${request.application_url}/static/css/boilerplate/screen.css" 
-          type="text/css" 
-          media="screen" />
+   <link rel="stylesheet" 
+         href="${request.application_url}/static/css/ui-lightness/jquery-ui-1.8.6.custom.css" 
+         type="text/css" 
+         media="screen" />
 
     ${self.header()}
 
