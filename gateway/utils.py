@@ -14,6 +14,7 @@ def get_fields(model):
         niceName = raise_first_leter(field)
         fields.update({ niceName.replace('_',' ') : 
                         {"value" : str(model.__getattribute__(field)),
+                         "name" : field,
                          "type" : "input"}})
     return fields
 

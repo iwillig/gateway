@@ -14,7 +14,7 @@
         % if k != "id": 
        <tr>     
          <td><label>${k}</label></td>
-         <td><input type="${v.get("type")}" name="${k.lower()}"
+         <td><input type="text" name="${v.get("name")}"
                 value="${v.get("value")}" /></td>
        </tr>
        % endif 
