@@ -17,30 +17,16 @@
 <%def name="content()">
 
 <h3>Meter overview page</h3> 
-<table class="no-border" border="0">
+<table>
   <tr>
     <td>
-    <table class="overview" border="0">
+    <table>
+      % for key,value in fields.iteritems(): 
       <tr>
-        <td class="hint">Meter name:</td>
-        <td>${meter.name}</td>
+        <td class="hint">Meter ${key}</td>
+        <td>${value.get("value")}</td>
       </tr>
-      <tr>
-        <td class="hint">Meter location:</td>
-        <td>${meter.location}</td>
-      </tr>
-      <tr>
-        <td class="hint">Meter battery capacity:</td>
-        <td>${str(meter.battery)}</td>
-      </tr>
-      <tr>
-        <td class="hint">Meter phone</td>
-        <td>${meter.phone}</td>
-      </tr>
-      <tr>
-        <td class="hint">Meter communication mode</td>
-        <td>${meter.communication}</td>
-      </tr>
+      % endfor 
     </table>  
     </td> 
     <td> 

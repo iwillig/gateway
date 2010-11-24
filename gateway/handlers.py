@@ -143,6 +143,7 @@ class MeterHandler(object):
         return { 
             "logged_in" : authenticated_userid(self.request),
             "meter" : self.meter, 
+            "fields" : get_fields(self.meter),
             "breadcrumbs" : breadcrumbs } 
     
     @action()
@@ -177,12 +178,19 @@ class MeterHandler(object):
     @action(renderer="meter/edit.mako",permission="admin")
     def edit(self):         
         return {
-            "form" : get_fields(self.meter),
+            "fields" : get_fields(self.meter),
             "meter" : self.meter } 
 
     @action(permission="admin") 
     def update(self): 
-        return Response(self.request)
+        params = self.request.params
+        keys = params.keys() 
+        keys.remove("submit") 
+        for key in keys:
+            self.meter.__setattr__(key,params.get(key))            
+        self.session.merge(self.meter)
+        return HTTPFound(
+            location="%s%s" % (self.request.application_url,self.meter.url()))
 
     @action(permission="admin") 
     def remove(self): 
@@ -204,26 +212,38 @@ class CircuitHandler(object):
     @action(renderer="circuit/index.mako",permission="admin") 
     def index(self): 
         breadcrumbs = self.breadcrumbs
-        breadcrumbs.append({"text": "Meter Overview", "url" : self.meter.url()})
-        breadcrumbs.append({"text" : "Circuit Overview"}) 
+        breadcrumbs.append([{"text": "Meter Overview", "url" : self.meter.url()},
+                            {"text" : "Circuit Overview"}]) 
         return { 
             "logged_in" : authenticated_userid(self.request),
             "breadcrumbs" : breadcrumbs,                 
             "jobs" : self.circuit.get_jobs(),
+            #"fields" : get_fields(self.circuit),
             "circuit" : self.circuit } 
 
     @action(renderer="circuit/edit.mako",permission="admin")
     def edit(self): 
         breadcrumbs = self.breadcrumbs
-        breadcrumbs.append(
-            {"text": "Meter Overview", "url" : self.meter.url()})
-        breadcrumbs.append(
-            {"text" : "Circuit Overview", "url" : self.circuit.url()}) 
-        breadcrumbs.append({"text" : "Circuit Edit",}) 
+        breadcrumbs.extend([
+            {"text": "Meter Overview", "url" : self.meter.url()},
+            {"text" : "Circuit Overview", "url" : self.circuit.url()},
+            {"text" : "Circuit Edit",}]) 
         return { 
             "logged_in" : authenticated_userid(self.request),
             "breadcrumbs" : breadcrumbs,
             "circuit" : self.circuit } 
+
+    @action(permission="admin")
+    def update(self): 
+        params = self.request.params
+        keys = params.keys() 
+        keys.remove("submit") 
+        for key in keys:
+            self.circuit.__setattr__(key,params.get(key))            
+        self.session.merge(self.meter)        
+        return HTTPFound(
+            location="%s%s" % (self.request.application_url,
+                           self.circuit.url()))
 
     @action(permission="admin")
     def toggle(self): 
