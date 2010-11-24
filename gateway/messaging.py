@@ -288,6 +288,8 @@ def parse_message(message):
         set_primary_lang(message) 
     else: 
         # fall through we can not match a message
-        session = DBSession()
-        session.add(OutgoingMessage(message.number,"Unable to processs your message",incoming=message.uuid))
+        session = DBSession() 
+        meterNumbers = [x.phone for x in session.query(Meter).all()] 
+        if message.number not in meterNumbers:             
+            session.add(OutgoingMessage(message.number,"Unable to processs your message",incoming=message.uuid))
 

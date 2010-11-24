@@ -2,7 +2,7 @@ import uuid
 import urllib2
 import simplejson
 
-account = "eaf592"
+account = "cbr236"
 token = 79697375123
 def make_request(msg): 
     return urllib2.Request(
@@ -80,38 +80,56 @@ print("test failure")
 print(response.read())
 print("----------------------------") 
 
-# test meter messages 
-#Job=pp&cid=<>&wh=<>&...
-#Job=sp&cid=<>&a=<>&...
-#Job=alerts&alert=ce&cid=<>&..
 
 cid = "192.168.1.201"
-
+meter_name = "demo001"
 # test primary log 
 response = urllib2.urlopen(
-    make_request("Job=pp&cid=" + cid  + "&wh=10.00&tu=12.12&cr=21.12&status=1")) 
+    make_request("Job=pp&cid=" + cid  + "&mid=" + meter_name + "&wh=10.00&tu=12.12&cr=20.10&status=1")) 
 print("----------------------------") 
 print("testing primary log") 
 print(response.read())
 print("----------------------------") 
-# test secondary 
+#test secondary 
+#response = urllib2.urlopen(
+#    make_request("Job=sp&cid=" + cid + "1&wh=10.00&tu=12.12&cr=21.12&status=1")) 
+#print("----------------------------") 
+#print("testing secondary log") 
+#print(response.read())
+#print("----------------------------") 
+# test service halt 
 response = urllib2.urlopen(
-    make_request("Job=sp&cid=" + cid + "1&wh=10.00&tu=12.12&cr=21.12&status=1")) 
+    make_request("Job=alerts&mid=" + meter_name + "&cid=" + cid + "&alert=md")) 
 print("----------------------------") 
-print("testing secondary log") 
+print("testing alert ce") 
 print(response.read())
 print("----------------------------") 
-# test 
+# test meter sd card not found 
 response = urllib2.urlopen(
-    make_request("Job=alerts&alert=ce&cid=" + cid )) 
+    make_request("Job=alerts&mid=" + meter_name + "&cid=" + cid + "&alert=sdc")) 
+print("----------------------------") 
+print("testing alert ce") 
+print(response.read())
+print("----------------------------") 
+# test circuit low credit
+response = urllib2.urlopen(
+    make_request("Job=alerts&mid=" + meter_name + "&cid=" + cid + "&alert=lcw&cr=10.00")) 
 print("----------------------------") 
 print("testing alert ce") 
 print(response.read())
 print("----------------------------") 
 
+# test circuit no credit 
 response = urllib2.urlopen(
-    make_request("Job=alerts&alert=nocw&cid=" + cid )) 
+    make_request("Job=alerts&mid=" + meter_name + "&cid=" + cid + "&alert=nocw&cr=00.00")) 
 print("----------------------------") 
-print("testing alert no credit") 
+print("testing alert ce") 
+print(response.read())
+print("----------------------------") 
+# test circuit compontent failure 
+response = urllib2.urlopen(
+    make_request("Job=alerts&mid=" + meter_name + "&cid=" + cid + "&alert=ce")) 
+print("----------------------------") 
+print("testing alert ce") 
 print(response.read())
 print("----------------------------") 
