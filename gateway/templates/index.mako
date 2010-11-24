@@ -51,6 +51,13 @@
       </tr>
     </table>
   </form>
+  <h4>Upload tokens from csv</h4>
+  <form method="POST" id=""
+        enctype="multipart/form-data"
+        action="${request.application_url}/upload_tokens">
+    <input type="file" name="csv" value="" />
+    <input type="submit" name="submit" value="Upload tokens from csv" />
+  </form>
   <h4>Existing token batches</h4>
   <table>    
     <tr>

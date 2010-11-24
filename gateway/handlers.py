@@ -1,4 +1,5 @@
 import datetime
+import csv
 import simplejson
 from urlparse import parse_qs 
 from dateutil import parser
@@ -27,7 +28,6 @@ from gateway.messaging import parse_message
 from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
     slick_grid_header, slick_grid_data
-import pprint 
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -82,6 +82,19 @@ class Dashboard(object):
                     token=Token.get_random(),
                     value = int(self.request.params["value"]),
                     batch = batch))
+        return HTTPFound(location=self.request.application_url)
+    
+    @action(permission="admin")
+    def upload_tokens(self): 
+        csvReader = csv.reader(self.request.params['csv'].file,delimiter=',')
+        batch = TokenBatch()
+        self.session.add(batch)
+        header = csvReader.next()
+        for line in csvReader:
+            self.session.add(Token(
+                    token=line[1],
+                    value=line[2],
+                    batch=batch))            
         return HTTPFound(location=self.request.application_url)
 
     @action(permission="admin")

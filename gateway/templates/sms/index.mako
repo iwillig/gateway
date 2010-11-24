@@ -15,6 +15,7 @@
    <script type="text/javascript">
      var grid ; 
      var columns = ${grid_header};
+     columns.push({"field": "text", "sortable": true, "id": "text", "name": "Text"}); 
      var data = ${data} 
 
      $(document).ready(function() {
