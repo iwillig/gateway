@@ -481,8 +481,7 @@ class SMSHandler(object):
         return { 
             "logged_in"   : authenticated_userid(self.request),
             "messages"    : messages,
-            "grid_header" : simplejson.dumps(slick_grid_header(Message)),
-            "data"        : simplejson.dumps(slick_grid_data(messages)),
+            "table_headers" : slick_grid_header(OutgoingMessage),
             "breadcrumbs" : breadcrumbs.append({"text" : "SMS Message"}) } 
 
     @action(permission="admin") 
