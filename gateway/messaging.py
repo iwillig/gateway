@@ -9,7 +9,7 @@ from gateway.models import DBSession,\
 delimiter = "."
 baseTemplate = "gateway/templates/messages/"
 
-def make_response(template="error.txt",**kwargs): 
+def make_message(template="error.txt",**kwargs): 
     templateName = baseTemplate + str(template) 
     template = Template(filename=templateName).render(**kwargs)
     return template
@@ -45,25 +45,24 @@ def get_balance(message,lang="en"):
     """
     Allows users to check blance
     """
-    response = ""
     session = DBSession() 
     circuit = get_circuit(message)
     if lang == "en": 
         if circuit:
-            response = make_response("bal/en.txt",
+            messageBody = make_message("bal/en.txt",
                                      account=circuit.pin,
                                      credit=circuit.credit)                       
         else: 
-            response = make_response("errors/no-circuit-en.txt")
+            messageBody = make_message("errors/no-circuit-en.txt")
     elif lang =="fr": 
         if circuit:
-            response = make_response("bal/fr.txt",
+            messageBody = make_message("bal/fr.txt",
                                      account=circuit.pin,
                                      credit=circuit.credit)
         else: 
-            response = make_response("errors/no-circuit-fr.txt")
+            messageBody = make_message("errors/no-circuit-fr.txt")
     session.add(OutgoingMessage(message.number,
-                                    response,incoming=message.uuid))
+                                    messageBody,incoming=message.uuid))
 
 
 def set_primary_contact(message,lang="en"): 
@@ -73,33 +72,29 @@ def set_primary_contact(message,lang="en"):
     session = DBSession() 
     circuit = get_circuit(message) 
     if circuit:
-        account = session.\
-            query(Account).get(circuit.account.id) 
         new_number = message.text.split(delimiter)[2] 
-        old_number = account.phone
+        old_number = circuit.account.phone
         if lang == "en": 
+            messageBody = make_message("tel/en.txt",
+                                     old_number=old_number,
+                                     new_number=new_number)
             session.add(OutgoingMessage(message.number,
-                "The previous primary contact number %s\
- has been replaced with the number %s." % (old_number,
-                                           new_number),incoming=message.uuid))
+                                        messageBody,
+                                        incoming=message.uuid))
             if new_number != message.number:
                 session.add(OutgoingMessage(
                     new_number, 
-                    "The previous primary contact number %s\
- has been replaced with the number %s." % (old_number,
-                                           new_number),incoming=message.uuid))
+                    messageBody,incoming=message.uuid))
         elif lang == "fr": 
+            messageBody = make_message("tel/fr.txt",
+                                       new_number=new_number,
+                                       old_number=old_number)
             session.add(OutgoingMessage(
-                message.number,
-"Votre numero de contact est desormais %s. Le numero %s ne\
- sera plus utilise." % (new_number,
-                        old_number),incoming=message.uuid))
+                message.number,messageBody,incoming=message.uuid))
             if new_number != message.number:
                 session.add(OutgoingMessage(
-                    new_number, 
-                    "Votre numero de contact est desormais %s. Le numero %s ne\
- sera plus utilise." % (new_number,
-                        old_number),incoming=message.uuid))
+                    new_number,messageBody,incoming=message.uuid))        
+        account = circuit.account
         account.phone = new_number
         session.merge(account) 
     else: 
@@ -119,12 +114,14 @@ def add_credit(message,lang="en"):
             job = AddCredit(circuit=circuit,credit=token.value)
             session.add(JobMessage(job))
             if lang == "en": # figure out correct response for english 
-                response = make_response("credit/en.txt",account=circuit.pin,status=circuit.status)
+                messageBody = make_message("credit/en.txt",account=circuit.pin,status=circuit.status)
             elif lang == "fr": 
-                response = make_response("credit/fr.txt",account=circuit.pin,status=circuit.status)
+                messageBody = make_message("credit/fr.txt",account=circuit.pin,status=circuit.status)
             session.add(
                 OutgoingMessage(
-                    message.number,response,incoming=message.uuid))
+                    message.number,
+                    messageBody,
+                    incoming=message.uuid))
             # update token database 
             token.state = "used"
             session.merge(token) 

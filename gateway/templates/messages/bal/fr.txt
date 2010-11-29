@@ -3,4 +3,4 @@
 <%!
   import datetime
 %> 
-Il restait ${credit} unites surla ligne ${account} le ${datetime.datetime.now().ctime()}".
+Il restait ${credit} unites surla ligne ${account} le ${datetime.datetime.now().ctime()}.
