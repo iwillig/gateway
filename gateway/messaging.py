@@ -1,13 +1,19 @@
 import datetime
-from Queue import Queue
 from urlparse import parse_qs 
-from gateway.models import DBSession, Message,\
+from mako.template import Template
+
+from gateway.models import DBSession,\
     Circuit, Token, SystemLog, Account, AddCredit, TurnOn,\
     TurnOff, PrimaryLog, OutgoingMessage, JobMessage, Meter 
 
 delimiter = "."
-sendMessageQueue = Queue() 
+baseTemplate = "gateway/templates/messages/"
 
+def make_response(template="error.txt",**kwargs): 
+    templateName = baseTemplate + str(template) 
+    template = Template(filename=templateName).render(**kwargs)
+    return template
+    
 def get_circuit(message): 
     """ 
     Tries to match message to a circuit 
@@ -39,22 +45,26 @@ def get_balance(message,lang="en"):
     """
     Allows users to check blance
     """
+    response = ""
     session = DBSession() 
     circuit = get_circuit(message)
-    if circuit:
-        if lang == "en": 
-            response = "The remaining electricity \
-    credit on %s is %s as of %s" % (circuit.pin,
-                                     circuit.credit,
-                                     datetime.datetime.now().ctime())
-        elif lang =="fr": 
-            response = "%s unites. Il restait %s unites surla ligne %s le %s." % (circuit.credit,
-                            circuit.credit,
-                            circuit.pin,
-                            datetime.datetime.now().ctime())
-            session.add(OutgoingMessage(message.number,response,incoming=message.uuid))
-    else: 
-        pass # failt to match any circuit 
+    if lang == "en": 
+        if circuit:
+            response = make_response("bal/en.txt",
+                                     account=circuit.pin,
+                                     credit=circuit.credit)                       
+        else: 
+            response = make_response("errors/no-circuit-en.txt")
+    elif lang =="fr": 
+        if circuit:
+            response = make_response("bal/fr.txt",
+                                     account=circuit.pin,
+                                     credit=circuit.credit)
+        else: 
+            response = make_response("errors/no-circuit-fr.txt")
+    session.add(OutgoingMessage(message.number,
+                                    response,incoming=message.uuid))
+
 
 def set_primary_contact(message,lang="en"): 
     """
@@ -105,16 +115,17 @@ def add_credit(message,lang="en"):
     token = get_token(message)
     if circuit:
         if token:
+            # method circuit.add_credit() that takes care of everything.
             job = AddCredit(circuit=circuit,credit=token.value)
             session.add(JobMessage(job))
-            session.add(job)
-            if lang == "en": 
-                session.add(OutgoingMessage(message.number,"Credit has been\
-     added to account %s. Status: %s" % (circuit.pin,circuit.status),incoming=message.uuid))
+            if lang == "en": # figure out correct response for english 
+                response = make_response("credit/en.txt",account=circuit.pin,status=circuit.status)
             elif lang == "fr": 
-                session.add(OutgoingMessage(message.number,"Merci ! Le solde\
-     de la ligne %s est desormais. La ligne est %s." % (circuit.pin,circuit.status),incoming=message.uuid))
-            circuit.credit = circuit.credit + token.value
+                response = make_response("credit/fr.txt",account=circuit.pin,status=circuit.status)
+            session.add(
+                OutgoingMessage(
+                    message.number,response,incoming=message.uuid))
+            # update token database 
             token.state = "used"
             session.merge(token) 
             session.merge(circuit)
@@ -217,7 +228,8 @@ def parse_meter_message(message):
     job = parsed_message["job"][0] 
     meter = session.query(Meter).filter_by(phone=message.number).first()
     circuit = session.query(Circuit).\
-        filter_by(ip_address=parsed_message["cid"][0]).filter_by(meter=meter).first() 
+        filter_by(ip_address=parsed_message["cid"][0]).\
+        filter_by(meter=meter).first() 
     if circuit:
         if job == "pp": # primary log 
             log = PrimaryLog(circuit=circuit,
@@ -228,10 +240,6 @@ def parse_meter_message(message):
             circuit.credit = log.credit
             session.add(log)
             session.merge(circuit)
-        elif job == "sp": # secondary log 
-            pass 
-        elif job == "delete": 
-            pass # remove the job
         elif job == "alerts": 
             alert = parsed_message['alert'][0]
             if alert == "nocw": 
@@ -254,9 +262,10 @@ been turned off due to insuffcient funds, as of %s" % (circuit.pin,datetime.date
 
 
 def parse_message(message): 
+    session = DBSession() 
+    meterNumbers = [x.phone for x in session.query(Meter).all()] 
     text = message.text.lower()  
-        # allow consumers to check their balance        
-    if text.startswith("job"): # collect all jobs
+    if message.number in meterNumbers:
         parse_meter_message(message)
     elif text.startswith("bal"):
         get_balance(message)
@@ -288,8 +297,7 @@ def parse_message(message):
         set_primary_lang(message) 
     else: 
         # fall through we can not match a message
-        session = DBSession() 
-        meterNumbers = [x.phone for x in session.query(Meter).all()] 
-        if message.number not in meterNumbers:             
-            session.add(OutgoingMessage(message.number,"Unable to processs your message",incoming=message.uuid))
+        session.add(OutgoingMessage(
+                message.number,
+                "Unable to processs your message",incoming=message.uuid))
 

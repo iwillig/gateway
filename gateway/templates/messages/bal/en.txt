@@ -1,0 +1,7 @@
+## english balance message 
+<%!
+  import datetime
+%> 
+
+The remaining electricity credit on ${account} is ${credit} as of
+${datetime.datetime.now().ctime()}"

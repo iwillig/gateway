@@ -1,0 +1,3 @@
+## english message for adding credit
+
+Credit has been added to account ${account}. Status: ${status}

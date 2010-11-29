@@ -1,0 +1,3 @@
+## french response to allow users to add credit.
+Merci ! Le solde de la ligne ${account} est desormais. La ligne est
+${status}.
