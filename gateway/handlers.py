@@ -27,7 +27,7 @@ from gateway.models import OutgoingMessage
 from gateway.messaging import parse_message
 from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
-    slick_grid_header, slick_grid_data
+    slick_grid_header
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
