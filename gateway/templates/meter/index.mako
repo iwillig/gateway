@@ -38,6 +38,9 @@
           <li>
             <a href="${request.application_url}/${meter.remove_url()}">
               Remove Meter</a>
+              <li>
+          <a href="${request.application_url}/meter/build_graph/${meter.uuid}">
+            Build Graph</a></li>
         </ul>
       </div>
     </td>
