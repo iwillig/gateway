@@ -195,7 +195,18 @@ class MeterHandler(object):
         return {
             "fields" : get_fields(self.meter),
             "meter" : self.meter } 
-
+    
+    @action(renderer="meter/build_graph.mako",permission="admin") 
+    def build_graph(self): 
+        return {
+            "logged_in" : authenticated_userid(self.request),
+            "meter" : self.meter } 
+	
+    @action(renderer="meter/show_graph.mako",permission="admin") 
+    def show_graph(self): 
+        #needs to be implemented
+        return Response("test show graphs for meter")
+	
     @action(permission="admin") 
     def update(self): 
         meter = model_from_request(self.request,
@@ -285,7 +296,7 @@ class CircuitHandler(object):
         #      filter(PrimaryLog.created < to)
         logs = query.filter(PrimaryLog.credit > 20) 
         return { 
-            "logged_in" : authenticated_userid(self.request),
+            "logged_in" : authenticated_userid(self.request), 
             "x" : [str(x.created.ctime()) for x in logs  ], 
             "y" : [x.get_property(yaxis) for x in logs ]}  
 

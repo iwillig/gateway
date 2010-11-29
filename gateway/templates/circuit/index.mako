@@ -14,7 +14,7 @@
       % for key,value in fields.iteritems(): 
       <tr>
         <td class="hint">Circuit ${key}</td>
-        <td>${value.get("value")}</td>
+        <td>${str(value.get("value"))}</td>
       </tr>
       % endfor 
         <tr>
@@ -34,7 +34,7 @@
                href="${request.application_url}${circuit.edit_url()}">
             Edit circuit information</a></li> 
         <li>
-          <a href="${request.application_url}/account/edit/${circuit.account.id}">
+          <a href="${request.application_url}/account/edit/${str(circuit.account.id)}">
             Edit account information</a></li>
         <li><a href="${circuit.remove_url()}">Remove circuit</a></li>
         <li><a href="${circuit.toggle_url()}">Toggle on/off</a></li>
