@@ -1,0 +1,2 @@
+Votre numero de contact est desormais ${new_number}. Le numero
+ ${old_number} ne sera plus utilise.

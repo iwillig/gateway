@@ -1,0 +1,2 @@
+The previous primary contact number ${old_number} has been replaced
+with the number ${new_number}.
