@@ -1,0 +1,1 @@
+Your request to activate account ${account} failed. Remaining credit is zero. Please add more credit to your account.

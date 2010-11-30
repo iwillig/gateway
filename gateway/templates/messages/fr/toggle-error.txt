@@ -1,0 +1,2 @@
+ECHEC. Vous ne pouvez pas activer la ligne ${account} car le solde est
+zero. Ajoutez des unites d'abord.

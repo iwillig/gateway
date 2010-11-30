@@ -1,0 +1,6 @@
+##  
+<%!
+  import datetime
+%> 
+Your electricity account ${account} has been turned off due to
+insuffcient funds, as of ${datetime.datetime.now().ctime()}. 

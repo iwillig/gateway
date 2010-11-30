@@ -1,105 +1,90 @@
 import datetime
 from urlparse import parse_qs 
 from mako.template import Template
-
 from gateway.models import DBSession,\
-    Circuit, Token, SystemLog, Account, AddCredit, TurnOn,\
+    Circuit, Token, AddCredit, TurnOn,\
     TurnOff, PrimaryLog, OutgoingMessage, JobMessage, Meter 
 
 delimiter = "."
-baseTemplate = "gateway/templates/messages/"
+baseTemplate = "gateway/templates/messages"
 
-def make_message(template="error.txt",**kwargs): 
-    templateName = baseTemplate + str(template) 
+def make_message(template="error.txt",lang="en",**kwargs): 
+    templateName = "%s/%s/%s" % (baseTemplate,lang,template) 
     template = Template(filename=templateName).render(**kwargs)
     return template
     
-def get_circuit(message): 
+def get_circuit(message,lang="fr"): 
     """ 
     Tries to match message to a circuit 
     """ 
     session = DBSession() 
     pin = message.text.split(delimiter)[1]
-    try:         
-        return session.query(Circuit).filter_by(pin=pin).first()
-    except Exception,e: 
-        session.add(SystemLog("Unable to find circuit\
-error@%s message@%s " % (e,message.uuid)))
+    circuit =  session.query(Circuit).filter_by(pin=pin).first()
+    if circuit: 
+        return circuit
+    else:
+        session.add(OutgoingMessage(
+                message.number,
+                make_message("no-circuit.txt",lang=lang),
+                incoming=message.uuid))
         return False
 
-def get_token(message): 
+def get_token(message,lang): 
     """
     Tries to match message to token.
     """
     session = DBSession() 
-    token = message.text.split(delimiter)[2] 
-    try:
-        return session.query(Token).\
-            filter_by(state="new").filter_by(token=token).first() 
-    except Exception,e: 
-        session.add(SystemLog("Unable to find token\
-error@%s message@%s" %(e,message.uuid))) 
-        return False 
+    tokenNumber = message.text.split(delimiter)[2] 
+    token = session.query(Token).\
+            filter_by(state="new").filter_by(token=tokenNumber).first()
+    if token:
+        return token 
+    else:         
+        session.add(OutgoingMessage(
+                message.number,
+                make_message("no-token.txt",lang=lang),
+                incoming=message.uuid))
+        return False
 
 def get_balance(message,lang="en"):     
     """
     Allows users to check blance
     """
     session = DBSession() 
-    circuit = get_circuit(message)
-    if lang == "en": 
-        if circuit:
-            messageBody = make_message("bal/en.txt",
-                                     account=circuit.pin,
-                                     credit=circuit.credit)                       
-        else: 
-            messageBody = make_message("errors/no-circuit-en.txt")
-    elif lang =="fr": 
-        if circuit:
-            messageBody = make_message("bal/fr.txt",
-                                     account=circuit.pin,
-                                     credit=circuit.credit)
-        else: 
-            messageBody = make_message("errors/no-circuit-fr.txt")
-    session.add(OutgoingMessage(message.number,
-                                    messageBody,incoming=message.uuid))
-
+    circuit = get_circuit(message,lang=lang)
+    if circuit:
+        session.add(OutgoingMessage(
+                message.number,
+                make_message("bal.txt",
+                             lang=lang,
+                             account=circuit.pin,
+                             credit=circuit.credit),
+                incoming=message.uuid))
 
 def set_primary_contact(message,lang="en"): 
     """
     Allows users to set their primary contact number
     """
     session = DBSession() 
-    circuit = get_circuit(message) 
+    circuit = get_circuit(message,lang=lang) 
     if circuit:
         new_number = message.text.split(delimiter)[2] 
         old_number = circuit.account.phone
-        if lang == "en": 
-            messageBody = make_message("tel/en.txt",
-                                     old_number=old_number,
-                                     new_number=new_number)
-            session.add(OutgoingMessage(message.number,
-                                        messageBody,
-                                        incoming=message.uuid))
-            if new_number != message.number:
-                session.add(OutgoingMessage(
+        messageBody = make_message("tel.txt",lang=lang,
+                                   old_number=old_number,
+                                   new_number=new_number)
+        session.add(OutgoingMessage(message.number,
+                                    messageBody,
+                                    incoming=message.uuid))
+        if new_number != message.number:
+            session.add(OutgoingMessage(
                     new_number, 
                     messageBody,incoming=message.uuid))
-        elif lang == "fr": 
-            messageBody = make_message("tel/fr.txt",
-                                       new_number=new_number,
-                                       old_number=old_number)
-            session.add(OutgoingMessage(
-                message.number,messageBody,incoming=message.uuid))
-            if new_number != message.number:
-                session.add(OutgoingMessage(
-                    new_number,messageBody,incoming=message.uuid))        
         account = circuit.account
         account.phone = new_number
         session.merge(account) 
-    else: 
-        pass # fail to match any circuit 
 
+        
 def add_credit(message,lang="en"): 
     """
     Allows consumer to add credit to their account.
@@ -107,36 +92,22 @@ def add_credit(message,lang="en"):
     """
     session = DBSession()
     circuit = get_circuit(message)
-    token = get_token(message)
+    token = get_token(message,lang=lang)
     if circuit:
         if token:
-            # method circuit.add_credit() that takes care of everything.
             job = AddCredit(circuit=circuit,credit=token.value)
             session.add(JobMessage(job))
-            if lang == "en": # figure out correct response for english 
-                messageBody = make_message("credit/en.txt",account=circuit.pin,status=circuit.status)
-            elif lang == "fr": 
-                messageBody = make_message("credit/fr.txt",account=circuit.pin,status=circuit.status)
-            session.add(
-                OutgoingMessage(
+            session.add(OutgoingMessage(
                     message.number,
-                    messageBody,
+                    make_message("credit.txt",
+                                 lang=lang,
+                                 account=circuit.pin,
+                                 status=circuit.status),
                     incoming=message.uuid))
-            # update token database 
+                # update token database 
             token.state = "used"
             session.merge(token) 
             session.merge(circuit)
-        else: 
-            session.add(
-                OutgoingMessage(
-                    message.number,"Thats a used token!!, you can't use it again",
-                    incoming=message.uuid))
-    else: 
-        session.add(
-            OutgoingMessage(
-                message.number,"Unable to find circuit",
-                incoming=message.uuid))
-
 
 def turn_circuit_on(message,lang="en"): 
     """
@@ -144,35 +115,26 @@ def turn_circuit_on(message,lang="en"):
     """
     session = DBSession()
     circuit = get_circuit(message)
+    lang = circuit.account.lang 
     if circuit:
         # check to make sure that the circuit has credit 
         if circuit.credit > 0:
-            if circuit.account.lang == "en" : 
-                response = "Account %s is %s.Remaining credit: %s" % (circuit.pin,
-                                                                      circuit.status,
-                                                                      circuit.credit)
-            elif circuit.account.lang == "fr" : 
-                response = "La ligne %s est %s.Solde restant: %s." % (circuit.pin,
-                                                                         circuit.status,
-                                                                         circuit.credit)
+            messageBody = make_message("toggle.txt",lang=lang,
+                                       account=circuit.pin,
+                                       status=circuit.status,
+                                       credit=circuit.credit)
             job = TurnOn(circuit)
             session.add(JobMessage(job))
             session.add(job)
         else: 
-            if circuit.account.lang == "en": 
-                response = "Your request to activate account %s failed.\
-Remaining credit is zero. Please add more credit to your account." % circuit.pin
-            elif circuit.account.lang == "fr":
-                response = "ECHEC. Vous ne pouvez pas activer la ligne\
- %s car le solde est zero. Ajoutez des unites d'abord." % circuit.pin
+            messageBody = make_message("toggle-error.txt",
+                                       lang=lang,
+                                       account=circuit.pin)                
         # send the result back to the consumer
-        session.add(OutgoingMessage(message.number,response,incoming=message.uuid)) 
-    else: 
-        session.add(
-            OutgoingMessage(
-                message.number,
-                "Unable to process your account",
-                incoming=message.uuid))
+        session.add(OutgoingMessage(message.number,
+                                    messageBody,
+                                    incoming=message.uuid)) 
+
 
     
 def turn_circuit_off(message,lang="en"): 
@@ -181,25 +143,19 @@ def turn_circuit_off(message,lang="en"):
     """
     session = DBSession() 
     circuit = get_circuit(message)
-    if circuit:
-        if circuit.account.lang == "en": 
-            response = "Account %s is %s. Remaining credit: %s" % (circuit.pin,
-                                                                   circuit.status,
-                                                                   circuit.credit)
-        elif circuit.account.lang == "fr": 
-            response = "La ligne %s est %s. Solde restant: %s" % (circuit.pin,
-                                                                  circuit.status,
-                                                                  circuit.credit)
+    lang = circuit.account.lang 
+    if circuit:        
         job = TurnOff(circuit) 
-        session.add(OutgoingMessage(message.number,response,incoming=message.uuid))
+        session.add(OutgoingMessage(
+                message.number,
+                make_message("toggle.txt",
+                             lang=lang,
+                             account=circuit.account,
+                             status=circuit.status,
+                             credit=circuit.credit),
+                incoming=message.uuid))
         session.add(JobMessage(job))
         session.add(job)
-    else: 
-        session.add(
-            OutgoingMessage(
-                message.number,
-                "Unable to find your circuit",
-                incoming=message.uuid))
 
 
 def set_primary_lang(message): 
@@ -227,6 +183,7 @@ def parse_meter_message(message):
     circuit = session.query(Circuit).\
         filter_by(ip_address=parsed_message["cid"][0]).\
         filter_by(meter=meter).first() 
+    lang = circuit.account.lang 
     if circuit:
         if job == "pp": # primary log 
             log = PrimaryLog(circuit=circuit,
@@ -240,14 +197,13 @@ def parse_meter_message(message):
         elif job == "alerts": 
             alert = parsed_message['alert'][0]
             if alert == "nocw": 
-                if circuit.account.lang == "en": # send english alert
-                    alert = "Your electricity account %s has \
-been turned off due to insuffcient funds, as of %s" % (circuit.pin,datetime.datetime.now().ctime())
-                    session.add(OutgoingMessage(circuit.account.phone,
-                                                text=alert,
-                                                incoming=message.uuid))
-                elif circuit.account.lang == "fr":  # send french 
-                    pass 
+                session.add(OutgoingMessage(
+                        circuit.account.phone,
+                        make_message("nocw-alert.txt",
+                                     lang=lang,
+                                     account=circuit.pin),
+                        text=alert,
+                        incoming=message.uuid))
             if alert == "lcw": 
                 if circuit.account.lang == "en": 
                     alert = "Your electricity account {account} balance is low.Your remaining balance is less than 10, as of {time}." 
