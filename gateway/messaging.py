@@ -115,8 +115,8 @@ def turn_circuit_on(message,lang="en"):
     """
     session = DBSession()
     circuit = get_circuit(message)
-    lang = circuit.account.lang 
     if circuit:
+        lang = circuit.account.lang 
         # check to make sure that the circuit has credit 
         if circuit.credit > 0:
             messageBody = make_message("toggle.txt",lang=lang,
@@ -143,8 +143,8 @@ def turn_circuit_off(message,lang="en"):
     """
     session = DBSession() 
     circuit = get_circuit(message)
-    lang = circuit.account.lang 
     if circuit:        
+        lang = circuit.account.lang 
         job = TurnOff(circuit) 
         session.add(OutgoingMessage(
                 message.number,
