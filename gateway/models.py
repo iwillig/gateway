@@ -234,8 +234,12 @@ class OutgoingMessage(Message):
 
     def get_incoming(self): 
         session = DBSession() 
-        return session.query(IncomingMessage).filter_by(uuid=self.incoming).first()
-
+        incoming = session.query(IncomingMessage).\
+            filter_by(uuid=self.incoming).first()
+        if incoming:
+            return incoming.text
+        else: 
+            return "message not based on incoming message"
 
 class TokenBatch(Base): 
     __tablename__ = "tokenbatch"

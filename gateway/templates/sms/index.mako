@@ -30,7 +30,7 @@
        <td>${msg.uuid}</td>
        <td>${msg.text}</td>
        % if msg.type == "outgoing_message":
-           <td class="hint">${msg.get_incoming().text}</td>
+           <td class="hint">${msg.get_incoming()}</td>
        % endif
      </tr>
      % endfor 
