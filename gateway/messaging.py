@@ -176,7 +176,7 @@ def parse_meter_message(message):
     """
     Parse message from the Meter
     """
-    session = DBSession() 
+    session = DBSession()     
     parsed_message = parse_qs(message.text.lower())
     job = parsed_message["job"][0] 
     meter = session.query(Meter).filter_by(phone=message.number).first()
@@ -202,17 +202,15 @@ def parse_meter_message(message):
                         make_message("nocw-alert.txt",
                                      lang=lang,
                                      account=circuit.pin),
-                        text=alert,
                         incoming=message.uuid))
             if alert == "lcw": 
-                if circuit.account.lang == "en": 
-                    alert = "Your electricity account {account} balance is low.Your remaining balance is less than 10, as of {time}." 
-                    session.add(OutgoingMessage(circuit.account.phone,
-                                                text=alert,
-                                                incoming=message.uuid))
-                elif circuit.account.lang == "fr": 
-                    pass 
-
+                session.add(
+                    OutgoingMessage(
+                        circuit.account.phone,
+                        make_message("lcw-alert.txt",
+                                     lang=lang,
+                                     account=circuit.pin),
+                        incoming=message.uuid))
 
 def parse_message(message): 
     session = DBSession() 

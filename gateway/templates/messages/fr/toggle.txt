@@ -1,0 +1,1 @@
+${status}. La ligne ${account} est ${status}. Solde restant: ${credit}.
