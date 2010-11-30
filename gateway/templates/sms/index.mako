@@ -14,6 +14,7 @@
          queue</a> 
      </li>
    </ul>
+   <p>Currently there are <strong>${messages.count()}</strong> messages</p> 
    <table>
      <tr>
        % for header in table_headers:

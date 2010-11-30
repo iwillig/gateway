@@ -214,9 +214,10 @@ def parse_meter_message(message):
 
 def parse_message(message): 
     session = DBSession() 
-    meterNumbers = [x.phone for x in session.query(Meter).all()] 
     text = message.text.lower()  
-    if message.number in meterNumbers:
+    import ipdb; ipdb.set_trace()
+    meter = session.query(Meter).filter_by(phone=message.number).first()
+    if meter:
         parse_meter_message(message)
     elif text.startswith("bal"):
         get_balance(message)
@@ -248,7 +249,5 @@ def parse_message(message):
         set_primary_lang(message) 
     else: 
         # fall through we can not match a message
-        session.add(OutgoingMessage(
-                message.number,
-                "Unable to processs your message",incoming=message.uuid))
+        pass
 
