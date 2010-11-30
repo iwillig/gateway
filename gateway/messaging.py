@@ -172,14 +172,13 @@ def use_history(message,lang="en"):
     elif lang == "fr":
         pass 
 
-def parse_meter_message(message):
+def parse_meter_message(message,meter):
     """
     Parse message from the Meter
     """
     session = DBSession()     
     parsed_message = parse_qs(message.text.lower())
     job = parsed_message["job"][0] 
-    meter = session.query(Meter).filter_by(phone=message.number).first()
     circuit = session.query(Circuit).\
         filter_by(ip_address=parsed_message["cid"][0]).\
         filter_by(meter=meter).first() 
@@ -216,9 +215,9 @@ def parse_message(message):
     session = DBSession() 
     text = message.text.lower()  
     import ipdb; ipdb.set_trace()
-    meter = session.query(Meter).filter_by(phone=message.number).first()
+    meter = session.query(Meter).filter_by(phone=str(message.number)).first()
     if meter:
-        parse_meter_message(message)
+        parse_meter_message(message,meter)
     elif text.startswith("bal"):
         get_balance(message)
     elif text.startswith("solde"): 
