@@ -102,7 +102,7 @@ def add_credit(message,lang="en"):
                     make_message("credit.txt",
                                  lang=lang,
                                  account=circuit.pin,
-                                 status=circuit.status),
+                                 status=circuit.get_rich_status()),
                     incoming=message.uuid))
                 # update token database 
             token.state = "used"
@@ -121,7 +121,7 @@ def turn_circuit_on(message,lang="en"):
         if circuit.credit > 0:
             messageBody = make_message("toggle.txt",lang=lang,
                                        account=circuit.pin,
-                                       status=circuit.status,
+                                       status=circuit.get_rich_status(),
                                        credit=circuit.credit)
             job = TurnOn(circuit)
             session.add(JobMessage(job))
@@ -151,7 +151,7 @@ def turn_circuit_off(message,lang="en"):
                 make_message("toggle.txt",
                              lang=lang,
                              account=circuit.pin,
-                             status=circuit.status,
+                             status=circuit.get_rich_status(),
                              credit=circuit.credit),
                 incoming=message.uuid))
         session.add(JobMessage(job))

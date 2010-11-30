@@ -148,6 +148,12 @@ class Circuit(Base):
         else:             
             job = TurnOff(circuit=self) 
             session.add(job)
+
+    def get_rich_status(self): 
+        if self.status == 0: 
+            return "Off"
+        elif self.status == 1:
+            return "On"
             
     def url(self): 
         return "/circuit/index/%s" % self.uuid
