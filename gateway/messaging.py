@@ -1,4 +1,4 @@
-import datetime
+import os
 from urlparse import parse_qs 
 from mako.template import Template
 from gateway.models import DBSession,\
@@ -6,9 +6,9 @@ from gateway.models import DBSession,\
     TurnOff, PrimaryLog, OutgoingMessage, JobMessage, Meter 
 
 delimiter = "."
-baseTemplate = "gateway/templates/messages"
+baseTemplate = "%s/gateway/templates/messages" % os.getcwd()
 
-def make_message(template="error.txt",lang="en",**kwargs): 
+def make_message(template="error.txt",lang="fr",**kwargs): 
     templateName = "%s/%s/%s" % (baseTemplate,lang,template) 
     template = Template(filename=templateName).render(**kwargs)
     return template
