@@ -9,6 +9,9 @@ delimiter = "."
 baseTemplate = "%s/gateway/templates/messages" % os.getcwd()
 
 def make_message(template="error.txt",lang="fr",**kwargs): 
+    """
+    Function to look up message from templates.
+    """
     templateName = "%s/%s/%s" % (baseTemplate,lang,template) 
     template = Template(filename=templateName).render(**kwargs)
     return template
@@ -243,7 +246,13 @@ def parse_meter_message(message,meter):
                     pass 
                 # circuit off because power max crossed.
                 elif message['alert'] == "pmax":
-                    pass 
+                    session.add(
+                        OutgoingMessage(
+                            circuit.account.phone,
+                            make_message("power-max-alert.txt",
+                                         lang=lang,
+                                         account=circuit.pin),
+                            incoming=message.uuid))
                 # circuit off because enegry max crossed.
                 elif message['alerts'] == "emax": 
                     pass 
@@ -254,11 +263,16 @@ def parse_meter_message(message,meter):
 def parse_message(message): 
     session = DBSession() 
     text = message.text.lower()  
+    # ------------------------------
     # check to see if the messages is from a meter. 
     # if so, attepmt to parse the message.  
+    # ------------------------------
     meter = session.query(Meter).filter_by(phone=str(message.number)).first()
     if meter:
         parse_meter_message(message,meter)
+    # ------------------------------
+    # Consumer messages
+    # ------------------------------
     elif text.startswith("bal"):
         get_balance(message)
     elif text.startswith("solde"): 
