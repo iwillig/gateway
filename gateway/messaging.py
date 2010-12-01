@@ -200,8 +200,8 @@ def parse_meter_message(message,meter):
         circuit = session.query(Circuit).\
             filter_by(ip_address=message["cid"]).\
             filter_by(meter=meter).first() 
-        lang = circuit.account.lang 
         if circuit: # double check that we have a circuit
+            lang = circuit.account.lang # get the langauge 
             # ------------------------------
             #  Jobs messages. 
             # ------------------------------
