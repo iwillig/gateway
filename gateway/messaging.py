@@ -3,7 +3,7 @@ from urlparse import parse_qs
 from mako.template import Template
 from gateway.models import DBSession,\
     Circuit, Token, AddCredit, TurnOn,\
-    TurnOff, PrimaryLog, OutgoingMessage, JobMessage, Meter 
+    TurnOff, PrimaryLog, OutgoingMessage, JobMessage, Meter, SystemLog
 
 delimiter = "."
 baseTemplate = "%s/gateway/templates/messages" % os.getcwd()
@@ -172,49 +172,90 @@ def use_history(message,lang="en"):
     elif lang == "fr":
         pass 
 
+def clean_message(messageRaw): 
+    """
+    Does not basic cleaning of meter messages. 
+    Step 1. Removes () 
+    Step 2. Returns a new dict with only the first value
+    """
+    message = {} 
+    messageBody = messageRaw.strip(")").strip("(")
+    parsed_message = parse_qs(messageBody)    
+    for k,v in parsed_message.iteritems(): 
+        message[k] = v[0] 
+    return message
+
 def parse_meter_message(message,meter):
     """
     Parse message from the Meter
+    Messages need to have () on each side 
     """
     session = DBSession()     
-    parsed_message = parse_qs(message.text.lower())
-    job = parsed_message["job"][0] 
-    circuit = session.query(Circuit).\
-        filter_by(ip_address=parsed_message["cid"][0]).\
-        filter_by(meter=meter).first() 
-    lang = circuit.account.lang 
-    if circuit:
-        if job == "pp": # primary log 
-            log = PrimaryLog(circuit=circuit,
-                             watthours=parsed_message["wh"][0],
-                             use_time=parsed_message["tu"][0],
-                             credit=parsed_message["cr"][0],
-                             status=int(parsed_message["status"][0]))
-            circuit.credit = log.credit
-            session.add(log)
-            session.merge(circuit)
-        elif job == "alerts": 
-            alert = parsed_message['alert'][0]
-            if alert == "nocw": 
-                session.add(OutgoingMessage(
-                        circuit.account.phone,
-                        make_message("nocw-alert.txt",
-                                     lang=lang,
-                                     account=circuit.pin),
-                        incoming=message.uuid))
-            if alert == "lcw": 
-                session.add(
-                    OutgoingMessage(
-                        circuit.account.phone,
-                        make_message("lcw-alert.txt",
-                                     lang=lang,
-                                     account=circuit.pin),
-                        incoming=message.uuid))
+    messageBody = message.text.lower()     
+    if messageBody.endswith(")") and messageBody.startswith("("): 
+        message = clean_message(messageBody)
+        circuit = session.query(Circuit).\
+            filter_by(ip_address=message["cid"]).\
+            filter_by(meter=meter).first() 
+        lang = circuit.account.lang 
+        if circuit: # double check that we have a circuit
+            # ------------------------------
+            #  Jobs messages. 
+            # ------------------------------
+            # primary log
+            if message['job'] == "pp":
+                log = PrimaryLog(circuit=circuit,
+                                 watthours=message["wh"],
+                                 use_time=message["tu"],
+                                 credit=message["cr"],
+                                 status=int(message["status"]))
+                # override the credit and status value from the meter. 
+                circuit.credit = log.credit 
+                circuit.status = log.status
+                session.add(log)
+                session.merge(circuit)
+            # ------------------------------
+            # Alerts. 
+            # ------------------------------
+            elif message['job'] == "alerts": 
+                # no credit warning
+                if message['alert'] == "nocw": 
+                    session.add(OutgoingMessage(
+                            circuit.account.phone,
+                            make_message("nocw-alert.txt",
+                                         lang=lang,
+                                         account=circuit.pin),
+                            incoming=message.uuid))
+                # low credit warning
+                elif message['alert'] == "lcw": 
+                    session.add(
+                        OutgoingMessage(
+                            circuit.account.phone,
+                            make_message("lcw-alert.txt",
+                                         lang=lang,
+                                         account=circuit.pin),
+                            incoming=message.uuid))
+                # this alert is sent out if the meter is going down. 
+                elif message['alert'] == "md": 
+                    pass 
+                # component failure 
+                elif message['alert'] == "ce": 
+                    pass 
+                # circuit off because power max crossed.
+                elif message['alert'] == "pmax":
+                    pass 
+                # circuit off because enegry max crossed.
+                elif message['alerts'] == "emax": 
+                    pass 
+    else: 
+        session.add(SystemLog(
+                'Unable to parse <Message %s>' % message.text))
 
 def parse_message(message): 
     session = DBSession() 
     text = message.text.lower()  
-    import ipdb; ipdb.set_trace()
+    # check to see if the messages is from a meter. 
+    # if so, attepmt to parse the message.  
     meter = session.query(Meter).filter_by(phone=str(message.number)).first()
     if meter:
         parse_meter_message(message,meter)
@@ -247,6 +288,6 @@ def parse_message(message):
     elif text.startswith("english"): 
         set_primary_lang(message) 
     else: 
-        # fall through we can not match a message
+        # fall through when we can not match a message
         pass
 

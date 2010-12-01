@@ -1,0 +1,4 @@
+<%!
+  import datetime
+%> 
+Your electricity account ${account} balance is low. Your remaining balance is less than 10, as of ${datetime.datetime.now().ctime()}.
