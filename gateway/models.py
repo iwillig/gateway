@@ -340,7 +340,6 @@ class SystemLog(Base): # to mark system errors
         self.created = get_now() 
         
 
-
 class PrimaryLog(Log): 
     __tablename__ = "primary_log" 
     __mapper_args__ = {'polymorphic_identity': 'primary_log'}
@@ -349,10 +348,10 @@ class PrimaryLog(Log):
     use_time = Column(Float) 
     status = Column(Integer) 
     created = Column(DateTime) 
-    credit = Column(Float) 
+    credit = Column(Float,nullable=True) 
     status = Column(Integer) 
 
-    def __init__(self,circuit,credit,watthours,use_time,status):
+    def __init__(self,circuit,watthours,use_time,status,credit=0):
         Log.__init__(self,circuit)
         self.circuit = circuit
         self.watthours = watthours

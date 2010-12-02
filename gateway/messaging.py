@@ -213,12 +213,12 @@ def parse_meter_message(message,meter):
             # ------------------------------
             # primary log
             if messageDict['job'] == "pp":
-                ppKeys =  ['status', 'cid', 'tu', 'mid', 'wh', 'job', 'cr']
-                if valid(messageDict,ppKeys):
+                if valid(messageDict.keys(),
+                         ['status', 'cid', 'tu', 'mid', 'wh', 'job']):
                     log = PrimaryLog(circuit=circuit,
                                      watthours=messageDict["wh"],
                                      use_time=messageDict["tu"],
-                                     credit=messageDict["cr"],
+                                     credit=messageDict.get("cr"),
                                      status=int(messageDict["status"]))
                     # override the credit and status value from the meter. 
                     circuit.credit = log.credit 
@@ -227,7 +227,7 @@ def parse_meter_message(message,meter):
                     session.merge(circuit)
                 else: 
                     session.add(SystemLog(
-                            text="Unable to process message<%s>" % message.uuid))
+                            text="Unable to process message %s" % message.uuid))
             # ------------------------------
             # Alerts. 
             # ------------------------------
@@ -269,7 +269,7 @@ def parse_meter_message(message,meter):
                     pass 
     else: 
         session.add(SystemLog(
-                'Unable to parse <Message %s>' % message.text))
+                'Unable to parse message %s' % message.uuid))
 
 def parse_message(message): 
     session = DBSession() 
