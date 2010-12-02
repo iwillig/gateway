@@ -1,6 +1,7 @@
 
 def raise_first_leter(word):
-    return word[0].upper() + word[1:]
+    word = word[0].upper() + word[1:]
+    return word.replace("_"," ")
 
 def get_fields(model): 
     """
@@ -28,7 +29,7 @@ def model_from_request(request,model):
     return model
 
 
-def slick_grid_header(klass): 
+def make_table_header(klass): 
     fields = []
     keys = klass.__mapper__.columns.keys()
     for key in keys: 
@@ -39,9 +40,9 @@ def slick_grid_header(klass):
     return fields
 
 
-def slick_grid_data(models):    
+def make_table_data(models):    
     if models:
-        first = models.first()
+        first = models[0]
         data = [] 
         for model in models:
             field = {} 
