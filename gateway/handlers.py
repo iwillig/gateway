@@ -24,6 +24,7 @@ from gateway.models import Message
 from gateway.models import JobMessage
 from gateway.models import IncomingMessage
 from gateway.models import OutgoingMessage
+from gateway.models import SystemLog
 from gateway.messaging import parse_message
 from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
@@ -96,6 +97,11 @@ class Dashboard(object):
                     value=line[2],
                     batch=batch))            
         return HTTPFound(location=self.request.application_url)
+
+    @action()
+    def system_logs(self): 
+        return Response(
+            [x.text for x in self.session.query(SystemLog).all()])
 
     @action(permission="admin")
     def send_message(self): 
@@ -417,40 +423,7 @@ class JobHandler(object):
         else:
             return Response(simplejson.dumps(job.toDict())) 
 
-class AlertHandler(object):
-    """
-    Handles all of the alert from the meter.
-    Often sends a SMS message as a result
-    """
-    def __init__(self,request ):
-        self.request = request
-        
-    @action() 
-    def md(self): 
-        """
-        Meter down
-        """
-        return Response() 
-    
-    @action() 
-    def sdc(self): 
-        """
-        """
-        return Response() 
-        
-    @action()
-    def lcw(self): 
-        """
-        Low credit alert
-        """
-        return Response()
 
-    @action() 
-    def nocw(): 
-        """
-        No credit alert 
-        """
-        return Response() 
 
 class TokenHandler(object):
     

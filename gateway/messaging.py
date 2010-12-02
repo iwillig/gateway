@@ -188,6 +188,12 @@ def clean_message(messageRaw):
         message[k] = v[0] 
     return message
 
+def valid(test,against): 
+    for key in against:
+        if key not in test: 
+            return False        
+    return True 
+
 def parse_meter_message(message,meter):
     """
     Parse message from the Meter
@@ -196,9 +202,9 @@ def parse_meter_message(message,meter):
     session = DBSession()     
     messageBody = message.text.lower()     
     if messageBody.endswith(")") and messageBody.startswith("("): 
-        message = clean_message(messageBody)
+        messageDict = clean_message(messageBody)
         circuit = session.query(Circuit).\
-            filter_by(ip_address=message["cid"]).\
+            filter_by(ip_address=messageDict["cid"]).\
             filter_by(meter=meter).first() 
         if circuit: # double check that we have a circuit
             lang = circuit.account.lang # get the langauge 
@@ -206,23 +212,28 @@ def parse_meter_message(message,meter):
             #  Jobs messages. 
             # ------------------------------
             # primary log
-            if message['job'] == "pp":
-                log = PrimaryLog(circuit=circuit,
-                                 watthours=message["wh"],
-                                 use_time=message["tu"],
-                                 credit=message["cr"],
-                                 status=int(message["status"]))
-                # override the credit and status value from the meter. 
-                circuit.credit = log.credit 
-                circuit.status = log.status
-                session.add(log)
-                session.merge(circuit)
+            if messageDict['job'] == "pp":
+                ppKeys =  ['status', 'cid', 'tu', 'mid', 'wh', 'job', 'cr']
+                if valid(messageDict,ppKeys):
+                    log = PrimaryLog(circuit=circuit,
+                                     watthours=messageDict["wh"],
+                                     use_time=messageDict["tu"],
+                                     credit=messageDict["cr"],
+                                     status=int(messageDict["status"]))
+                    # override the credit and status value from the meter. 
+                    circuit.credit = log.credit 
+                    circuit.status = log.status
+                    session.add(log)
+                    session.merge(circuit)
+                else: 
+                    session.add(SystemLog(
+                            text="Unable to process message<%s>" % message.uuid))
             # ------------------------------
             # Alerts. 
             # ------------------------------
-            elif message['job'] == "alerts": 
+            elif messageDict['job'] == "alerts": 
                 # no credit warning
-                if message['alert'] == "nocw": 
+                if messageDict['alert'] == "nocw": 
                     session.add(OutgoingMessage(
                             circuit.account.phone,
                             make_message("nocw-alert.txt",
@@ -230,7 +241,7 @@ def parse_meter_message(message,meter):
                                          account=circuit.pin),
                             incoming=message.uuid))
                 # low credit warning
-                elif message['alert'] == "lcw": 
+                elif messageDict['alert'] == "lcw": 
                     session.add(
                         OutgoingMessage(
                             circuit.account.phone,
@@ -239,13 +250,13 @@ def parse_meter_message(message,meter):
                                          account=circuit.pin),
                             incoming=message.uuid))
                 # this alert is sent out if the meter is going down. 
-                elif message['alert'] == "md": 
+                elif messageDict['alert'] == "md": 
                     pass 
                 # component failure 
-                elif message['alert'] == "ce": 
+                elif messageDict['alert'] == "ce": 
                     pass 
                 # circuit is off because power max crossed.
-                elif message['alert'] == "pmax":
+                elif messageDict['alert'] == "pmax":
                     session.add(
                         OutgoingMessage(
                             circuit.account.phone,
@@ -254,7 +265,7 @@ def parse_meter_message(message,meter):
                                          account=circuit.pin),
                             incoming=message.uuid))
                 # circuit is off because enegry max crossed.
-                elif message['alerts'] == "emax": 
+                elif messageDict['alerts'] == "emax": 
                     pass 
     else: 
         session.add(SystemLog(

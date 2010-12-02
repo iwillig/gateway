@@ -45,8 +45,6 @@ def main(global_config, **settings):
                        handler='gateway.handlers:CircuitHandler')
     config.add_handler('logs','logs/:action/:meter/:circuit/',
                        handler='gateway.handlers:LoggingHandler') 
-    config.add_handler('alerts','alerts/:action/:meter/:circuit/',
-                       handler="gateway.handlers:AlertHandler")
     config.add_handler('jobs','jobs/:action/:id/',
                        handler='gateway.handlers:JobHandler')
     config.add_handler('sms','sms/:action',
