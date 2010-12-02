@@ -27,7 +27,7 @@ from gateway.models import OutgoingMessage
 from gateway.messaging import parse_message
 from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
-    slick_grid_header
+    make_table_header, make_table_data
 
 breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
 
@@ -158,6 +158,8 @@ class MeterHandler(object):
         return { 
             "logged_in" : authenticated_userid(self.request),
             "meter" : self.meter, 
+            "circuit_header" : make_table_header(Circuit),
+            "circuit_data"  : make_table_data(self.meter.get_circuits()),
             "fields" : get_fields(self.meter),
             "breadcrumbs" : breadcrumbs } 
     
@@ -234,12 +236,13 @@ class CircuitHandler(object):
 
     @action(renderer="circuit/index.mako",permission="admin") 
     def index(self): 
-        breadcrumbs = self.breadcrumbs
+        breadcrumbs = self.breadcrumbs[:]
+        breadcrumbs.extend([
+                    {"text": "Meter Overview", "url" : self.meter.url()},
+                    {"text" : "Circuit Overview"}])
         return { 
             "logged_in" : authenticated_userid(self.request),
-            "breadcrumbs" : breadcrumbs.extend([
-                    {"text": "Meter Overview", "url" : self.meter.url()},
-                    {"text" : "Circuit Overview"}]) ,                 
+            "breadcrumbs" : breadcrumbs,                  
             "jobs" : self.circuit.get_jobs(),
             "fields" : get_fields(self.circuit),
             "circuit" : self.circuit } 
@@ -247,12 +250,13 @@ class CircuitHandler(object):
     @action(renderer="circuit/edit.mako",permission="admin")
     def edit(self): 
         breadcrumbs = self.breadcrumbs
-        return { 
-            "logged_in" : authenticated_userid(self.request),
-            "breadcrumbs" : breadcrumbs.extend([
+        breadcrumbs.extend([
                     {"text": "Meter Overview", "url" : self.meter.url()},
                     {"text" : "Circuit Overview", "url" : self.circuit.url()},
-                    {"text" : "Circuit Edit",}]),
+                    {"text" : "Circuit Edit",}])
+        return { 
+            "logged_in" : authenticated_userid(self.request),
+            "breadcrumbs" : breadcrumbs,
             "fields" : get_fields(self.circuit),
             "circuit" : self.circuit } 
 
@@ -492,7 +496,7 @@ class SMSHandler(object):
         return { 
             "logged_in"   : authenticated_userid(self.request),
             "messages"    : messages,
-            "table_headers" : slick_grid_header(OutgoingMessage),
+            "table_headers" : make_table_header(OutgoingMessage),
             "breadcrumbs" : breadcrumbs.append({"text" : "SMS Message"}) } 
 
     @action(permission="admin") 
