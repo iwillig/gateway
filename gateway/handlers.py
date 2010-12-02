@@ -101,7 +101,8 @@ class Dashboard(object):
     @action()
     def system_logs(self): 
         return Response(
-            [x.text for x in self.session.query(SystemLog).all()])
+            simplejson.dumps(
+                [x.text for x in self.session.query(SystemLog).all()]))
 
     @action(permission="admin")
     def send_message(self): 
