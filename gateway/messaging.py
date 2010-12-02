@@ -244,7 +244,7 @@ def parse_meter_message(message,meter):
                 # component failure 
                 elif message['alert'] == "ce": 
                     pass 
-                # circuit off because power max crossed.
+                # circuit is off because power max crossed.
                 elif message['alert'] == "pmax":
                     session.add(
                         OutgoingMessage(
@@ -253,7 +253,7 @@ def parse_meter_message(message,meter):
                                          lang=lang,
                                          account=circuit.pin),
                             incoming=message.uuid))
-                # circuit off because enegry max crossed.
+                # circuit is off because enegry max crossed.
                 elif message['alerts'] == "emax": 
                     pass 
     else: 
@@ -273,6 +273,7 @@ def parse_message(message):
     # ------------------------------
     # Consumer messages
     # ------------------------------
+    # allow consumers to check their balance.
     elif text.startswith("bal"):
         get_balance(message)
     elif text.startswith("solde"): 
