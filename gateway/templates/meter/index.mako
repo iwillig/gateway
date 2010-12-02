@@ -1,21 +1,16 @@
 <%inherit file="../base.mako"/>
 
 <%def name="header()">
-
-
    <script type="text/javascript"
            src="${request.application_url}/static/meter_page.js"></script>
-
    <script type="text/javascript">
      $(document).ready(function() { 
          loadPage("${request.application_url}/meter/add_circuit/${meter.uuid}",
             "${request.application_url}/meter/get_circuits/${meter.uuid}");}); 
    </script>
-
 </%def>
 
 <%def name="content()">
-
 <h3>Meter overview page</h3> 
 <table>
   <tr>
@@ -98,20 +93,26 @@
 
 <table class="circuits">
   <tr>
-    <th><strong>Circuit ip address</strong></th>
-    <th><strong>Circuit uuid: </strong></th>
-    <th><strong>Circuit pin: </strong></th>
-    <th><strong>Circuit power max: </strong></th>
-    <th><strong>Circuit energy max: </strong></th>
+    % for item in circuit_header:
+        <th>${item.get("name")}</th>
+    % endfor 
   </tr>
-
-  % for circuit in meter.get_circuits(): 
+  
+  % for item in circuit_data: 
   <tr>
-    <td>${str(circuit.ip_address)}</td>
-    <td><a href="${circuit.url()}">${circuit.uuid}</a></td>
-    <td>${str(circuit.pin)}</td>
-    <td>${str(circuit.power_max)}</td>
-    <td>${str(circuit.energy_max)}</td>
+    <td>${item["meter_id"]}</td>
+    <td>${item["id"]}</td>
+    <td>
+      <a href="${request.application_url}/circuit/index/${item["uuid"]}">${item["uuid"]}
+    </a></td>
+    <td>${item["date"]}</td>
+    <td>${item["pin"]}</td>
+    <td>${item["energy_max"]}</td>
+    <td>${item["power_max"]}</td>
+    <td>${item["status"]}</td>
+    <td>${item["ip_address"]}</td>
+    <td>${item["credit"]}</td>
+    <td>${item["account_id"]}</td>
   </tr>  
   % endfor 
 
