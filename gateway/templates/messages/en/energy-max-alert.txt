@@ -1,0 +1,5 @@
+## english energy max message
+<%!
+  import datetime
+%>
+Your electricity account <account-number> has been turned off as of <time-stamp>. The maximum daily energy has been consumed. You may re-activate your account tomorrow.

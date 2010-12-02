@@ -1,0 +1,7 @@
+
+<%!
+  import datetime
+%>
+
+Your electricity account ${account} has been turned off as of
+${datetime.datetime.now.ctime()}. The maximum allowed power has been exceeded. Reduce load and reactivate your account.

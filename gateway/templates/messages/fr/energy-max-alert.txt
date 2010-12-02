@@ -1,0 +1,5 @@
+## french energy max alert.
+<%!
+  import datetime
+%>
+LIGNE COUPEE. La ligne ${account} a ete coupee le ${datetime.datetime.now.ctime()} car la elle a depassee la consomation maximale pour une journee. Vous devrez la reactiver demain.

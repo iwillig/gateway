@@ -1,0 +1,5 @@
+## french power max alert
+<%!
+  import datetime
+%>
+LIGNE COUPEE. La ligne ${account} a ete coupée le ${datetime.datetime.now.ctime()} car la puissance maximale autorisee a ete depassee. Vous devrez la reactiver demain.
