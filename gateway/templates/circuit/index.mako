@@ -95,6 +95,7 @@
     <th>Log uuid</th>
     <th>Log date</th>
     <th>Log credit</th>
+    <th>Circuit state</th>
   </tr>
   % for log in circuit.get_logs()[0:20]: 
     <tr>
@@ -102,6 +103,7 @@
       <td> ${log.uuid} </td> 
       <td>${log.date.ctime()}</td>
       <td>${log.credit}</td>
+      <td>${log.status}</td>
     </tr>
   % endfor 
 </table>
