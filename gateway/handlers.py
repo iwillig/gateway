@@ -309,7 +309,9 @@ class CircuitHandler(object):
         return { 
             "logged_in" : authenticated_userid(self.request), 
             "x" : [str(x.created.ctime()) for x in logs  ], 
-            "y" : [x.get_property(yaxis) for x in logs ]}  
+            "y" : [x.get_property(yaxis) for x in logs ],
+            "y_units" :	params["yaxis"]   
+            }  
 
     @action()
     def jobs(self): 

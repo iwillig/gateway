@@ -6,6 +6,7 @@
     <script type="text/javascript">
       //var x=['Nov 11 2010','Nov 12 2010','Nov 13 2010','Nov 14 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010'];
       //var y=[1,2,3,4,1,2,3,4,5,6,7,8,9,10];		
+      var units="${y_units}";
       var x = ${str(x)} ; 
       var y = ${str(y)} ; 
       var chart;
@@ -18,7 +19,7 @@
 					marginBottom: 45
 				},
 				title: {
-					text: 'Circuit Graph',
+					text: 'time vs '+units+' chart',
 					x: -20 //center
 				},
 				subtitle: {
@@ -26,6 +27,9 @@
 					x: -20
 				},
 				xAxis: {
+					title: {
+						text: "Time Line"
+					},
 					categories: x,
 					labels: {
             					rotation: 45,
@@ -38,7 +42,7 @@
 				},
 				yAxis: {
 					title: {
-						text: 'Units'
+						text: units
 					},
 					plotLines: [{
 						value: 0,
@@ -72,7 +76,7 @@
     </script>
 </%def> 
 <%def name="content()"> 
-<h2>Make graphs here</h2>
+<h2>View graphs here</h2>
 <div id="container" style="width: 800px; height: 400px; margin: 0 auto"></div>
 
 </%def> 
