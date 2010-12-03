@@ -300,16 +300,14 @@ class CircuitHandler(object):
         params = self.request.params        
         # parse the date from the request
         origin = parser.parse(params["from"]) 
-        to = parser.parse(params["to"])
+        to = parser.parse(params["to"])        
         yaxis = params["yaxis"] 
-        # logs = query.\
-        #      filter(PrimaryLog.created > origin).\
-        #      filter(PrimaryLog.created < to)
-        logs = query.filter(PrimaryLog.credit > 20) 
+        logs = [x for x in query.all() if x.created > origin]
+        logs = [x for x in logs if x.created < to] 
         return { 
             "logged_in" : authenticated_userid(self.request), 
             "x" : [str(x.created.ctime()) for x in logs  ], 
-            "y" : [x.get_property(yaxis) for x in logs ]}  
+            "y" : [x.get_property(yaxis) for x in logs]}  
 
     @action()
     def jobs(self): 
