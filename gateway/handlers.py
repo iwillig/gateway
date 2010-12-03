@@ -307,7 +307,8 @@ class CircuitHandler(object):
         return { 
             "logged_in" : authenticated_userid(self.request), 
             "x" : [str(x.created.ctime()) for x in logs  ], 
-            "y" : [x.get_property(yaxis) for x in logs]}  
+            "y" : simplejson.dumps([x.get_property(yaxis) for x in logs ]),
+            "y_units" :	simplejson.dumps(params["yaxis"])}  
 
     @action()
     def jobs(self): 
