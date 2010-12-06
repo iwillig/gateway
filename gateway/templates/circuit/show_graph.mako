@@ -4,12 +4,12 @@
     <title>Circuit Page</title>
     <script type="text/javascript" src="/static/highcharts/highcharts.js"></script>
     <script type="text/javascript">
-      var x=['Nov 11 2010','Nov 12 2010','Nov 13 2010','Nov 14 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010'];
-      var y=[1,2,3,4,1,2,3,4,5,6,7,8,9,10];		
+      //var x=['Nov 11 2010','Nov 12 2010','Nov 13 2010','Nov 14 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010'];
+      //var y=[1,2,3,4,1,2,3,4,5,6,7,8,9,10];		
       var units = ${y_units};
       //var x_pruned =[1,2,3,4];
-      //var x = ${str(x)} ; 
-      //var y = ${str(y)} ; 
+      var x = ${str(x)} ; 
+      var y = ${str(y)} ; 
       var to = ${str(to)};
       var origin =${str(origin)}
       var origin_date=new Date(origin);
