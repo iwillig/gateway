@@ -1,12 +1,25 @@
+'''
+'''
+import os
+from mako.template import Template
+
+baseTemplate = "%s/gateway/templates/messages" % os.getcwd()
+
+def make_message(template="error.txt", lang="fr", **kwargs):
+    """Builds a template based on name and langauge with kwargs passed
+    to the template..  Returns a template object
+    """
+    templateName = "%s/%s/%s" % (baseTemplate, lang, template)
+    template = Template(filename=templateName).render(**kwargs)
+    return template
+
 
 def raise_first_leter(word):
     word = word[0].upper() + word[1:]
     return word.replace("_"," ")
 
 def get_fields(model): 
-    """
-    Takes a model and returns a useful dict
-    """
+    """Takes a model and returns a useful dict"""
     fields = {} 
     mapper = model.__mapper__ 
     columns = mapper.columns

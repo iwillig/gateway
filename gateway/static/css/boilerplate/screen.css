@@ -41,6 +41,7 @@ p { margin: 2px; }
     padding: 20px;
     background: #e5ecf9;
 } 
+
 .no-border td { 
     border: none;
 } 
@@ -104,6 +105,9 @@ ul.message li {
  } 
 .intro-box { 
     padding: 5px;
+    border: 3px solid #aec8f9; 
+    background: #eff3f9; 
+    margin: 5px;
 } 
 .jobs td { padding: 3px; } 
 .jobs .active { 

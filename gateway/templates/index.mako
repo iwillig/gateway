@@ -92,8 +92,22 @@
 
 <a href="${request.application_url}/sms/index"> Check all SMS
   messages</a> 
-% else: 
+</div>
 
+
+<div id="manage-system-logs" class="intro-box">
+  <h4>Manage and view system logs</h4>  
+  <ul>
+  % for log in system_logs[:10]:
+      <li>${log.text}</li>     
+  % endfor 
+  </ul>  
+</div>
+
+
+
+
+% else: 
 % endif
 
 </div>
