@@ -45,9 +45,12 @@ class Dashboard(object):
     def index(self):
         meters = self.session.query(Meter)
         tokenBatchs = self.session.query(TokenBatch).all() 
+        system_logs = self.session.query(SystemLog).\
+            order_by(SystemLog.created).all() 
         return {
             "logged_in" : authenticated_userid(self.request),
             "tokenBatchs" : tokenBatchs,
+            "system_logs" : system_logs, 
             "meters" :  meters, 
             "breadcrumbs" : self.breadcrumbs} 
 
