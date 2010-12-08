@@ -7,8 +7,15 @@
       //var x=['Nov 11 2010','Nov 12 2010','Nov 13 2010','Nov 14 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010'];
       //var y=[1,2,3,4,1,2,3,4,5,6,7,8,9,10];		
       var units = ${y_units};
+      //var x_pruned =[1,2,3,4];
       var x = ${str(x)} ; 
       var y = ${str(y)} ; 
+      var to = ${str(to)};
+      var origin =${str(origin)}
+      var origin_date=new Date(origin);
+      var to_date= new Date(to);
+      origin_date=Date.UTC(origin_date.getFullYear(),origin_date.getMonth(),origin_date.getDay());
+      to_date=Date.UTC(to_date.getFullYear(),to_date.getMonth(),to_date.getDay());
       var chart;
 		jQuery(document).ready(function() {
 			chart = new Highcharts.Chart({
@@ -30,13 +37,20 @@
 					title: {
 						text: "Time Line"
 					},
-					categories: x,
-					labels: {
+					type: 'datetime',
+					showLastTickLabel: true,
+					maxZoom: 0,
+					//categories: x_pruned,
+					/*labels: {
             					rotation: 45,
             					style: {
                 					font: 'normal 13px Verdana, sans-serif'
             				}
-            				}
+            				}*/
+            				plotBands: [{
+              						 from: origin_date,
+              						 to: to_date
+            				}]
 
 					
 				},
@@ -52,8 +66,7 @@
 				},
 				tooltip: {
 					formatter: function() {
-			                return '<b>'+ this.series.name +'</b><br/>'+
-							this.x +': '+ this.y;
+			                return '<b>'+ this.series.name +'</b><br/>'+new Date(this.x) +': '+ this.y;
 					}
 				},
 				legend: {
@@ -66,6 +79,9 @@
 				},
 				series: [{
 					name: 'Circuit 1',
+					type: 'area',
+					pointInterval: 100 * 3600 * 1000,
+					pointStart: origin_date,
 					data: y
 				}]
 			});
