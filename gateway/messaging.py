@@ -1,24 +1,13 @@
-import os
 import re 
 from urlparse import parse_qs
-from mako.template import Template
 from gateway.models import DBSession, \
     Circuit, Token, AddCredit, TurnOn, \
-    TurnOff, PrimaryLog, OutgoingMessage, \
-    JobMessage, Meter, SystemLog, Job
+    TurnOff, OutgoingMessage, \
+    JobMessage, Meter, SystemLog
+from gateway import jobs
+from gateway.utils import make_message
 
 delimiter = "."
-baseTemplate = "%s/gateway/templates/messages" % os.getcwd()
-
-
-def make_message(template="error.txt", lang="fr", **kwargs):
-    """Builds a template based on name and langauge with kwargs passed to the template.. 
-    Returns a template object 
-    """
-    templateName = "%s/%s/%s" % (baseTemplate, lang, template)
-    template = Template(filename=templateName).render(**kwargs)
-    return template
-
 
 def get_circuit(message, lang="fr"):
     """Queries the database to find circuit
@@ -182,85 +171,6 @@ def clean_message(messageRaw):
         message[k] = v[0]
     return message
 
-
-def valid(test, against):
-    for key in against:
-        if key not in test:
-            return False
-    return True
-
-def mark_job_inactive(message, session): 
-    job = session.query(Job).get(message["jobid"])
-    if job:
-        circuit = job.circuit
-        job.state = False
-        session.merge(job)
-        if message["cr"]:
-            circuit.credit = message["cr"]
-            session.merge(circuit)
-    else: 
-        session.add(SystemLog(
-                "Unable to find job message %s " % message))
-
-def make_log(message, circuit, session): 
-    if valid(message.keys(),
-             ['status', 'cid', 'tu', 'mid', 'wh', 'job']):
-        log = PrimaryLog(circuit=circuit,
-                         watthours=message["wh"],
-                         use_time=message["tu"],
-                         credit=message.gte("cr"),
-                         status=int(message["status"]))
-        # override the credit and status value from the meter.
-        circuit.credit = log.credit
-        circuit.status = log.status
-        session.add(log)
-        session.merge(circuit)
-    else:
-        session.add(
-            SystemLog(text="Unable to process message %s"
-                      % message.uuid))
-
-
-def make_no_credit_alert(message, circuit, session): 
-    session.add(OutgoingMessage(
-            circuit.account.phone,
-            make_message("nocw-alert.txt",
-                         lang=circuit.lang,
-                         account=circuit.pin),
-            incoming=message.uuid))    
-    session.add(
-        SystemLog(
-            "Low credit alert for circuit %s sent to %s" % (circuit,
-                                                            message.number)))
-
-def make_low_credit_alert(message, circuit, session): 
-    msg = OutgoingMessage(circuit.account.phone,
-                          make_message("lcw-alert.txt",
-                                       lang=circuit.account.lang,
-                                       account=circuit.pin),
-                          incoming=message.uuid)
-    session.add(msg)
-    # send email 
-
-def make_meter_down_alert(message, circuit, session): 
-    log = SystemLog(
-        "Meter %s just falied, please investagte." % circuit.meter)
-    session.add(log)
-    # send email 
-
-def make_component_alert(message, circuit, session): 
-    log = SystemLog(
-        "Component %s just failed, please investagate." % circuit)
-    session.add(log) 
-    # send email 
-     
-def make_power_max_alert(message, circuit, session): 
-    msg = OutgoingMessage(circuit.account.phone,
-                          make_message("power-max-alert.txt",
-                                       lang=circuit.account.lang,
-                                       account=circuit.pin),
-                          incoming=message.uuid)
-    session.add(msg) 
     
 def parse_meter_message(message, meter):
     """
@@ -273,31 +183,21 @@ def parse_meter_message(message, meter):
     if messageBody.endswith(")") and messageBody.startswith("("):
         messageDict = clean_message(messageBody)
         if messageDict["job"] == "delete": 
-            mark_job_inactive(messageDict,session)
+            getattr(jobs,"make_"+ messageDict["job"])(messageDict,session)
         else:
             circuit = session.query(Circuit).\
                 filter_by(ip_address=messageDict["cid"]).\
                 filter_by(meter=meter).first()
             if circuit:  # double check that we have a circuit
                 if messageDict['job'] == "pp":
-                    make_log(messageDict,circuit,session)
+                    getattr(jobs,
+                            "make_"+ messageDict["job"])(messageDict,
+                                                         circuit,session)
                 elif messageDict['job'] == "alerts":
-                    # no credit warning
-                    if messageDict['alert'] == "nocw":
-                        make_no_credit_alert(messageDict,circuit,session)
-                    elif messageDict['alert'] == "lcw":
-                        make_low_credit_alert(messageDict,circuit,session)
-                    elif messageDict['alert'] == "md":
-                        make_meter_down_alert(messageDict, circuit,session)
-                    # component failure
-                    elif messageDict['alert'] == "ce":
-                        make_component_alert(messageDict,circuit,session)
-                    # circuit is off because power max crossed.
-                    elif messageDict['alert'] == "pmax":
-                    # circuit is off because enegry max crossed.
-                        make_power_max_alert(messageDict, circuit, session)
-                    elif messageDict['alerts'] == "emax":
-                        pass
+                    getattr(jobs,
+                            "make_"+ messageDict["alert"])(messageDict,
+                                                           circuit,
+                                                           session)
     else:
         session.add(SystemLog(
                 'Unable to parse message %s' % message.uuid))
