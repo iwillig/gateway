@@ -14,7 +14,7 @@ def get_circuit(message, lang="fr"):
     Returns the circuit or false 
     """
     session = DBSession()
-    pin = message.text.split(delimiter)[1]
+    pin = message.text.split(delimiter)[1].lower()
     circuit = session.query(Circuit).filter_by(pin=pin).first()
     if circuit:
         return circuit
