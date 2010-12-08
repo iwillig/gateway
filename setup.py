@@ -9,6 +9,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'python-dateutil',
+    'psycopg2',
     'simplejson',
     'pyramid',
     'pyramid_beaker',

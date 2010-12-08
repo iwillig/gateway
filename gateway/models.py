@@ -210,6 +210,9 @@ class Message(Base):
     def __unicode__(self): 
         return "Messsage <%s>" % self.uuid
 
+    def respond(self): 
+        return 
+
 class IncomingMessage(Message):
     """
     A class that repsents an incoming message
@@ -258,11 +261,13 @@ class TokenBatch(Base):
         self.created = datetime.datetime.now()
     
     def url(self): 
-        return "token/batch/%s" % self.uuid
+        return "token/show_batch/%s" % self.uuid
 
     def get_tokens(self): 
         session = DBSession()
         return session.query(Token).filter_by(batch=self)
+
+
 
 class Token(Base):
     __tablename__  = "token" 
@@ -339,6 +344,16 @@ class SystemLog(Base): # to mark system errors
         self.text = text
         self.created = get_now() 
         
+class SystemAlert(object):
+    """
+    """
+    
+    def __init__(self, ):
+        """
+        """
+        
+        
+
 
 class PrimaryLog(Log): 
     __tablename__ = "primary_log" 

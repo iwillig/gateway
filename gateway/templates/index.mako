@@ -65,6 +65,7 @@
       <th>Batch id</th>
       <th>Batch created on</th>
       <th>Number of tokens in batch</th>
+      <th></th>
     </tr>
   % for batch in tokenBatchs:   
     <tr>
@@ -72,6 +73,8 @@
       <td>${str(batch.id)}</td>
       <td>${batch.created.ctime()}</td>
       <td>${str(batch.get_tokens().count())}</td>
+      <td><a href="${request.application_url}/token/refesh/${batch.uuid}">
+     Refesh token state</a></td>
     </tr>
   % endfor 
   </table>

@@ -430,12 +430,18 @@ class TokenHandler(object):
     def __init__(self,request ):
         self.request = request
         self.session = DBSession() 
+        self.batch =  self.session.\
+            query(TokenBatch).filter_by(
+            uuid=self.request.matchdict["id"]).first()
 
     @action(permission="admin") 
-    def batch(self): 
-        batch = self.session.\
-            query(TokenBatch).filter_by(uuid=self.request.matchdict["id"]).first()
-        return Response(simplejson.dumps([x.toDict() for x in batch.get_tokens()]))
+    def show_batch(self): 
+        return Response(simplejson.dumps(
+                [x.toDict() for x in self.batch.get_tokens()]))
+
+    @action(permission="admin")
+    def refresh(self):
+        return Response("stuff") 
 
 
 class MessageHandler(object):
@@ -465,12 +471,13 @@ class SMSHandler(object):
     @action(renderer="sms/index.mako",permission="admin") 
     def index(self):        
         breadcrumbs = self.breadcrumbs[:]
+        breadcrumbs.append({"text" : "SMS Message"}) 
         messages = self.session.query(Message).order_by(Message.type)
         return { 
             "logged_in"   : authenticated_userid(self.request),
             "messages"    : messages,
             "table_headers" : make_table_header(OutgoingMessage),
-            "breadcrumbs" : breadcrumbs.append({"text" : "SMS Message"}) } 
+            "breadcrumbs" : breadcrumbs } 
 
     @action(permission="admin") 
     def remove_all(self): 
