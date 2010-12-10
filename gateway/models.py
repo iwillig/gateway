@@ -72,7 +72,7 @@ class Meter(Base):
         return "meter/remove/%s" % self.uuid
 
     def __str__(self): 
-        return "<Meter %s>" % self.uuid
+        return "Meter %s" % self.name
 
 class Account(Base):
     """

@@ -104,8 +104,10 @@ ul.message li {
     list-style-type: none; 
  } 
 .intro-box { 
-    padding: 5px;
+    padding: 10px;
     border: 3px solid #aec8f9; 
+    border-radius: 10px; 
+    -moz-border-radius: 10px;
     background: #eff3f9; 
     margin: 5px;
 } 
@@ -129,3 +131,13 @@ ul.message li {
  width: 100px;
  font-size: 20px;
 }  
+.buttons { 
+    list-style-type: none;  
+} 
+.buttons li { 
+    margin: 5px;
+} 
+
+.grid { 
+    border: 1px solid #808080; 
+} 

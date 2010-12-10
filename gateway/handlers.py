@@ -9,7 +9,7 @@ from pyramid.view import action
 from pyramid.security import authenticated_userid
 from pyramid.security import remember
 from pyramid.security import forget
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 
 from gateway.models import DBSession
 from gateway.models import Meter
@@ -165,11 +165,12 @@ class MeterHandler(object):
     def index(self):       
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "Meter Overview"})
+        circuit_data = make_table_data(self.meter.get_circuits())
         return { 
             "logged_in" : authenticated_userid(self.request),
             "meter" : self.meter, 
             "circuit_header" : make_table_header(Circuit),
-            "circuit_data"  : make_table_data(self.meter.get_circuits()),
+            "circuit_data"  : circuit_data,
             "fields" : get_fields(self.meter),
             "breadcrumbs" : breadcrumbs } 
     
@@ -309,8 +310,7 @@ class CircuitHandler(object):
         logs = [x for x in logs if x.created < to] 
         return { 
             "logged_in" : authenticated_userid(self.request), 
-            "x" : [str(x.created.ctime()) for x in logs  ], 
-            "y" : simplejson.dumps([x.get_property(yaxis) for x in logs ]),
+            "data" : [{"time" : str(x.created.ctime()),"value":x.get_property(yaxis)} for x in logs  ], 
             "y_units" :	simplejson.dumps(params["yaxis"]),  
             "origin" : simplejson.dumps(params["from"]),
             "to" :   simplejson.dumps(params["to"])}	
@@ -477,10 +477,10 @@ class SMSHandler(object):
     def index(self):        
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"}) 
-        messages = self.session.query(Message).order_by(Message.type)
+        messages = self.session.query(Message).order_by(desc(Message.id))
         return { 
             "logged_in"   : authenticated_userid(self.request),
-            "messages"    : messages,
+            "messages"    : make_table_data(messages),
             "table_headers" : make_table_header(OutgoingMessage),
             "breadcrumbs" : breadcrumbs } 
 

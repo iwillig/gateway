@@ -7,11 +7,6 @@
    <script type="text/javascript"
            src="${request.application_url}/static/jquery-ui-1.8.6.custom.min.js"></script>
 
-   <script type="text/javascript"
-           src="${request.application_url}/static/jquery.buildin.js"></script>
-
-   <script type="text/javascript"
-           src="${request.application_url}/static/jquery.buildin.templates.js"></script>
 
    <link rel="stylesheet" 
          href="${request.application_url}/static/css/boilerplate/screen.css" 
@@ -19,7 +14,7 @@
          media="screen" />
 
    <link rel="stylesheet" 
-         href="${request.application_url}/static/css/ui-lightness/jquery-ui-1.8.6.custom.css" 
+         href="${request.application_url}/static/css/gateway-theme/jquery-ui-1.8.6.custom.css" 
          type="text/css" 
          media="screen" />
 

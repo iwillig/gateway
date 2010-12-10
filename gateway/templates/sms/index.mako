@@ -1,11 +1,101 @@
-                <%inherit file="../base.mako"/>
+<%inherit file="../base.mako"/>
+<%! 
+   import simplejson
+
+%> 
 
 <%def name="header()"> 
    <title>SMS logs</title>
+  
+   <link rel="stylesheet" 
+         href="${request.application_url}/static/SlickGrid/slick.grid.css" 
+         type="text/css" 
+         media="screen" charset="utf-8" /> 
+
+  <script language="javascript" 
+          src="${request.application_url}/static/SlickGrid/lib/jquery.event.drag-2.0.min.js">
+  </script> 
+
+  <script language="javascript" 
+          src="${request.application_url}/static/SlickGrid/slick.core.js">
+  </script> 
+
+   <script language="javascript" 
+           src="${request.application_url}/static/SlickGrid/slick.grid.js">
+   </script>
+
+    <script src="${request.application_url}/static/SlickGrid/slick.dataview.js"></script>
+
+   
+   <script type="text/javascript">
+     var grid; 
+     var dataView; 
+
+     function comparer(a,b) {
+       var x = a[sortcol], y = b[sortcol];
+       return (x == y ? 0 : (x > y ? 1 : -1));
+     }        
+
+
+     $(document).ready(function(){ 
+
+       $(".buttons li a").button();        
+
+       
+       var columns = [
+         {"field": "type", "sortable": true, "id": "type", "name": "Type"},
+         {"field": "id", "sortable": true, "id": "id", "name": "Id"},
+         {"field": "date", "sortable": true, "id": "date", "name": "Date"},
+         {"field": "sent", "sortable": true, "id": "sent", "name": "Sent"},
+         {"field": "number", "sortable": true, "id": "number", "name": "Number"},
+         {"field": "incoming", 
+          "sortable": true, "id": "incoming", "name": "Incoming"},
+         {"field": "text", "sortable": true, "id": "text",
+          "width": 500,
+          "name": "Text"}]; 
+
+       var data = ${simplejson.dumps(messages)}; 
+
+       var options = {
+         selectedCellCssClass: "selected",         
+         autoHeight: true,
+         rowHeight: 64,         
+         enableCellNavigation: true,
+         enableColumnReorder: true,
+         forceFitColumns: true,         
+         
+       };
+        
+       dataView = new Slick.Data.DataView();
+       
+       grid = new Slick.Grid($('#sms-grid'),dataView.rows,columns,options)
+        
+
+       grid.onSort.subscribe(function(e, data) {
+         console.log("stuff"); 
+       }); 
+
+       dataView.onRowCountChanged.subscribe(function(args) {
+	 grid.updateRowCount();
+         grid.render();
+       });
+
+       dataView.onRowsChanged.subscribe(function(rows) {         
+         grid.invalidateRows(rows);         
+	 grid.render();
+       });
+
+       // Load some data into the grid
+       dataView.setItems(data);
+
+      });     
+   </script>
+            
+ 
 </%def>
 
 <%def name="content()"> 
-   <ul>
+   <ul class="buttons">
      <li> 
        <a href="${request.application_url}/sms/remove_all">Remove all
        messages</a> </li>
@@ -14,27 +104,9 @@
          queue</a> 
      </li>
    </ul>
-   <p>Currently there are <strong>${messages.count()}</strong> messages</p> 
-   <table>
-     <tr>
-       % for header in table_headers:
-       <th> ${header.get("name")} </th>
-       % endfor        
-     </tr>
-     % for msg in messages: 
-     <tr>
-       <td>${msg.type}</td>
-       <td>${msg.id}</td>
-       <td>${msg.date}</td>
-       <td>${msg.sent}</td>
-       <td>${msg.number} </td>
-       <td>${msg.uuid}</td>
-       <td>${msg.text}</td>
-       % if msg.type == "outgoing_message":
-           <td class="hint">${msg.get_incoming()}</td>
-       % endif
-     </tr>
-     % endfor 
+
+  <div id="sms-grid" class="grid">
+    
+  </div>
      
-   </table>
 </%def>

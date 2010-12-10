@@ -1,13 +1,6 @@
 <%inherit file="../base.mako"/>
 
 <%def name="header()">
-   <script type="text/javascript"
-           src="${request.application_url}/static/meter_page.js"></script>
-   <script type="text/javascript">
-     $(document).ready(function() { 
-         loadPage("${request.application_url}/meter/add_circuit/${meter.uuid}",
-            "${request.application_url}/meter/get_circuits/${meter.uuid}");}); 
-   </script>
 </%def>
 
 <%def name="content()">

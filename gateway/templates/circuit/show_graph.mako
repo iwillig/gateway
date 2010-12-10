@@ -1,15 +1,20 @@
 <%inherit file="../base.mako"/>
 
+
+<%!
+  import simplejson
+%>
+
+
 <%def name="header()"> 
     <title>Circuit Page</title>
     <script type="text/javascript" src="/static/highcharts/highcharts.js"></script>
     <script type="text/javascript">
-      //var x=['Nov 11 2010','Nov 12 2010','Nov 13 2010','Nov 14 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010','Nov 11 2010'];
-      //var y=[1,2,3,4,1,2,3,4,5,6,7,8,9,10];		
+
+
       var units = ${y_units};
       //var x_pruned =[1,2,3,4];
-      var x = ${str(x)} ; 
-      var y = ${str(y)} ; 
+      var data = ${simplejson.dumps(data)} ; 
       var to = ${str(to)};
       var origin =${str(origin)}
       var origin_date=new Date(origin);
@@ -65,9 +70,9 @@
 					}]
 				},
 				tooltip: {
-					formatter: function() {
-			                return '<b>'+ this.series.name +'</b><br/>'+new Date(this.x) +': '+ this.y;
-					}
+				  formatter: function() {
+			            return '<b>'+ this.series.name +'</b><br/>'+ new Date(this.x) +': '+ this.y;
+				  }
 				},
 				legend: {
 					layout: 'vertical',
@@ -80,8 +85,9 @@
 				series: [{
 					name: 'Circuit 1',
 					type: 'area',
-					pointInterval: 100 * 3600 * 1000,
+                                        pointInterval: 100 * 3600 * 1000,
 					pointStart: origin_date,
+                                        pointEnd: to_date,
 					data: y
 				}]
 			});

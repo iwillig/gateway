@@ -47,21 +47,17 @@ def make_table_header(klass):
     keys = klass.__mapper__.columns.keys()
     for key in keys: 
         fields.append({ "id" :key, 
-                        "sortable": True,
                         "name" : raise_first_leter(key), 
                         "field" : key})
     return fields
 
 
 def make_table_data(models):    
-    if models:
-        first = models[0]
-        data = [] 
-        for model in models:
-            field = {} 
-            for key in first.__mapper__.columns.keys(): 
-                field.update({ key : str(model.__getattribute__(key))}) 
-            data.append(field)
-        return data 
-    else: 
-        return [] 
+    data = [] 
+    for model in models:
+        field = {} 
+        for key in model.__mapper__.columns.keys(): 
+            field.update({ key : str(model.__getattribute__(key))}) 
+        data.append(field)
+    return data 
+
