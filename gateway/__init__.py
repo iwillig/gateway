@@ -1,6 +1,29 @@
 from pyramid_beaker import session_factory_from_settings
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
+from dispatch import Dispatcher
+from gateway.messaging import findMeter
+
+
+dispatcher = Dispatcher()
+dispatcher.addMatcher(findMeter,
+                      'gateway.messaging.parse_meter_message')
+dispatcher.addMatcher(r'^(bal).(\w+)',
+                      'gateway.consumer.get_balance', langauge='en')
+dispatcher.addMatcher(r'^(solde).(\w+)',
+                      'gateway.consumer.get_balance', langauge='fr')
+dispatcher.addMatcher(r'^(add).(\w+).(\d+)',
+                      'gateway.consumer.add_credit',langauge='en')
+dispatcher.addMatcher(r'^(recharge).(\w+).(\d+)',
+                      'gateway.consumer.add_credit',langauge='fr')
+dispatcher.addMatcher(r'^(on).(\w+)',
+                      'gateway.consumer.turn_circuit_on', langauge='fr')
+dispatcher.addMatcher(r'(off).(\w+)',
+                      'gateway.consumer.turn_circuit_off', langauge='fr')
+dispatcher.addMatcher(r'(prim).(\w+)',
+                      'gateway.consumer.set_primary_contact',langauge='en')
+dispatcher.addMatcher(r'(tel).(\w+)',
+                      'gateway.consumer.set_primary_contact',langauge='fr')
 
 
 def main(global_config, **settings):

@@ -11,6 +11,7 @@ from pyramid.security import remember
 from pyramid.security import forget
 from sqlalchemy import or_, desc
 
+from gateway import dispatcher
 from gateway.models import DBSession
 from gateway.models import Meter
 from gateway.models import Circuit
@@ -25,7 +26,6 @@ from gateway.models import JobMessage
 from gateway.models import IncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
-from gateway.messaging import parse_message
 from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
     make_table_header, make_table_data
@@ -502,7 +502,8 @@ class SMSHandler(object):
             msgJson["uuid"])        
         self.session.add(message) 
         self.session.flush()
-        parse_message(message)
+        dispatcher.matchMessage(message)
+        #parse_message(message)
         return Response(message.uuid)
 
     @action() 
