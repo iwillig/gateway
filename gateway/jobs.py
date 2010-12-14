@@ -1,5 +1,11 @@
+"""
+Job module for SS Gateway.
+Handles all of the meter communcation 
+
+"""
 from gateway.models import Job, SystemLog, PrimaryLog, OutgoingMessage
 from gateway.utils import make_message
+from dateutil import parser
 
 def valid(test, against):
     for key in against:
@@ -13,7 +19,7 @@ def make_delete(message, session):
         circuit = job.circuit
         job.state = False
         session.merge(job)
-        if message["cr"]:
+        if message.get("cr"):
             circuit.credit = message["cr"]
             session.merge(circuit)
     else: 
@@ -23,11 +29,14 @@ def make_delete(message, session):
 def make_pp(message, circuit, session): 
     if valid(message.keys(),
              ['status', 'cid', 'tu', 'mid', 'wh', 'job']):
-        log = PrimaryLog(circuit=circuit,
-                         watthours=message["wh"],
-                         use_time=message["tu"],
-                         credit=message.get("cr"),
-                         status=int(message["status"]))
+        date = parser.parse(message["ts"])
+        log = PrimaryLog(
+            date=date,
+            circuit=circuit,
+            watthours=message["wh"],
+            use_time=message["tu"],
+            credit=message.get("cr"),
+            status=int(message["status"]))
         # override the credit and status value from the meter.
         circuit.credit = log.credit
         circuit.status = log.status
@@ -68,8 +77,8 @@ def make_md(message, circuit, session):
 
 def make_ce(message, circuit, session): 
     log = SystemLog(
-        "Component %s just failed, please investagate." % circuit.pin)
-    session.add(log) 
+        "Circuit %s just failed, please investagate." % circuit.ip_address)
+    session.add(log)
     # send email 
      
 def make_pmax(message, circuit, session): 
