@@ -59,7 +59,8 @@ class Meter(Base):
     def get_circuits(self): 
         session = DBSession() 
         return [x for x in session.\
-                    query(Circuit).filter_by(meter=self)] 
+                    query(Circuit).\
+                filter_by(meter=self).order_by(Circuit.ip_address)] 
                         
 
     def url(self): 
@@ -148,6 +149,7 @@ class Circuit(Base):
         else:             
             job = TurnOff(circuit=self) 
             session.add(job)
+        session.add(JobMessage(job))
 
     def get_rich_status(self): 
         if self.status == 0: 
@@ -327,8 +329,8 @@ class Log(Base): # really a circuit log
     circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
     
     
-    def __init__(self,circuit): 
-        self.date = get_now() 
+    def __init__(self,date,circuit): 
+        self.date = date
         self.uuid = str(uuid.uuid4())
         self.circuit = circuit
 
@@ -366,8 +368,8 @@ class PrimaryLog(Log):
     credit = Column(Float,nullable=True) 
     status = Column(Integer) 
 
-    def __init__(self,circuit,watthours,use_time,status,credit=0):
-        Log.__init__(self,circuit)
+    def __init__(self,date,circuit,watthours,use_time,status,credit=0):
+        Log.__init__(self,date,circuit)
         self.circuit = circuit
         self.watthours = watthours
         self.use_time = use_time 
