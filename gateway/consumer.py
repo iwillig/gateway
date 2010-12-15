@@ -62,24 +62,27 @@ def set_primary_contact(message):
     """Allows users to set their primary contact number"""
     session = DBSession()
     circuit = get_circuit(message)
-    if circuit:        
-        new_number = message.text.split(delimiter)[2]
-        old_number = circuit.account.phone
-        messageBody = make_message("tel.txt", lang=message.langauge,
-                                   old_number=old_number,
-                                   new_number=new_number)
-        session.add(OutgoingMessage(message.number,
-                                    messageBody,
-                                    incoming=message.uuid))
-        if new_number != message.number:
-            session.add(OutgoingMessage(
-                    new_number,
-                    messageBody,
-                    incoming=message.uuid))
-        account = circuit.account
-        account.phone = new_number
-        session.merge(account)
-
+    try:
+        int(message.number)
+        if circuit:        
+            new_number = message.text.split(delimiter)[2]
+            old_number = circuit.account.phone
+            messageBody = make_message("tel.txt", lang=message.langauge,
+                                       old_number=old_number,
+                                       new_number=new_number)
+            session.add(OutgoingMessage(message.number,
+                                        messageBody,
+                                        incoming=message.uuid))
+            if new_number != message.number:
+                session.add(OutgoingMessage(
+                        new_number,
+                        messageBody,
+                        incoming=message.uuid))
+            account = circuit.account
+            account.phone = new_number
+            session.merge(account)
+    except:
+        pass 
 
 def add_credit(message, lang="en"):
     """Allows consumer to add credit to their account.
@@ -112,24 +115,23 @@ def turn_circuit_on(message):
     if circuit:
         lang = circuit.account.lang 
         # check to make sure that the circuit has credit
-        if circuit.credit > 0:
-            messageBody = make_message("toggle.txt",
-                                       lang=lang,
-                                       account=circuit.pin,
-                                       status=circuit.get_rich_status(),
-                                       credit=circuit.credit)
-            job = TurnOn(circuit)
-            session.add(JobMessage(job))
-            session.add(job)
-        else:
-            messageBody = make_message("toggle-error.txt",
-                                       lang=lang,
-                                       account=circuit.pin)                
+#        if circuit.credit > 0:
+        messageBody = make_message("toggle.txt",
+                                   lang=lang,
+                                   account=circuit.pin,
+                                   status=circuit.get_rich_status(),
+                                   credit=circuit.credit)
+        job = TurnOn(circuit)
+        session.add(JobMessage(job))
+        session.add(job)
+#        else:
+#            messageBody = make_message("toggle-error.txt",
+#                                       lang=lang,
+#                                       account=circuit.pin)                
         # send the result back to the consumer
         session.add(OutgoingMessage(message.number,
                                     messageBody,
                                     incoming=message.uuid))
-
 
 def turn_circuit_off(message, lang="en"):
     """ Creates a new job called turn_off """

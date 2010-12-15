@@ -88,7 +88,7 @@
   % endfor 
 </table>
 <hr /> 
-<h4>Last 20 logs associated with circuit</h4>
+<h4>All of the logs associated with circuit</h4>
 <table border="0">
   <tr>
     <th>Log id</th>
@@ -97,7 +97,7 @@
     <th>Log credit</th>
     <th>Circuit state</th>
   </tr>
-  % for log in circuit.get_logs()[0:20]: 
+  % for log in circuit.get_logs(): 
     <tr>
       <td>${log.id}</td>
       <td> ${log.uuid} </td> 

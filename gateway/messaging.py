@@ -1,11 +1,9 @@
 import re 
 from urlparse import parse_qs
-from gateway.models import DBSession, \
-    Circuit, Token, AddCredit, TurnOn, \
-    TurnOff, OutgoingMessage, \
-    JobMessage, Meter, SystemLog
 
-from gateway import jobs
+from gateway.models import DBSession, Circuit
+from gateway.models import Meter, SystemLog
+from gateway import meter as meter_funcs
 
 
 def clean_message(messageRaw):
@@ -38,21 +36,21 @@ def parse_meter_message(message):
     session = DBSession()
     meter = findMeter(message)
     messageBody = message.text.lower()
-    if messageBody.endswith(")") and messageBody.startswith("("):
+    if re.match("^\(.*\)$",message.text.lower()):
         messageDict = clean_message(messageBody)
         if messageDict["job"] == "delete": 
-            getattr(jobs,"make_"+ messageDict["job"])(messageDict,session)
+            getattr(meter_funcs,"make_"+ messageDict["job"])(messageDict,session)
         else:
             circuit = session.query(Circuit).\
                 filter_by(ip_address=messageDict["cid"]).\
                 filter_by(meter=meter).first()
             if circuit:  # double check that we have a circuit
                 if messageDict['job'] == "pp":
-                    getattr(jobs,
+                    getattr(meter_funcs,
                             "make_"+ messageDict["job"])(messageDict,
                                                          circuit,session)
                 elif messageDict['job'] == "alert":
-                    getattr(jobs,
+                    getattr(meter_funcs,
                             "make_"+ messageDict["alert"])(messageDict,
                                                            circuit,
                                                            session)

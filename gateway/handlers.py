@@ -54,6 +54,12 @@ class Dashboard(object):
             "meters" :  meters, 
             "breadcrumbs" : self.breadcrumbs} 
 
+    @action(renderer="dashboard.mako",permission="admin")
+    def dashboard(self):
+        return {
+            "logged_in" : authenticated_userid(self.request),
+            } 
+
     @action(renderer="meter/add.mako",permission="admin") 
     def add_meter(self): 
         breadcrumbs = self.breadcrumbs
@@ -107,6 +113,7 @@ class Dashboard(object):
             simplejson.dumps(
                 [x.text for x in self.session.query(SystemLog).all()]))
 
+
     @action(permission="admin")
     def send_message(self): 
         params = self.request.params
@@ -115,6 +122,7 @@ class Dashboard(object):
                 number=params.get("number"),
                 text=params.get("text")))
         return HTTPFound(location=self.request.application_url)
+
 
 class UserHandler(object):
     
