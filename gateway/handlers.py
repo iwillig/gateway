@@ -3,6 +3,7 @@ import csv
 import simplejson
 from urlparse import parse_qs 
 from dateutil import parser
+import cStringIO
 from webob import Response
 from webob.exc import HTTPFound
 from pyramid.view import action
@@ -105,7 +106,7 @@ class Dashboard(object):
                     token=line[1],
                     value=line[2],
                     batch=batch))            
-        return HTTPFound(location=self.request.application_url)
+        return HTTPFound(location=self.request.application_url)        
 
     @action()
     def system_logs(self): 
@@ -451,6 +452,23 @@ class TokenHandler(object):
     def show_batch(self): 
         return Response(simplejson.dumps(
                 [x.toDict() for x in self.batch.get_tokens()]))
+
+    @action(permission="admin")
+    def export_batch(self):
+        tokens = self.batch.get_tokens()
+        s = cStringIO.StringIO()
+        csvWriter = csv.writer(s)
+        mapper = tokens[0].__mapper__
+        csvWriter.writerow(mapper.columns.keys())
+        csvWriter.writerows(map(
+                lambda model:
+                map(lambda k: getattr(model,k),
+                    mapper.columns.keys()),tokens))
+        s.reset()
+        resp = Response(s.getvalue())
+        resp.content_type = 'application/x-csv'
+        resp.headers.add('Content-Disposition', 'attachment;filename=tokens.csv')
+        return resp 
 
     @action(permission="admin")
     def refresh(self):

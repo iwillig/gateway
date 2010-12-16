@@ -6,6 +6,8 @@
 
 <%def name="content()">
 
+<h1>Gateway's number +13474594049</h1>
+
 % if logged_in:
    <div id="manage-meter" class="intro-box">
       <h4>Manage and edit <strong>meters</strong></h4> 
@@ -73,8 +75,8 @@
       <td>${str(batch.id)}</td>
       <td>${batch.created.ctime()}</td>
       <td>${str(batch.get_tokens().count())}</td>
-      <td><a href="${request.application_url}/token/refesh/${batch.uuid}">
-     Refesh token state</a></td>
+      <td><a href="${request.application_url}/token/export_batch/${batch.uuid}">
+          Export batch to CSV</a></td>
     </tr>
   % endfor 
   </table>
@@ -106,10 +108,8 @@
 
 
 
-
 % else: 
 % endif
 
 </div>
 </%def>
-
