@@ -20,7 +20,7 @@ class ExportLoadHandler(object):
     def export(self):
         s = cStringIO.StringIO()
         csvWriter = csv.writer(s)
-        model = self.request.matchdict.get("data")
+        model = str(self.request.matchdict.get("data"))
         if model in self.allowed:            
             klass = getattr(models,model)
             results = self.session.query(klass).all()
@@ -34,8 +34,7 @@ class ExportLoadHandler(object):
             resp = Response(s.getvalue())
             resp.content_type = 'application/x-csv'
             resp.headers.add('Content-Disposition',
-                             'attachment;filename=%s-%s.csv' % (model,
-                                                                datetime.datetime.now().strftime("%Y-%m-%d-%H")))
+                             'attachment;filename=export_data.csv')
             return resp
 
         else:
