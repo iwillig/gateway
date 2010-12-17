@@ -99,11 +99,19 @@
 
 <div id="manage-system-logs" class="intro-box">
   <h4>Manage and view system logs</h4>  
-  <ul>
-  % for log in system_logs[:10]:
-      <li>${log.text}</li>     
-  % endfor 
-  </ul>  
+    <table >
+      <tr>
+        <th>Date recorded</th>
+        <th>Text</th>
+      </tr>
+      % for log in system_logs[:20]:
+      <tr>
+        <td>${log.created}</td>
+        <td>${log.text}</td>     
+      </tr>
+      % endfor 
+      
+    </table>
 </div>
 
 

@@ -47,7 +47,7 @@ class Dashboard(object):
         meters = self.session.query(Meter)
         tokenBatchs = self.session.query(TokenBatch).all() 
         system_logs = self.session.query(SystemLog).\
-            order_by(SystemLog.created).all() 
+            order_by(desc(SystemLog.created)).all() 
         return {
             "logged_in" : authenticated_userid(self.request),
             "tokenBatchs" : tokenBatchs,
