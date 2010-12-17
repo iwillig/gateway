@@ -92,24 +92,28 @@ class Account(Base):
     def url(self): 
         return "account/index/%s" % self.id
 
+    def __str__(self):
+        return "Account id:%s phone:%s" % (self.id,self.phone)
 
 class Circuit(Base):
     """
     """
     __tablename__ = "circuit" 
+
+
     id = Column(Integer, primary_key=True)
     uuid = Column(String)
     date = Column(DateTime) 
     pin = Column(String) 
     meter_id = Column("meter",ForeignKey("meter.id"))
-    meter  = relation(Meter, primaryjoin=meter_id == Meter.id)
+    meter  = relation(Meter,lazy=False, primaryjoin=meter_id == Meter.id)
     energy_max = Column(Float)
     power_max = Column(Float)
     status = Column(Integer) 
     ip_address = Column(String) 
     credit = Column(Float) 
     account_id  = Column(Integer, ForeignKey('account.id'))
-    account  = relation(Account, primaryjoin=account_id == Account.id)
+    account  = relation(Account,lazy=False, primaryjoin=account_id == Account.id)
 
     def __init__(self,meter,account,pin,
                  energy_max,power_max,ip_address,status=1,credit=0):
@@ -179,6 +183,9 @@ class Circuit(Base):
                  "energy_max" : self.energy_max,
                  "power_max" : self.power_max, 
                  "status" : self.status } 
+
+    def __str__(self):
+        return "Circuit id:%s account:%s" % (self.id,self.pin)
 
 class Message(Base):
     """
@@ -280,7 +287,7 @@ class Token(Base):
     value = Column(Numeric) 
     state = Column(String)
     batch_id = Column(Integer, ForeignKey('tokenbatch.id'))
-    batch  = relation(TokenBatch, primaryjoin=batch_id == TokenBatch.id)
+    batch  = relation(TokenBatch,lazy=False, primaryjoin=batch_id == TokenBatch.id)
 
     def __init__(self,token,batch,value,state="new"):
         self.created = datetime.datetime.now()
@@ -309,9 +316,9 @@ class Alert(Base):
     date = Column(DateTime)
     text = Column(String)
     message_id = Column(Integer,ForeignKey('message.id'))
-    message = relation(Message,primaryjoin=message_id == Message.id) 
+    message = relation(Message,lazy=False,primaryjoin=message_id == Message.id) 
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
-    circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
+    circuit = relation(Circuit,lazy=False, primaryjoin=circuit_id == Circuit.id)
     
     def __init__(self,text,circuit,message): 
         self.date = get_now()
@@ -326,7 +333,7 @@ class Log(Base): # really a circuit log
     _type = Column('type', String(50))
     __mapper_args__ = {'polymorphic_on': _type}
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
-    circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
+    circuit = relation(Circuit,lazy=False, primaryjoin=circuit_id == Circuit.id)
     
     
     def __init__(self,date,circuit): 
@@ -397,7 +404,7 @@ class Job(Base):
     end = Column(String)
     state = Column(Boolean)
     circuit_id = Column(Integer, ForeignKey('circuit.id'))
-    circuit = relation(Circuit, primaryjoin=circuit_id == Circuit.id)
+    circuit = relation(Circuit,lazy=False, primaryjoin=circuit_id == Circuit.id)
 
     def __init__(self,circuit,state=True): 
         self.uuid = str(uuid.uuid4())
@@ -426,7 +433,7 @@ class JobMessage(Message):
     __mapper_args__ = {'polymorphic_identity': 'job_message'}
     id = Column(Integer,ForeignKey('message.id'), primary_key=True)
     job_id = Column(Integer, ForeignKey('jobs.id'))
-    job = relation(Job, primaryjoin=job_id == Job.id)
+    job = relation(Job,lazy=False, primaryjoin=job_id == Job.id)
 
     def __init__(self,job): 
         Message.__init__(self,job.circuit.meter.phone,str(uuid.uuid4())) 
