@@ -60,7 +60,7 @@ def main(global_config, **settings):
                        action='index')
     config.add_handler('main','/:action',
                       handler='gateway.handlers:Dashboard')
-    config.add_handler('export-load','sys/:action/:data',
+    config.add_handler('export-load','sys/:action',
                        handler='gateway.sys:ExportLoadHandler')
     config.add_handler('users','user/:action',
                       handler='gateway.handlers:UserHandler')
