@@ -534,11 +534,9 @@ class SMSHandler(object):
 
     @action() 
     def received(self): 
+        msgs = [msg.toDict() for x in self.session.query(Message).\
+                filter_by(sent=False).filter(or_(Message.type == "job_message",
+                                                 Message.type == "outgoing_message")).all() if x.number != '']
         return Response(
             content_type="application/json",                        
-            body=simplejson.\
-                dumps([x.toDict() 
-                       for x in self.session.\
-                           query(Message).filter_by(sent=False).filter(
-                                       or_(Message.type == "job_message", 
-                                           Message.type == "outgoing_message")).all()])) 
+            body=simplejson.dumps(msgs)) 
