@@ -19,17 +19,6 @@ def make_delete(message, session):
         circuit = job.circuit
         job.state = False
         session.merge(job)        
-        if job.type == "addcredit":
-            session.add(OutgoingMessage(
-                circuit.account.phone,
-                make_message("credit.txt",
-                             lang=circuit.account.lang,
-                             account=circuit.pin,
-                             status=circuit.get_rich_status()),
-                incoming=message.uuid))            
-        if message.get("cr"):
-            circuit.credit = message["cr"]
-            session.merge(circuit)
     else: 
         session.add(SystemLog(
                 "Unable to find job message %s " % message))
