@@ -94,15 +94,7 @@ def add_credit(message, lang="en"):
     if circuit:
         if token:
             job = AddCredit(circuit=circuit, credit=token.value)
-            session.add(JobMessage(job))
-            session.add(OutgoingMessage(
-                    message.number,
-                    make_message("credit.txt",
-                                 lang=lang,
-                                 account=circuit.pin,
-                                 status=circuit.get_rich_status()),
-                    incoming=message.uuid))
-                # update token database
+            session.add(JobMessage(job,incoming=message.uuid))
             token.state = "used"
             session.merge(token)
             session.merge(circuit)
@@ -114,21 +106,14 @@ def turn_circuit_on(message):
     circuit = get_circuit(message)
     if circuit:
         lang = circuit.account.lang 
-        # check to make sure that the circuit has credit
-#        if circuit.credit > 0:
         messageBody = make_message("toggle.txt",
                                    lang=lang,
                                    account=circuit.pin,
                                    status=circuit.get_rich_status(),
                                    credit=circuit.credit)
         job = TurnOn(circuit)
-        session.add(JobMessage(job))
+        session.add(JobMessage(job,incoming=message.uuid))
         session.add(job)
-#        else:
-#            messageBody = make_message("toggle-error.txt",
-#                                       lang=lang,
-#                                       account=circuit.pin)                
-        # send the result back to the consumer
         session.add(OutgoingMessage(message.number,
                                     messageBody,
                                     incoming=message.uuid))
@@ -148,7 +133,7 @@ def turn_circuit_off(message, lang="en"):
                              status=circuit.get_rich_status(),
                              credit=circuit.credit),
                 incoming=message.uuid))
-        session.add(JobMessage(job))
+        session.add(JobMessage(job,incoming=message.uuid))
         session.add(job)
 
 

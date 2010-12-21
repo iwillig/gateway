@@ -433,13 +433,15 @@ class JobMessage(Message):
     __mapper_args__ = {'polymorphic_identity': 'job_message'}
     id = Column(Integer,ForeignKey('message.id'), primary_key=True)
     job_id = Column(Integer, ForeignKey('jobs.id'))
-    job = relation(Job,lazy=False, primaryjoin=job_id == Job.id)
+    job = relation(Job,lazy=False, backref='job_message', primaryjoin=job_id == Job.id)
+    incoming = Column(String)
 
-    def __init__(self,job): 
+    def __init__(self,job,incoming): 
         Message.__init__(self,job.circuit.meter.phone,str(uuid.uuid4())) 
         self.uuid = str(uuid.uuid4())
         self.job = job 
-
+        self.incoming = incoming
+        
     @property
     def text(self): 
         return self.job.toString() 
