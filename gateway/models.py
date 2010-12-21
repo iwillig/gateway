@@ -153,7 +153,7 @@ class Circuit(Base):
         else:             
             job = TurnOff(circuit=self) 
             session.add(job)
-        session.add(JobMessage(job))
+        session.add(JobMessage(job,""))
 
     def get_rich_status(self): 
         if self.status == 0: 

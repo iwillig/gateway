@@ -333,7 +333,7 @@ class CircuitHandler(object):
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
         self.session.add(job)        
-        self.session.add(JobMessage(job))
+        self.session.add(JobMessage(job,""))
         return HTTPFound(location=self.circuit.url())
 
     @action(permission="admin")

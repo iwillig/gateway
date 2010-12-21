@@ -84,7 +84,7 @@ class Widget(object):
             if self.iterable.count():
                 return get_fields(self.iterable.first()).keys()
             else:
-                raise NameError("Not an iter") 
+                return [] 
 
 def make_message(template="error.txt", lang="fr", **kwargs):
     """Builds a template based on name and langauge with kwargs passed
