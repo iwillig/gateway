@@ -506,7 +506,7 @@ class SMSHandler(object):
         messages = self.session.query(Message).order_by(desc(Message.id))
         return { 
             "logged_in"   : authenticated_userid(self.request),
-            "messages"    : make_table_data(messages),
+            "messages"    : messages,
             "table_headers" : make_table_header(OutgoingMessage),
             "breadcrumbs" : breadcrumbs } 
 
