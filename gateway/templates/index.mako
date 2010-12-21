@@ -116,7 +116,7 @@
 <div class="widget-header">Manage and send SMS Messages</div>
 <div class="widget-content">
 
-<a class="button" href="${request.application_url}/sms/index"> Check all SMS
+<a  href="${request.application_url}/sms/index"> Check all SMS
   messages</a> 
 
 

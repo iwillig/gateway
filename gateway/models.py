@@ -209,6 +209,18 @@ class Message(Base):
     def url(self): 
         return "message/index/%s" % self.uuid 
 
+    def get_incoming(self): 
+        session = DBSession()
+        if self.type == "outgoing_message" or self.type == "job_message":
+            incoming = session.query(IncomingMessage).\
+                       filter_by(uuid=self.incoming).first()
+            if incoming:
+                return incoming.text
+            else:
+                return "Message not based on incoming message"
+        else: 
+            return "Incoming message" 
+        
     def toDict(self): 
         return { "number" : int(self.number),
                  "time" : str(self.date),
@@ -250,14 +262,6 @@ class OutgoingMessage(Message):
         self.text = text 
         self.incoming = incoming
 
-    def get_incoming(self): 
-        session = DBSession() 
-        incoming = session.query(IncomingMessage).\
-            filter_by(uuid=self.incoming).first()
-        if incoming:
-            return incoming.text
-        else: 
-            return "message not based on incoming message"
 
 class TokenBatch(Base): 
     __tablename__ = "tokenbatch"

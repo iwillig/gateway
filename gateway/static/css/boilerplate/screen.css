@@ -19,7 +19,7 @@ p { margin: 2px; }
 
 .container { 
     margin: 10px auto; 
-    width: 1000px;} 
+    width: 1200px;} 
 .header { 
     background: white; 
 } 
@@ -141,3 +141,13 @@ ul.message li {
 .grid { 
     border: 1px solid #808080; 
 } 
+
+span.help { 
+font-size: 50%;
+} 
+span.help a { color: red } 
+
+.messages { 
+    font-family: monospace ; 
+} 
+.messages a { color: #004276 ; font-weight: bold; } 
