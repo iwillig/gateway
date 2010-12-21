@@ -7,6 +7,9 @@
    <script type="text/javascript"
            src="${request.application_url}/static/jquery-ui-1.8.6.custom.min.js"></script>
 
+   <script type="text/javascript"
+           src="${request.application_url}/static/site/functions.js"></script>
+
 
    <link rel="stylesheet" 
          href="${request.application_url}/static/css/boilerplate/screen.css" 
@@ -17,6 +20,7 @@
          href="${request.application_url}/static/css/gateway-theme/jquery-ui-1.8.6.custom.css" 
          type="text/css" 
          media="screen" />
+
 
     ${self.header()}
 
