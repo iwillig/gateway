@@ -18,7 +18,15 @@ def make_delete(message, session):
     if job:
         circuit = job.circuit
         job.state = False
-        session.merge(job)
+        session.merge(job)        
+        if job.type == "addcredit":
+            session.add(OutgoingMessage(
+                circuit.account.phone,
+                make_message("credit.txt",
+                             lang=circuit.account.lang,
+                             account=circuit.pin,
+                             status=circuit.get_rich_status()),
+                incoming=message.uuid))            
         if message.get("cr"):
             circuit.credit = message["cr"]
             session.merge(circuit)
