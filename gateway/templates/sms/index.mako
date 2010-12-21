@@ -70,7 +70,7 @@
     <div id="tabs-2">       
       <p>Incoming messages are messages that are received by the
       gateway from either a consumer or a meter</p>
-      <div class="messages">
+      <div class="messages incoming-msgs">
         ${Widget(messages.filter_by(type='incoming_message')).as_table()} 
       </div>
     </div>

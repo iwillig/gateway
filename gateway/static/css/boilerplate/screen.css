@@ -151,3 +151,7 @@ span.help a { color: red }
     font-family: monospace ; 
 } 
 .messages a { color: #004276 ; font-weight: bold; } 
+
+table.incoming-messages td {word-wrap: break-word;}
+
+/* .incoming-msgs td:nth-child(3){width:10px;}  */
