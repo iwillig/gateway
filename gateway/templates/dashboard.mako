@@ -13,7 +13,6 @@
      .ui-sortable-placeholder * { visibility: hidden; }
    </style>
 
-   ${headers.load_slickGrid(request)}
    
    <script type="text/javascript" 
            src="${request.application_url}/static/site/dashboard.js">
