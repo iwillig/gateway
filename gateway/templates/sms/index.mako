@@ -2,7 +2,8 @@
 <%namespace name="headers" file="../headers.mako"/>
 <%! 
    import simplejson
-
+   from gateway.utils import Widget
+  
 %> 
 
 <%def name="header()"> 
@@ -11,67 +12,11 @@
    ${headers.load_slickGrid(request)}
    
    <script type="text/javascript">
-     var grid; 
-     var dataView; 
+     $(function() {
+        $(".buttons a").button(); 
+        $( "#tabs" ).tabs();
+     });
 
-     function comparer(a,b) {
-       var x = a[sortcol], y = b[sortcol];
-       return (x == y ? 0 : (x > y ? 1 : -1));
-     }        
-
-
-     $(document).ready(function(){ 
-
-       $(".buttons li a").button();        
-
-       
-       var columns = [
-         {"field": "type", "sortable": true, "id": "type", "name": "Type"},
-         {"field": "id", "sortable": true, "id": "id", "name": "Id"},
-         {"field": "date", "sortable": true, "id": "date", "name": "Date"},
-         {"field": "sent", "sortable": true, "id": "sent", "name": "Sent"},
-         {"field": "number", "sortable": true, "id": "number", "name": "Number"},
-         {"field": "incoming", 
-          "sortable": true, "id": "incoming", "name": "Incoming"},
-         {"field": "text", "sortable": true, "id": "text",
-          "width": 500,
-          "name": "Text"}]; 
-
-       var data = ${simplejson.dumps(messages)}; 
-
-       var options = {
-         selectedCellCssClass: "selected",         
-         autoHeight: true,
-         rowHeight: 64,         
-         enableCellNavigation: true,
-         enableColumnReorder: true,
-         forceFitColumns: true,         
-         
-       };
-        
-       dataView = new Slick.Data.DataView();
-       
-       grid = new Slick.Grid($('#sms-grid'),dataView.rows,columns,options)
-        
-
-       grid.onSort.subscribe(function(e, data) {
-         console.log("stuff"); 
-       }); 
-
-       dataView.onRowCountChanged.subscribe(function(args) {
-	 grid.updateRowCount();
-         grid.render();
-       });
-
-       dataView.onRowsChanged.subscribe(function(rows) {         
-         grid.invalidateRows(rows);         
-	 grid.render();
-       });
-
-       // Load some data into the grid
-       dataView.setItems(data);
-
-      });     
    </script>
             
  
@@ -88,8 +33,28 @@
      </li>
    </ul>
 
-  <div id="sms-grid" class="grid">
-    
+  <div id="tabs">
+    <ul>
+      <li> <a href="#tabs-1">Incoming Messages</a></li>
+      <li> <a href="#tabs-2">Outgoing Messages</a></li>
+      <li> <a href="#tabs-3">Job Messages</a></li>
+    </ul>
+
+
+    <div id="tabs-1">       
+      <p>Incoming messages are messages that are received by the
+      gateway from either a consumer or a meter</p>
+      ${Widget(messages.filter_by(type='incoming_message')).as_table()} 
+    </div>
+    <div id="tabs-2">
+      <p>Outgoing messages are sent to consumers from the gateway</p>
+      ${Widget(messages.filter_by(type='outgoing_message')).as_table()}
+    </div>
+    <div id="tabs-3">
+      <p>Job messages are a special kind of outgoing messages that are
+      associated with a job to the meter</p>
+      ${Widget(messages.filter_by(type='job_message')).as_table()}
+    </div>
   </div>
      
 </%def>
