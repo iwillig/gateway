@@ -504,8 +504,7 @@ class SMSHandler(object):
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"})
         limit = self.request.params.get('limit',1000)
-        messages = self.session.query(Message).limit(limit)
-        messages.from_self().order_by(Message.date)
+        messages = self.session.query(Message).order_by(desc(Message.id)).limit(limit)
         return { 
             "logged_in"   : authenticated_userid(self.request),
             "messages"    : messages,
@@ -531,7 +530,6 @@ class SMSHandler(object):
         self.session.add(message) 
         self.session.flush()
         dispatcher.matchMessage(message)
-        #parse_message(message)
         return Response(message.uuid)
 
     @action() 
