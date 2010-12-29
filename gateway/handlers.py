@@ -502,8 +502,10 @@ class SMSHandler(object):
     @action(renderer="sms/index.mako",permission="admin") 
     def index(self):        
         breadcrumbs = self.breadcrumbs[:]
-        breadcrumbs.append({"text" : "SMS Message"}) 
-        messages = self.session.query(Message).order_by(desc(Message.id))
+        breadcrumbs.append({"text" : "SMS Message"})
+        limit = self.request.params.get('limit',1000)
+        messages = self.session.query(Message).limit(limit)
+        messages.from_self().order_by(Message.date)
         return { 
             "logged_in"   : authenticated_userid(self.request),
             "messages"    : messages,

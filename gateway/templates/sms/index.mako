@@ -9,7 +9,11 @@
 <%def name="header()"> 
    <title>SMS logs</title>
 
-   ${headers.load_slickGrid(request)}
+   <style type="text/css" media="screen">
+     a { color: #004276;
+         font-weight: bold; } 
+     
+   </style>
    
    <script type="text/javascript">
      $(function() {
@@ -45,6 +49,7 @@
       <div class="messages">
       <table>
         <thead>
+          <th>Message id</th>
           <th>Text</th>
           <th>Incoming Message</th>
           <th>Phone number</th>
@@ -54,8 +59,9 @@
         <tbody> 
           % for msg in messages: 
           <tr>
-            <td><a 
-            href="${request.application_url}/message/index/${msg.uuid}">${msg.text}
+            <td>${msg.id}</td>
+            <td><a style="color: #004276; font-weight: bold"
+                   href="${request.application_url}/message/index/${msg.uuid}">${msg.text}
             </a></td>
             <td> ${msg.get_incoming()} </td>
             <td>${msg.number}</td>
@@ -71,14 +77,14 @@
       <p>Incoming messages are messages that are received by the
       gateway from either a consumer or a meter</p>
       <div class="messages incoming-msgs">
-        ${Widget(messages.filter_by(type='incoming_message')).as_table()} 
+        ${Widget(messages.from_self().filter_by(type='incoming_message')).as_table()} 
       </div>
     </div>
 
     <div id="tabs-3">
       <p>Outgoing messages are sent to consumers from the gateway</p>
       <div class="messages">
-        ${Widget(messages.filter_by(type='outgoing_message')).as_table()}
+        ${Widget(messages.from_self().filter_by(type='outgoing_message')).as_table()}
       </div>
     </div>
 
@@ -86,7 +92,7 @@
       <p>Job messages are a special kind of outgoing messages that are
       associated with a job to the meter</p>
       <div class="messages">
-        ${Widget(messages.filter_by(type='job_message')).as_table()}
+        ${Widget(messages.from_self().filter_by(type='job_message')).as_table()}
       </div>
     </div>
   </div>
