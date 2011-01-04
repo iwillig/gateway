@@ -39,7 +39,7 @@ def parse_meter_message(message):
     if re.match("^\(.*\)$",message.text.lower()):
         messageDict = clean_message(messageBody)
         if messageDict["job"] == "delete": 
-            getattr(meter_funcs,"make_"+ messageDict["job"])(messageDict,session)
+            getattr(meter_funcs,"make_"+ messageDict["job"])(message,messageDict)
         else:
             circuit = session.query(Circuit).\
                 filter_by(ip_address=messageDict["cid"]).\
@@ -48,12 +48,11 @@ def parse_meter_message(message):
                 if messageDict['job'] == "pp":
                     getattr(meter_funcs,
                             "make_"+ messageDict["job"])(messageDict,
-                                                         circuit,session)
+                                                         circuit)
                 elif messageDict['job'] == "alert":
                     getattr(meter_funcs,
                             "make_"+ messageDict["alert"])(messageDict,
-                                                           circuit,
-                                                           session)
+                                                           circuit)
     else:
         session.add(SystemLog(
                 'Unable to parse message %s' % message.uuid))
