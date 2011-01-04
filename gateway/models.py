@@ -450,6 +450,9 @@ class JobMessage(Message):
     def text(self): 
         return self.job.toString() 
 
+    def __unicode__(self): 
+        return "<AddCredit id:%s>" % self.id
+
 class AddCredit(Job):
     __tablename__ = "addcredit" 
     __mapper_args__ = {'polymorphic_identity': 'addcredit'}
