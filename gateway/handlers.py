@@ -504,9 +504,13 @@ class SMSHandler(object):
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.append({"text" : "SMS Message"})
         limit = self.request.params.get('limit',1000)
-        messages = self.session.query(Message).order_by(desc(Message.id)).limit(limit)
+        count = self.session.query(Message).count()
+        messages = self.session.\
+            query(Message).order_by(desc(Message.id)).limit(limit)
         return { 
             "logged_in"   : authenticated_userid(self.request),
+            "limit" : limit,
+            "count" : count,
             "messages"    : messages,
             "table_headers" : make_table_header(OutgoingMessage),
             "breadcrumbs" : breadcrumbs } 

@@ -2,6 +2,7 @@
 <%namespace name="headers" file="../headers.mako"/>
 <%! 
    import simplejson
+   from datetime import datetime
    from gateway.utils import Widget
   
 %> 
@@ -11,32 +12,37 @@
 
    <style type="text/css" media="screen">
      a { color: #004276;
-         font-weight: bold; } 
-     
-   </style>
-   
+         font-weight: bold; }      
+   </style>   
    <script type="text/javascript">
      $(function() {
-        $(".buttons a").button(); 
-        $( "#tabs" ).tabs();
+        $('#tabs').tabs();
+        $('.widgets').setWidget('.widget');
      });
-
-   </script>
-            
- 
+   </script>             
 </%def>
 
 <%def name="content()"> 
-   <ul class="buttons">
-     <li> 
-       <a href="${request.application_url}/sms/remove_all">Remove all
-       messages</a> </li>
-     <li>
-       <a href="${request.application_url}/sms/received">Outgoing
-         queue</a> 
-     </li>
-   </ul>
+<div class="widgets">
+<div class="widget">
+  <div class="widget-header">Tools and status</div>
+  <div class="widget-content">
+  <p>Current time on
+  server: <strong>${datetime.now().ctime()}</strong> </p>
+  <p>Total number of messages: <strong>${count}</strong></p>
+  <a href="${request.application_url}/sms/received">
+       View outgoing queue</a>
+   <form method="GET" id="" 
+         action="${request.application_url}/sms/index">
+     <input type="text" name="limit" value="${limit}" />
+     <input type="submit" name="" value="Limit messages" />
+   </form>
+   </div>
+  </div>
 
+<div class="widget">
+  <div class="widget-header">SMS Messages</div>
+  <div class="widget-content">
   <div id="tabs">
     <ul>
       <li> <a href="#tabs-1">All messages</a></li>
@@ -96,5 +102,7 @@
       </div>
     </div>
   </div>
-     
+  </div>
+</div>
+</div>     
 </%def>

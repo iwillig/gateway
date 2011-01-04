@@ -154,4 +154,11 @@ span.help a { color: red }
 
 table.incoming-messages td {word-wrap: break-word;}
 
-/* .incoming-msgs td:nth-child(3){width:10px;}  */
+.widget { margin: 10px; } 
+.widget-header { padding: 5px } 
+.widget-header .ui-icon { float: right; }
+.widget-content { padding: 10px; } 
+.widget-content a { color: #004276 ; font-weight: bold; } 
+.ui-sortable-placeholder { border: 1px dotted black; visibility:
+                           visible !important; height: 50px !important; }     
+.ui-sortable-placeholder * { visibility: hidden; }
