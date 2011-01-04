@@ -1,7 +1,7 @@
 import datetime
 import csv
 import simplejson
-from urlparse import parse_qs 
+from urlparse import parse_qs
 from dateutil import parser
 import cStringIO
 from webob import Response
@@ -31,7 +31,8 @@ from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
     make_table_header, make_table_data
 
-breadcrumbs = [{ "text" : "Manage Home", "url" : "/" }] 
+breadcrumbs = [{"text":"Manage Home", "url":"/"}]
+
 
 class Dashboard(object):
     """
@@ -42,26 +43,26 @@ class Dashboard(object):
         self.breadcrumbs = breadcrumbs[:]
         self.session = DBSession()
 
-    @action(renderer='index.mako',permission="view")
+    @action(renderer='index.mako', permission="view")
     def index(self):
         meters = self.session.query(Meter)
-        tokenBatchs = self.session.query(TokenBatch).all() 
+        tokenBatchs = self.session.query(TokenBatch).all()
         system_logs = self.session.query(SystemLog).\
-            order_by(desc(SystemLog.created)).all() 
+            order_by(desc(SystemLog.created)).all()
         return {
-            "logged_in" : authenticated_userid(self.request),
-            "tokenBatchs" : tokenBatchs,
-            "system_logs" : system_logs, 
-            "meters" :  meters, 
-            "breadcrumbs" : self.breadcrumbs} 
+            "logged_in": authenticated_userid(self.request),
+            "tokenBatchs": tokenBatchs,
+            "system_logs": system_logs,
+            "meters": meters,
+            "breadcrumbs": self.breadcrumbs }
 
-    @action(renderer="dashboard.mako",permission="admin")
+    @action(renderer="dashboard.mako", permission="admin")
     def dashboard(self):
         return {
-            "logged_in" : authenticated_userid(self.request),
-            } 
+            "logged_in": authenticated_userid(self.request),
+            }
 
-    @action(renderer="meter/add.mako",permission="admin") 
+    @action(renderer="meter/add.mako", permission="admin") 
     def add_meter(self): 
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append({"text" : "Add a new meter"})
