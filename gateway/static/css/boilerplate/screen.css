@@ -154,6 +154,13 @@ span.help a { color: red }
 
 table.incoming-messages td {word-wrap: break-word;}
 
+.error { 
+    color: #fff;
+    font-weight: bold; 
+    background: red; 
+} 
+.error p { margin: 5px; } 
+
 .widget { margin: 10px; } 
 .widget-header { padding: 5px } 
 .widget-header .ui-icon { float: right; }

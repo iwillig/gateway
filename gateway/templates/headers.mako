@@ -18,3 +18,16 @@
 </script>
 
 </%def>
+
+
+<%def name="styleSheets(request)">
+<link rel="stylesheet" 
+      href="${request.application_url}/static/css/boilerplate/screen.css" 
+      type="text/css" 
+      media="screen" />
+
+<link rel="stylesheet" 
+      href="${request.application_url}/static/css/gateway-theme/jquery-ui-1.8.6.custom.css" 
+      type="text/css" 
+      media="screen" />
+</%def> 
