@@ -37,6 +37,7 @@ def make_delete(msgDict, session):
                                        credit=circuit.credit)
         elif job._type == "turnon" or job._type  == "turnoff":
             messageBody = make_message("toggle.txt",
+                                       lang=circuit.account.lang,
                                        account=circuit.pin,
                                        status=circuit.get_rich_status(),
                                        credit=circuit.credit)
