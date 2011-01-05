@@ -41,7 +41,7 @@ def make_delete(msgDict, session):
                                        status=circuit.get_rich_status(),
                                        credit=circuit.credit)
         # double to check we have a message to send
-        if messageBody:
+        if messageBody and originMsg:
             outgoingMsg = OutgoingMessage(originMsg.number,
                                           messageBody,
                                           incoming=originMsg.uuid)
