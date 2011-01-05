@@ -7,8 +7,6 @@ from gateway.models import Job, SystemLog, PrimaryLog, OutgoingMessage, DBSessio
 from gateway.utils import make_message
 from dateutil import parser
 
-session = DBSession() 
-
 
 def valid(test, against):
     for key in against:
@@ -17,7 +15,7 @@ def valid(test, against):
     return True
 
 
-def make_delete(originMsg, msgDict):
+def make_delete(originMsg, msgDict, session):
     job = session.query(Job).get(msgDict["jobid"])
     if job:
         circuit = job.circuit
@@ -52,7 +50,7 @@ def make_delete(originMsg, msgDict):
                 "Unable to find job message %s " % originMsg))
 
 
-def make_pp(message, circuit):
+def make_pp(message, circuit, session):
     if valid(message.keys(),
              ['status', 'cid', 'tu', 'mid', 'wh', 'job']):
         date = parser.parse(message["ts"])
@@ -74,7 +72,7 @@ def make_pp(message, circuit):
                       % message.uuid))
 
 
-def make_nocw(message, circuit):
+def make_nocw(message, circuit, session):
     msg = OutgoingMessage(
             circuit.account.phone,
             make_message("nocw-alert.txt",
@@ -87,7 +85,7 @@ def make_nocw(message, circuit):
             "Low credit alert for circuit %s sent to %s" % (circuit.pin,
                                                             msg.number)))
 
-def make_lcw(message, circuit):
+def make_lcw(message, circuit, session):
     msg = OutgoingMessage(circuit.account.phone,
                           make_message("lcw-alert.txt",
                                        lang=circuit.account.lang,
@@ -95,19 +93,19 @@ def make_lcw(message, circuit):
     session.add(msg)
 
 
-def make_md(message, circuit):
+def make_md(message, circuit, session):
     log = SystemLog(
         "Meter %s just falied, please investagte." % circuit.meter.name)
     session.add(log)
 
 
-def make_ce(message, circuit):
+def make_ce(message, circuit, session):
     log = SystemLog(
         "Circuit %s just failed, please investagate." % circuit.ip_address)
     session.add(log)
 
 
-def make_pmax(message, circuit):
+def make_pmax(message, circuit, session):
     msg = OutgoingMessage(circuit.account.phone,
                           make_message("power-max-alert.txt",
                                        lang=circuit.account.lang,
@@ -115,7 +113,7 @@ def make_pmax(message, circuit):
     session.add(msg)
 
 
-def make_emax(message, circuit):
+def make_emax(message, circuit, session):
     msg = OutgoingMessage(circuit.account.phone,
                           make_message("energy-max-alert.txt",
                                        lang=circuit.account.lang,
