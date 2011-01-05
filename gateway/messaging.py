@@ -5,6 +5,7 @@ from gateway.models import DBSession, Circuit
 from gateway.models import Meter, SystemLog
 from gateway import meter as meter_funcs
 
+session = DBSession()
 
 def clean_message(messageRaw):
     """  Does the basic cleaning of meter messages.
@@ -20,7 +21,6 @@ def clean_message(messageRaw):
     return message
 
 def findMeter(message):
-    session = DBSession()
     meter = session.query(Meter).filter_by(phone=str(message.number)).first()
     if meter:
         return meter
@@ -33,7 +33,6 @@ def parse_meter_message(message):
     Messages need to have () on each side
     use getattr 
     """
-    session = DBSession()
     meter = findMeter(message)
     messageBody = message.text.lower()
     if re.match("^\(.*\)$",message.text.lower()):
