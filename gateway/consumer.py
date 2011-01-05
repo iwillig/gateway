@@ -105,18 +105,9 @@ def turn_circuit_on(message):
     session = DBSession()
     circuit = get_circuit(message)
     if circuit:
-        lang = circuit.account.lang 
-        messageBody = make_message("toggle.txt",
-                                   lang=lang,
-                                   account=circuit.pin,
-                                   status=circuit.get_rich_status(),
-                                   credit=circuit.credit)
         job = TurnOn(circuit)
         session.add(JobMessage(job,incoming=message.uuid))
         session.add(job)
-        session.add(OutgoingMessage(message.number,
-                                    messageBody,
-                                    incoming=message.uuid))
 
 def turn_circuit_off(message, lang="en"):
     """ Creates a new job called turn_off """
@@ -125,14 +116,6 @@ def turn_circuit_off(message, lang="en"):
     if circuit:
         lang = circuit.account.lang 
         job = TurnOff(circuit)
-        session.add(OutgoingMessage(
-                message.number,
-                make_message("toggle.txt",
-                             lang=lang,
-                             account=circuit.pin,
-                             status=circuit.get_rich_status(),
-                             credit=circuit.credit),
-                incoming=message.uuid))
         session.add(JobMessage(job,incoming=message.uuid))
         session.add(job)
 
