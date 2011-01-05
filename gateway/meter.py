@@ -3,7 +3,7 @@ Module for SS Gateway.
 Handles all of the meter communcation 
 
 """
-from gateway.models import Job, SystemLog, PrimaryLog, OutgoingMessage, DBSession
+from gateway.models import Job, SystemLog, PrimaryLog, OutgoingMessage, DBSession, IncomingMessage
 from gateway.utils import make_message
 from dateutil import parser
 
@@ -15,8 +15,11 @@ def valid(test, against):
     return True
 
 
-def make_delete(originMsg, msgDict, session):
+def make_delete(msgDict, session):
     job = session.query(Job).get(msgDict["jobid"])
+    incoming_uuid = job.job_message[0].incoming
+    originMsg = session.query(IncomingMessage).\
+        filter_by(uuid=incoming_uuid).first()
     if job:
         circuit = job.circuit
         job.state = False

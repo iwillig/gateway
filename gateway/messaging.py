@@ -38,7 +38,7 @@ def parse_meter_message(message):
     if re.match("^\(.*\)$",message.text.lower()):
         messageDict = clean_message(messageBody)
         if messageDict["job"] == "delete": 
-            getattr(meter_funcs,"make_"+ messageDict["job"])(message,messageDict,session)
+            getattr(meter_funcs,"make_"+ messageDict["job"])(messageDict,session)
         else:
             circuit = session.query(Circuit).\
                 filter_by(ip_address=messageDict["cid"]).\
