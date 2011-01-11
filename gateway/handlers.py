@@ -89,10 +89,12 @@ class Dashboard(object):
         self.request.params
         batch =  TokenBatch() 
         self.session.add(batch)
-        for number in xrange(0,int(self.request.params["amount"])):
+        amount = self.request.params.get("amount",100)
+        value = int(self.request.params.get("value",10))
+        for number in xrange(0,int(amount)):
             self.session.add(Token(
                     token=Token.get_random(),
-                    value = int(self.request.params["value"]),
+                    value = value,
                     batch = batch))
         return HTTPFound(location=self.request.application_url)
     
