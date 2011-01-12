@@ -32,7 +32,7 @@ def get_fields(model):
         field = columns.get(key).name
         niceName = raise_first_leter(field)
         fields.update({ niceName.replace('_',' ') : 
-                        {"value" : str(model.__getattribute__(field)),
+                        {"value" : unicode(model.__getattribute__(field)),
                          "name" : field,
                          "type" : "input"}})
     return fields
