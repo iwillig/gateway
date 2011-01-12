@@ -45,7 +45,8 @@ class Meter(Base):
     battery = Column(Integer) 
     panel_capacity = Column(Integer) 
     communication = Column(String) # sms or http 
-    
+    slug = Column(String)
+
     def __init__(self,name,phone,location,battery,
                  panel_capacity,communication="sms"):
         self.uuid = str(uuid.uuid4())
@@ -57,6 +58,7 @@ class Meter(Base):
         self.battery = battery
         self.panel_capacity = panel_capacity
         self.communication = communication
+        self.slug = Meter.slugify(name)
 
     def get_circuits(self): 
         session = DBSession() 
@@ -64,15 +66,19 @@ class Meter(Base):
                     query(Circuit).\
                 filter_by(meter=self).order_by(Circuit.ip_address)] 
                         
-
+    @staticmethod
+    def slugify(name):
+        slug = name.lower()
+        return slug.replace(' ', '-')
+    
     def url(self): 
-        return "/meter/index/%s" % self.id
+        return "/meter/index/%s" % self.slug
 
     def edit_url(self): 
         return "/meter/edit/%s" % self.uuid
    
     def remove_url(self): 
-        return "meter/remove/%s" % self.uuid
+        return "meter/remove/%s" % self.slug
 
     def __str__(self): 
         return "Meter %s" % self.name

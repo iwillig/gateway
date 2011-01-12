@@ -168,8 +168,7 @@ class MeterHandler(object):
     def __init__(self, request):
         self.request = request
         self.session  = DBSession()
-        self.meter = self.session.query(Meter).\
-                     get(self.request.matchdict['id'])
+        self.meter = self.session.query(Meter).filter_by(slug=self.request.matchdict['slug']).one()
         self.breadcrumbs = breadcrumbs[:]
 
     @action(renderer="meter/index.mako", permission="admin")
@@ -211,6 +210,7 @@ class MeterHandler(object):
                           power_max=int(params.get("power_max")))
         self.session.add(account)
         self.session.add(circuit)
+        self.flush()
         return HTTPFound(location="%s%s" % (
                 self.request.application_url, self.meter.url()))
 
@@ -252,8 +252,8 @@ class CircuitHandler(object):
     def __init__(self, request):
         self.session = DBSession()
         self.request = request
-        self.circuit = self.session.query(Circuit).filter_by(
-            uuid=self.request.matchdict["id"]).one()
+        self.circuit = self.session.\
+                       query(Circuit).get(self.request.matchdict["id"])
         self.meter = self.circuit.meter
         self.breadcrumbs = breadcrumbs[:]
 

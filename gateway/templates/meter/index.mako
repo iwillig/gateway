@@ -96,7 +96,7 @@
     <td>${item["meter_id"]}</td>
     <td>${item["id"]}</td>
     <td>
-      <a href="${request.application_url}/circuit/index/${item["uuid"]}">${item["uuid"]}
+      <a href="${request.application_url}/circuit/index/${item["id"]}">${item["uuid"]}
     </a></td>
     <td>${item["date"]}</td>
     <td>${item["pin"]}</td>

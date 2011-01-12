@@ -15,7 +15,6 @@
 
 <%def name="content()">
 
-<!-- <h1>Gateway's number +13474594049</h1> --> 
 
 % if logged_in:
 <div class="widgets">
@@ -27,7 +26,6 @@
         href="${request.application_url}/add_meter"> Add a new meter</a></p>
   <table>
     <tr>
-      <th>Meter uuid</th>
       <th>Meter name</th>
       <th>Meter location</th>
       <th>Number of circuits</th>
@@ -35,8 +33,7 @@
     <hr />
     % for meter in meters:
   <tr>
-    <td><a href="${meter.url()}">${meter.uuid}</a></td>
-    <td>${meter.name}</td>
+    <td><a href="${meter.url()}">${meter.name}</a></td>
     <td>${meter.location}</td>
     <td>${str(len(meter.get_circuits()))}</td>
   </tr>
