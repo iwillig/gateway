@@ -27,6 +27,8 @@ class RootFactory(object):
 def get_now(): 
     return datetime.datetime.now()
 
+
+
 class Meter(Base):
     """
     A table that repsents a meter in the gateway
@@ -64,7 +66,7 @@ class Meter(Base):
                         
 
     def url(self): 
-        return "/meter/index/%s" % self.uuid 
+        return "/meter/index/%s" % self.id
 
     def edit_url(self): 
         return "/meter/edit/%s" % self.uuid
@@ -462,7 +464,7 @@ class AddCredit(Job):
         Job.__init__(self,circuit)
         self.credit = credit 
 
-    def toString(self): 
+    def tostring(self): 
         return "job=cr&jobid=%s&cid=%s&amt=%s;" % (self.id,
                                                 self.circuit.ip_address,
                                                 float(self.credit))
@@ -493,6 +495,16 @@ class TurnOn(Job):
     def toString(self): 
         return "job=con&jobid=%s&cid=%s;" % (self.id,self.circuit.ip_address)
         
+class Netbook(object):
+    __tablename__ = "netbook"
+    
+    
+    def __init__(self,location ):
+        """
+        """
+        
+        
+
 
         
 def populate():

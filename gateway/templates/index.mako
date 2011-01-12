@@ -2,16 +2,7 @@
 
 <%def name="header()">
    <title>Dashboard SharedSolar Gateway</title>
-   <style type="text/css" media="screen">
-     .widget { margin: 10px; } 
-     .widget-header { padding: 5px } 
-     .widget-header .ui-icon { float: right; }
-     .widget-content { padding: 10px; } 
-     .widget-content a { color: #004276 ; font-weight: bold; } 
-     .ui-sortable-placeholder { border: 1px dotted black; visibility:
-     visible !important; height: 50px !important; }     
-     .ui-sortable-placeholder * { visibility: hidden; }
-   </style>
+
    <script type="text/javascript">
      $(function() { 
         $('.button').button(); 

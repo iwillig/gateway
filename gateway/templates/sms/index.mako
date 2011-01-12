@@ -67,7 +67,7 @@
           <tr>
             <td>${msg.id}</td>
             <td><a style="color: #004276; font-weight: bold"
-                   href="${request.application_url}/message/index/${msg.uuid}">${msg.text}
+                   href="${request.application_url}/message/index/${msg.id}">${msg.text}
             </a></td>
             <td> ${msg.get_incoming()} </td>
             <td>${msg.number}</td>

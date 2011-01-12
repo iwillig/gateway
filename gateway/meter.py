@@ -16,6 +16,7 @@ def valid(test, against):
 
 
 def make_delete(msgDict, session):
+    session.add(SystemLog("%s" % msgDict))
     job = session.query(Job).get(msgDict["jobid"])
     incoming_uuid = job.job_message[0].incoming
     originMsg = session.query(IncomingMessage).\
@@ -47,7 +48,7 @@ def make_delete(msgDict, session):
                                           messageBody,
                                           incoming=originMsg.uuid)
             session.add(outgoingMsg)
-
+        
         session.merge(job)
     else:
         session.add(SystemLog(
