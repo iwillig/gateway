@@ -2,6 +2,12 @@
 
 <%def name="header()"> 
     <title>Circuit Page</title>
+    <script type="text/javascript">
+      $(function() { 
+         $('.buttons li').button()
+      });
+      
+    </script>
 </%def> 
 
 <%def name="content()"> 
@@ -28,7 +34,7 @@
       </table>
     </td>    
     <td>
-      <div class="actions">        
+      <div class="buttons">        
       <ul> 
         <li><a 
                href="${request.application_url}${circuit.edit_url()}">
@@ -37,13 +43,21 @@
           <a href="${request.application_url}/account/edit/${str(circuit.account.id)}">
             Edit account information</a></li>
         <li><a href="${circuit.remove_url()}">Remove circuit</a></li>
-        <li><a href="${circuit.toggle_url()}">Toggle on/off</a></li>
         <li>
-          <a href="${request.application_url}/circuit/build_graph/${circuit.uuid}">
-            Build Graph</a></li>
+          <a href="${request.application_url}/circuit/turn_on/${circuit.id}">
+            Turn On </a>
+        </li>
+        <li>
+          <a href="${request.application_url}/circuit/turn_off/${circuit.id}">
+            Turn Off </a>
+        </li>
+        <li>
+          <a href="${request.application_url}/circuit/ping/${circuit.id}">
+            Ping Circuit </a>
+        </li>
         <li>
           <form method="POST" id=""
-                action="${request.application_url}/circuit/add_credit/${circuit.uuid}">
+                action="${request.application_url}/circuit/add_credit/${circuit.id}">
             <label>Amount</label>
             <input type="text" name="amount" value="" />
             <input type="submit" name="submit" value="Add credit" />
@@ -58,7 +72,7 @@
 <hr />
 <h4>Jobs associated with circuit</h4>
 <a 
-   href="${request.application_url}/circuit/remove_jobs/${circuit.uuid}">
+   href="${request.application_url}/circuit/remove_jobs/${circuit.id}">
    Clear job queue</a>
 <table class="jobs">
   <tr>
@@ -67,6 +81,7 @@
     <th>Job type</th> 
     <th>Job start time</th>
     <th>Job end time</th>
+    <th>Job message</th>
   </tr>
     % for job in jobs: 
      % if job.state == True:
@@ -84,6 +99,12 @@
     % else: 
        <td></td>
     % endif 
+       % if len(job.job_message) >= 1:   
+         <td>
+           <a href="${job.job_message[0].getIndexUrl(request)}">
+             ${job.job_message[0].text}
+         </a></td>
+       % endif
   </tr> 
   % endfor 
 </table>
