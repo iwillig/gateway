@@ -27,6 +27,7 @@ from gateway.models import JobMessage
 from gateway.models import IncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
+from gateway.models import Mping
 from gateway.security import USERS
 from gateway.utils import get_fields, model_from_request,\
     make_table_header, make_table_data
@@ -128,6 +129,21 @@ class Dashboard(object):
         return HTTPFound(location=self.request.application_url)
 
 
+class ManageHandler(object):
+    """
+    """
+    def __init__(self, request):
+        self.request = request
+        self.breadcrumbs = breadcrumbs[:]
+
+    @action(renderer='manage/index.mako')
+    def index(self):
+        return {
+            'logged_in': authenticated_userid(self.request),
+            'breadcrumbs': self.breadcrumbs
+            }
+
+
 class UserHandler(object):
 
     def __init__(self, request):
@@ -152,7 +168,7 @@ class UserHandler(object):
             'url': self.request.application_url + '/login',
             'came_from': came_from,
             'login': login,
-            'password':  password }
+            'password': password }
 
     def logout(self):
         headers = forget(self.request)
@@ -168,7 +184,8 @@ class MeterHandler(object):
     def __init__(self, request):
         self.request = request
         self.session  = DBSession()
-        self.meter = self.session.query(Meter).filter_by(slug=self.request.matchdict['slug']).one()
+        self.meter = self.session.query(Meter).\
+                     filter_by(slug=self.request.matchdict['slug']).one()
         self.breadcrumbs = breadcrumbs[:]
 
     @action(renderer="meter/index.mako", permission="admin")
@@ -184,15 +201,6 @@ class MeterHandler(object):
             "fields": get_fields(self.meter),
             "breadcrumbs": breadcrumbs }
 
-    @action()
-    def get_circuits(self):
-        session  = DBSession()
-        return Response(
-            content_type="application/json",
-            body=simplejson.dumps(
-                [x.toJSON() for x in session.query(
-                        Circuit).filter_by(meter=self.meter)]))
-
     @action(request_method='POST', permission="admin")
     def add_circuit(self):
         params = self.request.params
@@ -202,7 +210,7 @@ class MeterHandler(object):
         account = Account(
             lang=params.get("lang"),
             phone=params.get("phone"))
-        circuit = Circuit(meter=self.meter,                     
+        circuit = Circuit(meter=self.meter,
                           account=account,
                           pin=pin,
                           ip_address=params.get("ip_address"),
@@ -210,7 +218,7 @@ class MeterHandler(object):
                           power_max=int(params.get("power_max")))
         self.session.add(account)
         self.session.add(circuit)
-        self.flush()
+        self.session.flush()
         return HTTPFound(location="%s%s" % (
                 self.request.application_url, self.meter.url()))
 
@@ -232,6 +240,10 @@ class MeterHandler(object):
         return Response("test show graphs for meter")
 
     @action(permission="admin")
+    def logs(self):
+        return Response("stuff")
+
+    @action(permission="admin")
     def update(self):
         meter = model_from_request(self.request,
                                    self.meter)
@@ -245,6 +257,14 @@ class MeterHandler(object):
         [self.session.delete(x)
          for x in self.session.query(Circuit).filter_by(meter=self.meter)]
         return HTTPFound(location="/")
+
+    @action(permission="admin")
+    def ping(self):
+        job = Mping(self.meter)
+        self.session.add(job)
+        self.session.flush()
+        self.session.add(JobMessage(job, self.meter.phone, incoming=""))
+        return HTTPFound(location=self.meter.url())
 
 
 class CircuitHandler(object):
@@ -293,8 +313,18 @@ class CircuitHandler(object):
                            self.circuit.url()))
 
     @action(permission="admin")
-    def toggle(self):
-        self.circuit.toggle_status()
+    def turn_off(self):
+        self.circuit.turnOff()
+        return HTTPFound(location=self.circuit.url())
+
+    @action(permission="admin")
+    def turn_on(self):
+        self.circuit.turnOn()
+        return HTTPFound(location=self.circuit.url())
+
+    @action(permission="admin")
+    def ping(self):
+        self.circuit.ping()
         return HTTPFound(location=self.circuit.url())
 
     @action(permission="admin")
@@ -337,6 +367,7 @@ class CircuitHandler(object):
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
         self.session.add(job)
+        self.session.flush()
         self.session.add(JobMessage(job, ""))
         return HTTPFound(location=self.circuit.url())
 
@@ -414,22 +445,12 @@ class JobHandler(object):
     def __init__(self, request):
         self.request = request
 
-    def _get_jobs(self, circuits):
-        session = DBSession()
-        l = []
-        for circuit in circuits:
-            [l.append(x.toString())
-             for x in session.query(Job).\
-                 filter_by(circuit=circuit).filter_by(state=True)]
-        return "".join(l)
-
     @action()
     def meter(self):
         session = DBSession()
         matchdict = self.request.matchdict
-        meter = session.query(Meter).filter_by(name=matchdict["id"]).first()
-        circuits = list(session.query(Circuit).filter_by(meter=meter))
-        return Response(self._get_jobs(circuits))
+        meter = session.query(Meter).filter_by(slug=matchdict["id"]).first()
+        return Response("".join([str(x) for x in meter.getJobs()]))
 
     @action()
     def job(self):
@@ -486,11 +507,15 @@ class MessageHandler(object):
         self.session = DBSession()
         self.request = request
         self.message = self.session.\
-            query(Message).filter_by(id=self.request.matchdict["id"]).first()
+                       query(Message).get(self.request.matchdict["id"])
 
     @action(renderer='sms/index_msg.mako')
     def index(self):
-        return {'message': self.message }
+        global breadcrumbs
+        breadcrumbs.extend({})
+        return {
+            'breadcrumbs': breadcrumbs,
+            'message': self.message }
 
     @action(request_method="POST")
     def remove(self):
@@ -535,9 +560,13 @@ class SMSHandler(object):
         return HTTPFound(
             location="%s/sms/index" % self.request.application_url)
 
+    @action(permission="admin")
+    def circuit_logs(self):
+        return Response('stuff')
+
     @action()
     def ping(self):
-        return Response("ok")
+        return Response('ok')
 
     @action()
     def send(self):
@@ -557,7 +586,6 @@ class SMSHandler(object):
                 filter_by(sent=False).filter(or_(Message.type == "job_message",
                   Message.type == "outgoing_message")).all()
                   if msg.number != '']
-
         return Response(
             content_type="application/json",
             body=simplejson.dumps(msgs))

@@ -82,7 +82,8 @@ def set_primary_contact(message):
             account.phone = new_number
             session.merge(account)
     except:
-        pass 
+        pass
+
 
 def add_credit(message, lang="en"):
     """Allows consumer to add credit to their account.
@@ -94,7 +95,10 @@ def add_credit(message, lang="en"):
     if circuit:
         if token:
             job = AddCredit(circuit=circuit, credit=token.value)
-            session.add(JobMessage(job,incoming=message.uuid))
+            session.add(job)
+            session.flush()
+            session.add(JobMessage(job, circuit.account.phone,
+                                   incoming=message.uuid))
             token.state = "used"
             session.merge(token)
             session.merge(circuit)
@@ -102,25 +106,19 @@ def add_credit(message, lang="en"):
 
 def turn_circuit_on(message):
     """Allows the consumer to turn their account on."""
-    session = DBSession()
+
     circuit = get_circuit(message)
     if circuit:
-        job = TurnOn(circuit)
-        session.add(JobMessage(job,incoming=message.uuid))
-        session.add(job)
+        circuit.turnOn(incoming=message.uuid)
 
-def turn_circuit_off(message, lang="en"):
+
+def turn_circuit_off(message, lang="fr"):
     """ Creates a new job called turn_off """
-    session = DBSession()
     circuit = get_circuit(message)
     if circuit:
-        lang = circuit.account.lang 
-        job = TurnOff(circuit)
-        session.add(JobMessage(job,incoming=message.uuid))
-        session.add(job)
+        circuit.turnOff(incoming=message.uuid)
 
 
- 
 def set_primary_lang(message):
     """ Allows consumer to set their account lang
     """
@@ -130,5 +128,3 @@ def use_history(message, lang="en"):
     """
     Calculates use based on last 30 days of account activity
     """
-
-
