@@ -1,20 +1,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
-
-   <script type="text/javascript" 
-           src="${request.application_url}/static/jquery-1.4.3.min.js"></script>
-
-   <script type="text/javascript"
-           src="${request.application_url}/static/jquery-ui-1.8.6.custom.min.js"></script>
-
-   <script type="text/javascript"
-           src="${request.application_url}/static/site/functions.js"></script>
-
    <%namespace name="headers" file="headers.mako"/>
+   ${headers.globalScripts(request)}
    
-    ${headers.styleSheets(request)} 
+   ${headers.styleSheets(request)} 
+   
 
-    ${self.header()}
+
+   ${self.header()}
 
   </head>
   <body>
