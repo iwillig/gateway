@@ -1,6 +1,5 @@
 
 <%def name="load_slickGrid(request)"> 
-
 <link rel="stylesheet" 
       href="${request.application_url}/static/SlickGrid/slick.grid.css" 
       type="text/css" 
@@ -16,7 +15,23 @@
 </script>
 <script src="${request.application_url}/static/SlickGrid/slick.dataview.js">
 </script>
+</%def>
 
+<%def name="ggRaphael(request)"> 
+<script src="${request.application_url}/static/js/raphael/raphael.js" 
+        type="text/javascript"></script>
+<script src="${request.application_url}/static/js/g.raphael/g.raphael.js" 
+        type="text/javascript"></script>
+</%def>
+
+<%def name="globalScripts(request)"> 
+<script type="text/javascript" 
+        src="${request.application_url}/static/jquery-1.4.3.min.js"></script>
+<script type="text/javascript"
+        src="${request.application_url}/static/jquery-ui-1.8.6.custom.min.js"></script>
+
+<script type="text/javascript"
+        src="${request.application_url}/static/site/functions.js"></script>
 </%def>
 
 
