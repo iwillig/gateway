@@ -2,11 +2,17 @@
 
 <%def name="header()">
    <title>Dashboard SharedSolar Gateway</title>
+   <script type="text/javascript">
+     $(function() { 
+         $('#add_meter').button(); 
+     }); 
+   </script>
 </%def>
 
 <%def name="content()"> 
 <h3>Add a new meter to the gateway</h3> 
-<table class="form" width="" cellspacing="" cellpadding="" border="0">
+
+<table class="form">
   <form method="POST" id="add-meter" 
         action="${request.application_url}/add_meter">
     <tr>
@@ -54,7 +60,7 @@
       <td>
       </td>
       <td>
-        <input type="submit" name="" value="Add a new meter" />
+        <input id="add_meter" type="submit" name="" value="Add a new meter" />
       </td>
     </tr>
   </table>
