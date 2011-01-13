@@ -1,10 +1,34 @@
 <%inherit file="../base.mako"/>
+<%namespace name="headers" file="../headers.mako"/>
 
 <%def name="header()">
+${headers.ggRaphael(request)}
+
+<script src="${request.application_url}/static/js/g.raphael/g.line.js" 
+        type="text/javascript"></script>
+
+<script type="text/javascript"
+        src="${request.application_url}/static/js/site/meterPage.js"></script>
+
+<script type="text/javascript">
+  $(function() { 
+     loadPage(); 
+  });
+</script>
+
+<style type="text/css" media="screen">
+  #graph { 
+    background: #fff ; 
+    width:700px;
+    margin: 5px; 
+    height: 250px;
+  } 
+</style>
+
 </%def>
 
 <%def name="content()">
-<h3>Meter overview page</h3> 
+<h3>Meter overview page for <span class="underline">${meter.name}</span></h3> 
 <table>
   <tr>
     <td>
@@ -18,29 +42,42 @@
     </table>  
     </td> 
     <td> 
-      <div class="actions"> 
+      <div class="buttons"> 
         <ul>
           <li><a href="${meter.edit_url()}">Edit meter information</a></li>
-          <li><a href="/jobs/meter/${meter.name}/">View active job
-          queue</a></li>
+          <li> <a id="addCircuitButton" href="#">Add Circuit</a></li>
+          <li><a id="showJobButton" href="#">View active job queue</a></li>
           <li>
             <a href="${request.application_url}/${meter.remove_url()}">
               Remove Meter</a>
-              <li>
-          <a href="${request.application_url}/meter/build_graph/${meter.uuid}">
-            Build Graph</a></li>
+          </li>
+          <li><a href="${request.application_url}/meter/ping/${meter.slug}"> 
+              Ping Meter</a>
+          </li>
         </ul>
       </div>
-    </td>
+      <div id="graph">
+      </div>
+    </td>  
+    
   </tr>
+  <tr> 
 </table>
+<div id="showJobs" style="display: none">
+<ul>
+% for job in meter.getJobs(): 
+    <li>${str(job)} </li>
+% endfor 
+</ul>
+</div>
 
 <hr /> 
-<h4>Circuits associated with ${meter.name}</h4>
+<h4>Circuits associated
+  with <span class="underline">${meter.name}</span></h4>
 
-<div class="small-form">
+<div id="addCircuit" class="small-form" style="display: none">
   <form method="POST" id=""
-        action="${request.application_url}/meter/add_circuit/${meter.uuid}">    
+        action="${request.application_url}/meter/add_circuit/${meter.slug}">    
   <table>
     <tr>
       <td><label>Account language</label></td>
@@ -86,28 +123,24 @@
 
 <table class="circuits">
   <tr>
-    % for item in circuit_header:
-        <th>${item.get("name")}</th>
-    % endfor 
+    <th>Circuit id</th>
+    <th>Account</th>
+    <th>Account language</th>
+    <th>Account phone</th>
+    <th>Energy max</th> 
+    <th>Power max</th>
   </tr>
   
-  % for item in circuit_data: 
+    % for circuit in meter.get_circuits(): 
   <tr>
-    <td>${item["meter_id"]}</td>
-    <td>${item["id"]}</td>
-    <td>
-      <a href="${request.application_url}/circuit/index/${item["id"]}">${item["uuid"]}
-    </a></td>
-    <td>${item["date"]}</td>
-    <td>${item["pin"]}</td>
-    <td>${item["energy_max"]}</td>
-    <td>${item["power_max"]}</td>
-    <td>${item["status"]}</td>
-    <td>${item["ip_address"]}</td>
-    <td>${item["credit"]}</td>
-    <td>${item["account_id"]}</td>
-  </tr>  
-  % endfor 
+    <td><a href="${request.application_url}/circuit/index/${circuit.id}">${circuit.ip_address}</a></td>
+    <td>${circuit.pin}</td>
+    <td>${circuit.account.lang}</td>
+    <td>${circuit.account.phone}</td>
+    <td>${circuit.energy_max}</td>
+    <td>${circuit.power_max}</td>
+  </tr> 
+    % endfor 
 
 </table>
 <hr /> 
