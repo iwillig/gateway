@@ -6,8 +6,18 @@
 </%def> 
 
 <%def name="content()"> 
-    
-
-    ${message.text}
-
+  <table>
+    <tr>
+      <td>Message number</td>
+      <td>${message.number}</td>
+    </tr>
+    <tr>
+      <td>Message date</td>
+      <td>${message.date}</td>
+    </tr>
+    <tr>
+      <td>Message Text</td>
+      <td>${message.text}</td>
+    </tr>
+  </table>
 </%def>
