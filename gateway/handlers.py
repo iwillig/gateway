@@ -29,8 +29,10 @@ from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
 from gateway.models import Mping
 from gateway.security import USERS
-from gateway.utils import get_fields, model_from_request,\
-    make_table_header, make_table_data
+from gateway.utils import get_fields,
+from gateway.utils import model_from_request
+from gateway.utils import make_table_header
+from gateway.utils import make_table_data
 
 breadcrumbs = [{"text":"Manage Home", "url":"/"}]
 

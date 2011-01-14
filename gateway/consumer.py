@@ -1,7 +1,16 @@
-from gateway.models import DBSession, \
-    Circuit, Token, AddCredit, TurnOn, \
-    TurnOff, OutgoingMessage, \
-    JobMessage, Meter, SystemLog
+"""
+Functions to response to consumer messages
+"""
+from gateway.models import DBSession
+from gateway.models import Circuit
+from gateway.models import Token
+from gateway.models import AddCredit
+from gateway.models import TurnOn
+from gateway.models import TurnOff
+from gateway.models import OutgoingMessage
+from gateway.models import JobMessage
+from gateway.models import Meter
+from gateway.models import SystemLog
 from gateway.utils import make_message
 
 delimiter = "."
