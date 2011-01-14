@@ -31,7 +31,7 @@ def main(global_config, **settings):
     This function returns a Pylons WSGI application.
     """
     from paste.deploy.converters import asbool
-    from pyramid.configuration import Configurator
+    from pyramid.config import Configurator
     from gateway.models import initialize_sql
     from gateway.security import groupfinder
 
@@ -45,6 +45,7 @@ def main(global_config, **settings):
     authz_policy = ACLAuthorizationPolicy()
 
     config = Configurator(settings=settings,
+                          autocommit=True,
                           root_factory='gateway.models.RootFactory',
                           authentication_policy=authn_policy,
                           authorization_policy=authz_policy)
@@ -60,6 +61,8 @@ def main(global_config, **settings):
                        action='index')
     config.add_handler('main','/:action',
                       handler='gateway.handlers:Dashboard')
+    config.add_handler('manage','/manage/:action',
+                       handler='gateway.handlers:ManageHandler')
     config.add_handler('export-load','sys/:action',
                        handler='gateway.sys:ExportLoadHandler')
     config.add_handler('users','user/:action',
