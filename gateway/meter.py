@@ -96,6 +96,7 @@ def make_lcw(message, circuit, session):
                                        lang=circuit.account.lang,
                                        account=circuit.pin))
     session.add(msg)
+    session.flush()
 
 
 def make_md(message, circuit, session):
@@ -116,7 +117,7 @@ def make_pmax(message, circuit, session):
                                        lang=circuit.account.lang,
                                        account=circuit.pin))
     session.add(msg)
-
+    session.flush()
 
 def make_emax(message, circuit, session):
     msg = OutgoingMessage(circuit.account.phone,
@@ -124,7 +125,8 @@ def make_emax(message, circuit, session):
                                        lang=circuit.account.lang,
                                        account=circuit.pin))
     session.add(msg)
+    session.flush()
 
-
+ 
 def make_sdc(message, circuit):
     pass
