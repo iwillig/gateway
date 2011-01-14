@@ -23,7 +23,7 @@
       <div class="error"><p>${message}</p></div>
     <form method="POST" id=""
           action="${request.application_url}/user/login">
-      <table width="" cellspacing="" cellpadding="" border="">
+      <table>
         <tr>
           <td><label>Username</label></td>
           <td><input type="text" name="login" value="" /></td>
