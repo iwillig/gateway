@@ -22,8 +22,6 @@
               find( ".widget-content" ).toggle();
     });
  
-//    $(this).disableSelection();
-
 }
 
     $.fn.setWidget = SetWidget;
