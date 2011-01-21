@@ -1,12 +1,13 @@
 import datetime
 import csv
-import simplejson
 from urlparse import parse_qs
-from dateutil import parser
 import cStringIO
+from datetime import datetime
+import simplejson
+from dateutil import parser
 from webob import Response
 from webob.exc import HTTPFound
-from pyramid.view import action
+from pyramid_handlers import action
 from pyramid.security import authenticated_userid
 from pyramid.security import remember
 from pyramid.security import forget
@@ -29,10 +30,11 @@ from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
 from gateway.models import Mping
 from gateway.security import USERS
-from gateway.utils import get_fields,
+from gateway.utils import get_fields
 from gateway.utils import model_from_request
 from gateway.utils import make_table_header
 from gateway.utils import make_table_data
+from gateway.utils import find_meter_logs
 
 breadcrumbs = [{"text":"Manage Home", "url":"/"}]
 
@@ -142,8 +144,7 @@ class ManageHandler(object):
     def index(self):
         return {
             'logged_in': authenticated_userid(self.request),
-            'breadcrumbs': self.breadcrumbs
-            }
+            'breadcrumbs': self.breadcrumbs }
 
 
 class UserHandler(object):
@@ -239,11 +240,18 @@ class MeterHandler(object):
     @action(renderer="meter/show_graph.mako", permission="admin")
     def show_graph(self):
         #needs to be implemented
-        return Response("test show graphs for meter")
+        return {}
 
     @action(permission="admin")
     def logs(self):
-        return Response("stuff")
+        days = int(self.request.params.get('days', 10))
+        date = datetime.now()
+        logs = find_meter_logs(meter=self.meter,
+                               date=date, session=self.session,
+                               days=days)
+        return Response(
+            simplejson.dumps(logs),
+            content_type='application/json')
 
     @action(permission="admin")
     def update(self):

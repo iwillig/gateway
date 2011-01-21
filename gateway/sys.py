@@ -5,7 +5,8 @@ import csv
 import cStringIO
 import datetime
 from webob import Response
-from pyramid.view import action
+from pyramid_handlers import action
+
 from gateway import models
 from gateway.utils import nice_print
 

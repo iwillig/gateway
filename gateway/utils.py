@@ -126,6 +126,10 @@ def make_table_data(models):
     return data
 
 
+def primarylog_to_json(log):
+    return nice_print(log)
+
+
 def find_meter_logs(meter=None, date=None, session=None, days=30):
     """
     Meter, Date, DBSession
@@ -136,5 +140,6 @@ def find_meter_logs(meter=None, date=None, session=None, days=30):
     circuits = meter.get_circuits()
     logQuery = session.query(PrimaryLog).filter(PrimaryLog.created >= day30)
     for circuit in circuits:
-        logs[circuit.id].extend(list(logQuery.filter_by(circuit=circuit)))
+        logs['circuit' + str(circuit.id)].extend([primarylog_to_json(x) for x in
+                                 logQuery.filter_by(circuit=circuit)])
     return logs

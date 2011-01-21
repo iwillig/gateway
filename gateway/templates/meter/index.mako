@@ -12,7 +12,9 @@ ${headers.ggRaphael(request)}
 
 <script type="text/javascript">
   $(function() { 
-     loadPage(); 
+     loadPage({"url": "${request.application_url}",
+               "meter" : "${meter.slug}"
+              }); 
   });
 </script>
 
@@ -22,6 +24,9 @@ ${headers.ggRaphael(request)}
     width:700px;
     margin: 5px; 
     height: 250px;
+  } 
+  #graphSlider { 
+    margin: 4px;
   } 
 </style>
 
@@ -56,7 +61,10 @@ ${headers.ggRaphael(request)}
           </li>
         </ul>
       </div>
-      <div id="graph">
+      <div id="graphCon">
+        <div id="graph">
+        </div>
+        <div id="graphSlider"></div>
       </div>
     </td>  
     
@@ -123,6 +131,7 @@ ${headers.ggRaphael(request)}
 
 <table class="circuits">
   <tr>
+    <th>Circuit db id</th>
     <th>Circuit id</th>
     <th>Account</th>
     <th>Account language</th>
@@ -133,6 +142,7 @@ ${headers.ggRaphael(request)}
   
     % for circuit in meter.get_circuits(): 
   <tr>
+    <td>${circuit.id}</td>
     <td><a href="${request.application_url}/circuit/index/${circuit.id}">${circuit.ip_address}</a></td>
     <td>${circuit.pin}</td>
     <td>${circuit.account.lang}</td>

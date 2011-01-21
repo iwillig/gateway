@@ -1,6 +1,7 @@
 from pyramid_beaker import session_factory_from_settings
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
+import pyramid_handlers
 from dispatch import Dispatcher
 from gateway.messaging import findMeter
 
@@ -51,6 +52,7 @@ def main(global_config, **settings):
                           authorization_policy=authz_policy)
     config.begin()
     session_factory = session_factory_from_settings(settings)
+    config.include(pyramid_handlers.includeme)
     config.set_session_factory(session_factory)
     config.add_static_view(
         'static',

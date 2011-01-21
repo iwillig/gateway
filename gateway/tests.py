@@ -18,17 +18,6 @@ class GatewayTests(unittest.TestCase):
     def tearDown(self):
         self.config.end()
 
-    def testAddingMeter(self):
-        from gateway.models import Meter
-        meter = Meter(name='test1001',
-                      phone='18182124554',
-                      location='New York City',
-                      battery=12,
-                      communication='gsm',
-                      panel_capacity=10)
-        self.session.add(meter)
-        self.session.flush()
-
     def testDashboardIndex(self):
         request = testing.DummyRequest()
         from gateway.handlers import Dashboard
@@ -64,11 +53,18 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(type(logout), HTTPFound)
         self.assertEqual(logout.status, '302 Found')
 
-    def testMeter(self):
+    def testMeterHandler(self):
         from gateway.handlers import MeterHandler
         from gateway.models import Meter
-        meter = self.session.query(Meter).get(1)
-        request = testing.DummyRequest(path='/meter/view/%s' % meter.uuid)
+        meter = Meter(name='test1001',
+                      phone='18182124554',
+                      location='New York City',
+                      battery=12,
+                      communication='gsm',
+                      panel_capacity=10)
+        self.session.add(meter)
+        self.session.flush()
+        request = testing.DummyRequest(path='http://example.com/meter/view/%s' % meter.uuid)
         handler = MeterHandler(request)
         # test meter index
         handler.index()

@@ -3,7 +3,12 @@ Module for SS Gateway.
 Handles all of the meter communcation 
 
 """
-from gateway.models import Job, SystemLog, PrimaryLog, OutgoingMessage, DBSession, IncomingMessage
+from gateway.models import Job
+from gateway.models import SystemLog
+from gateway.models import PrimaryLog
+from gateway.models import OutgoingMessage
+from gateway.models import DBSession
+from gateway.models import IncomingMessage
 from gateway.utils import make_message
 from dateutil import parser
 

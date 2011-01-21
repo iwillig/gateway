@@ -1,28 +1,47 @@
-function loadPage() {
 
-  var r; 
-  var y = [[1, 20, 40, 60, 80, 100, 125]]; 
-  var x = [[1, 20, 40, 60, 80, 100, 120]];
+var _globalChart;
+var _logs; 
+var _slider; 
+
+function loadPage(options) {
+var r,
+  chart,
+  x = [[1,2]]
+  y = [[1,2]],
+  start = 50,
+  end   = 100;
+
+  var baseUrl = options['url'] + '/meter/logs/' + options['meter']; 
+ 
+  /*
+   * Raphel
+   */
+
+//  r = Raphael("graph");
+  
+  /*
+   * Load UI interface
+   */ 
+
 
   $('.buttons li').button();
   $('#add-circuit').button(); 
-  r = Raphael("graph"); 
-    
-  var chart = r.g.linechart(30, 10, 650, 220, x, y,
-                    {nostroke: false, 
-                     axis: "0 0 1 1", symbol: "o", smooth: true});
-  chart.hoverColumn(
-    function() {console.log(this),
-    function() {console.log(this)}})
+
+  // var slider = $("#graphSlider").slider({
+  //   range: true,
+  //   values: [start,end],
+  //   stop: function(event, ui) {       
+  //   } 
+  // });
+  
+  // _slider = slider
 
   $('#showJobButton').click(function() { 
     $('#showJobs').dialog({
       title: "Active jobs",
       modal: true,
       height: 500,
-      width: 500
-    });           
-
+    });
   }); 
   
   $('#addCircuitButton').click(function() { 
@@ -33,4 +52,20 @@ function loadPage() {
       width: 500
     });               
   });
+
+/* $.ajax({
+    url: baseUrl,
+    success: function(data) { 
+      _logs = data;
+    }
+  });
+*/
+
+  // chart = r.g.linechart(30, 10, 650, 220, x, y,
+  //                       { nostroke: false, 
+  //                        axis: "0 0 1 1", 
+  //                        symbol: "o", smooth: true});
+  // _globalChart = chart;
+
+
 }; 
