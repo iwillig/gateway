@@ -517,7 +517,7 @@ class MessageHandler(object):
         self.session = DBSession()
         self.request = request
         self.message = self.session.\
-                       query(Message).get(self.request.matchdict["id"])
+                       query(Message).filter_by(uuid=self.request.matchdict["id"]).first()
 
     @action(renderer='sms/index_msg.mako')
     def index(self):
