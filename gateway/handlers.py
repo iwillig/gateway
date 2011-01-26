@@ -1,3 +1,6 @@
+"""
+Handler objects of web interface
+"""
 import datetime
 import csv
 from urlparse import parse_qs
@@ -12,7 +15,6 @@ from pyramid.security import authenticated_userid
 from pyramid.security import remember
 from pyramid.security import forget
 from sqlalchemy import or_, desc
-
 from gateway import dispatcher
 from gateway.models import DBSession
 from gateway.models import Meter
@@ -540,9 +542,35 @@ class MessageHandler(object):
         elif self.request.method == 'GET':
             return {'message': self.message }
 
+def save_and_parse_message(origin, text, session, uuid=None):
+    if uuid is None:
+        uuid = str(uuid.uuid4())
+    message = IncomingMessage(
+        origin,
+        text,
+        uuid)
+    session.add(message)
+    session.flush()
+    dispatcher.matchMessage(message)
+    return message
+
+
+class KannelHandler(object):
+    """
+    Handler object for Kannel requests
+    """    
+    def __init__(self,request ):
+        self.request = request
+        
+    @action()
+    def send(self):         
+        return Response(self.request.params)
+
 
 class SMSHandler(object):
-
+    """
+    Handler for most SMS operations
+    """
     def __init__(self, request):
         self.request = request
         self.breadcrumbs = breadcrumbs[:]
@@ -581,13 +609,10 @@ class SMSHandler(object):
     @action()
     def send(self):
         msgJson = simplejson.loads(self.request.body)
-        message = IncomingMessage(
-            msgJson["from"],
-            msgJson["text"],
-            msgJson["uuid"])
-        self.session.add(message)
-        self.session.flush()
-        dispatcher.matchMessage(message)
+        message = save_and_parse_message(msgJson['from'],
+                                         msgJson['text'],
+                                         self.session,
+                                         uuid=msgJson['uuid'])
         return Response(message.uuid)
 
     @action()

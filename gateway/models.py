@@ -102,11 +102,21 @@ class Relay(Base):
     __tablename__ = 'relay'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    location = Column(String)
+    country = Column(String)
+    type = Column(String)
+    meter = Column(Integer)
 
-    def __init__(self, name, location):
+    def __init__(self, name, location, type="netbook"):
         self.name = name
         self.location = location
+    
+    def sendMessage(self, message): 
+        if type == "netbook": 
+            pass
+        elif type == "smpp":
+            pass
+        else: 
+            raise NameError("Relay type not supported")
 
 
 class Account(Base):

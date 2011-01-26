@@ -1,10 +1,12 @@
-'''
-'''
+"""
+Util functions that needed a better home
+"""
 import os
 from collections import defaultdict
 from mako.template import Template
 from datetime import timedelta
 from gateway.models import PrimaryLog
+
 
 baseTemplate = "%s/gateway/templates/messages" % os.getcwd()
 
@@ -126,10 +128,6 @@ def make_table_data(models):
     return data
 
 
-def primarylog_to_json(log):
-    return nice_print(log)
-
-
 def find_meter_logs(meter=None, date=None, session=None, days=30):
     """
     Meter, Date, DBSession
@@ -140,6 +138,6 @@ def find_meter_logs(meter=None, date=None, session=None, days=30):
     circuits = meter.get_circuits()
     logQuery = session.query(PrimaryLog).filter(PrimaryLog.created >= day30)
     for circuit in circuits:
-        logs['circuit' + str(circuit.id)].extend([primarylog_to_json(x) for x in
+        logs['circuit' + str(circuit.id)].extend([nice_print(x) for x in
                                  logQuery.filter_by(circuit=circuit)])
     return logs
