@@ -113,6 +113,15 @@
 
   <table>    
     <tr>
+      <td><label>Message delivery type</label></td>
+      <td>
+        <select name="delivery-type"> 
+          <option value="KannelOutgoingMessage">Kannel</option> 
+          <option value="OutgoingMessage">Netbook</option>
+        </select>               
+      </td>
+    </tr>
+    <tr>
       <td><label>Phone Number</label></td>
       <td><input type="text" name="number"value="" /></td>
     </tr> 

@@ -16,6 +16,7 @@ from pyramid.security import remember
 from pyramid.security import forget
 from sqlalchemy import or_, desc
 from gateway import dispatcher
+from gateway import models
 from gateway.models import DBSession
 from gateway.models import Meter
 from gateway.models import Circuit
@@ -128,10 +129,12 @@ class Dashboard(object):
     @action(permission="admin")
     def send_message(self):
         params = self.request.params
-        self.session.add(
-            OutgoingMessage(
+        msgClass = getattr(models,params['delivery-type'])        
+        msg = msgClass(
                 number=params.get("number"),
-                text=params.get("text")))
+                text=params.get("text"))
+        self.session.add(msg)
+        self.session.flush()
         return HTTPFound(location=self.request.application_url)
 
 
