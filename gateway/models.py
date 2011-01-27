@@ -204,8 +204,9 @@ class Circuit(Base):
         job = klass(self)
         session.add(job)
         session.flush()
-        session.add(msgClass(job, self.account.phone,
-                               incoming=incoming))
+        session.add(msgClass(job, 
+                             self.circuit.meter.phone,
+                             incoming=incoming))
 
     def turnOn(self, incoming=""):
         self.genericJob(TurnOn, incoming)
@@ -344,7 +345,7 @@ def kannel_send_message(message):
     """
     function sends Message to kannel
     """
-    kannel = '173.203.94.233'
+    kannel = 'localhost'
     port = '13013'
     data = urllib.urlencode({'username': 'kannel', 'password': 'kannel',
                              'to': message.number, 'text': message.text })
