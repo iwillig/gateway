@@ -5,7 +5,6 @@ import datetime
 import csv
 from urlparse import parse_qs
 import cStringIO
-from datetime import datetime
 import simplejson
 from dateutil import parser
 from webob import Response
@@ -28,6 +27,7 @@ from gateway.models import Token
 from gateway.models import Message
 from gateway.models import JobMessage
 from gateway.models import IncomingMessage
+from gateway.models import KannelIncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
 from gateway.models import Mping
@@ -519,7 +519,8 @@ class MessageHandler(object):
         self.session = DBSession()
         self.request = request
         self.message = self.session.\
-                       query(Message).filter_by(uuid=self.request.matchdict["id"]).first()
+                       query(Message).filter_by(
+            uuid=self.request.matchdict["id"]).first()
 
     @action(renderer='sms/index_msg.mako')
     def index(self):
@@ -542,10 +543,11 @@ class MessageHandler(object):
         elif self.request.method == 'GET':
             return {'message': self.message }
 
-def save_and_parse_message(origin, text, session, uuid=None):
+
+def save_and_parse_message(MsgKlass, origin, text, session, uuid=None):
     if uuid is None:
         uuid = str(uuid.uuid4())
-    message = IncomingMessage(
+    message = MsgKlass(
         origin,
         text,
         uuid)
@@ -558,13 +560,18 @@ def save_and_parse_message(origin, text, session, uuid=None):
 class KannelHandler(object):
     """
     Handler object for Kannel requests
-    """    
-    def __init__(self,request ):
+    """
+    def __init__(self, request):
         self.request = request
-        
+        self.session = DBSession()
+
     @action()
-    def send(self):         
-        return Response(self.request.params)
+    def send(self):
+        msg = save_and_parse_message(KannelIncomingMessage,
+                                     self.request.params['number'],
+                                     self.request.params['message'],
+                                     self.session)
+        return Response(msg.uuid)
 
 
 class SMSHandler(object):
@@ -609,10 +616,12 @@ class SMSHandler(object):
     @action()
     def send(self):
         msgJson = simplejson.loads(self.request.body)
-        message = save_and_parse_message(msgJson['from'],
-                                         msgJson['text'],
-                                         self.session,
-                                         uuid=msgJson['uuid'])
+        message = save_and_parse_message(
+            IncomingMessage,
+            msgJson['from'],
+            msgJson['text'],
+            self.session,
+            uuid=msgJson['uuid'])
         return Response(message.uuid)
 
     @action()
