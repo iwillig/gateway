@@ -25,7 +25,6 @@ from gateway.models import Account
 from gateway.models import TokenBatch
 from gateway.models import Token
 from gateway.models import Message
-from gateway.models import JobMessage
 from gateway.models import IncomingMessage
 from gateway.models import KannelIncomingMessage
 from gateway.models import OutgoingMessage
@@ -165,8 +164,8 @@ class UserHandler(object):
             password = self.request.params['password']
             if USERS.get(login) == password:
                 headers = remember(self.request, login)
-                return HTTPFound(location = "/",
-                                 headers = headers)
+                return HTTPFound(location="/",
+                                 headers=headers)
             message = 'Failed login'
         return {
             'message': message,
@@ -178,8 +177,8 @@ class UserHandler(object):
     def logout(self):
         headers = forget(self.request)
         return HTTPFound(
-            headers = headers,
-            location = self.request.application_url)
+            headers=headers,
+            location=self.request.application_url)
 
 
 class MeterHandler(object):
@@ -275,7 +274,8 @@ class MeterHandler(object):
         job = Mping(self.meter)
         self.session.add(job)
         self.session.flush()
-        self.session.add(JobMessage(job, self.meter.phone, incoming=""))
+        msgClass = self.meter.getMessageType(job=True)
+        self.session.add(msgClass(job, self.meter.phone, incoming=""))
         return HTTPFound(location=self.meter.url())
 
 
@@ -380,7 +380,8 @@ class CircuitHandler(object):
                   credit=self.request.params.get("amount"))
         self.session.add(job)
         self.session.flush()
-        self.session.add(JobMessage(job, ""))
+        msgClass = self.circuit.meter.getMessageType()
+        self.session.add(msgClass(job, ""))
         return HTTPFound(location=self.circuit.url())
 
     @action(permission="admin")
