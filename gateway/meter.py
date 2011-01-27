@@ -28,6 +28,7 @@ def make_delete(msgDict, session):
         filter_by(uuid=incoming_uuid).first()
     if job:
         circuit = job.circuit
+        msgClass = circuit.meter.getMessageType()
         job.state = False
         messageBody = None
         # update circuit
@@ -49,7 +50,7 @@ def make_delete(msgDict, session):
                                        credit=circuit.credit)
         # double to check we have a message to send
         if messageBody and originMsg:
-            outgoingMsg = OutgoingMessage(originMsg.number,
+            outgoingMsg = msgClass(originMsg.number,
                                           messageBody,
                                           incoming=originMsg.uuid)
             session.add(outgoingMsg)
@@ -83,7 +84,8 @@ def make_pp(message, circuit, session):
 
 
 def make_nocw(message, circuit, session):
-    msg = OutgoingMessage(
+    msgClass = circuit.meter.getMessageType()
+    msg = msgClass(
             circuit.account.phone,
             make_message("nocw-alert.txt",
                          lang=circuit.account.lang,
@@ -96,7 +98,8 @@ def make_nocw(message, circuit, session):
                                                             msg.number)))
 
 def make_lcw(message, circuit, session):
-    msg = OutgoingMessage(circuit.account.phone,
+    msgClass = circuit.meter.getMessageType()
+    msg = msgClass(circuit.account.phone,
                           make_message("lcw-alert.txt",
                                        lang=circuit.account.lang,
                                        account=circuit.pin))
@@ -117,7 +120,8 @@ def make_ce(message, circuit, session):
 
 
 def make_pmax(message, circuit, session):
-    msg = OutgoingMessage(circuit.account.phone,
+    msgClass = circuit.meter.getMessageType()
+    msg = msgClass(circuit.account.phone,
                           make_message("power-max-alert.txt",
                                        lang=circuit.account.lang,
                                        account=circuit.pin))
@@ -125,7 +129,8 @@ def make_pmax(message, circuit, session):
     session.flush()
 
 def make_emax(message, circuit, session):
-    msg = OutgoingMessage(circuit.account.phone,
+    msgClass = circuit.meter.getMessageType()
+    msg = msgClass(circuit.account.phone,
                           make_message("energy-max-alert.txt",
                                        lang=circuit.account.lang,
                                        account=circuit.pin))

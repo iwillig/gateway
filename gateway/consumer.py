@@ -5,19 +5,26 @@ from gateway.models import DBSession
 from gateway.models import Circuit
 from gateway.models import Token
 from gateway.models import AddCredit
-from gateway.models import TurnOn
-from gateway.models import TurnOff
 from gateway.models import OutgoingMessage
 from gateway.models import JobMessage
-from gateway.models import Meter
-from gateway.models import SystemLog
+from gateway.models import IncomingMessage
+from gateway.models import KannelOutoingMessage
+from gateway.models import KannelIncomingMessage
 from gateway.utils import make_message
 
 delimiter = "."
 
+
+def look_up_response_type(message):
+    if isinstance(message, IncomingMessage):
+        return OutgoingMessage
+    elif isinstance(message, KannelIncomingMessage):
+        return KannelOutoingMessage
+
+
 def get_circuit(message):
     """Queris the database to find circuit
-    Returns the circuit or false 
+    Returns the circuit or false
     """
     session = DBSession()
     pin = message.text.split(delimiter)[1].lower()
@@ -25,7 +32,8 @@ def get_circuit(message):
     if circuit:
         return circuit
     else:
-        msg = OutgoingMessage(
+        klass = look_up_response_type(message)
+        msg = klass(
             message.number,
             make_message("no-circuit.txt", lang=message.langauge),
             incoming=message.uuid)
@@ -42,7 +50,8 @@ def get_token(message):
     if token:
         return token
     else:
-        msg = OutgoingMessage(
+        klass = look_up_response_type(message)
+        msg = klass(
                 message.number,
                 make_message("no-token.txt", lang=message.langauge),
                 incoming=message.uuid)
@@ -55,8 +64,9 @@ def get_balance(message):
     session = DBSession()
     circuit = get_circuit(message)
     langauge = message.langauge
-    if circuit:        
-        msg = OutgoingMessage(
+    if circuit:
+        klass = circuit.meter.getMessageType()
+        msg = klass(
             message.number,
             make_message("bal.txt",
                          lang=langauge,
@@ -66,29 +76,28 @@ def get_balance(message):
         session.add(msg)
 
 
-
 def set_primary_contact(message):
     """Allows users to set their primary contact number"""
     session = DBSession()
     circuit = get_circuit(message)
-    if circuit:        
+    if circuit:
+        klass = circuit.meter.getMessageType()
         new_number = message.text.split(delimiter)[2]
         old_number = circuit.account.phone
         messageBody = make_message("tel.txt", lang=message.langauge,
                                    old_number=old_number,
                                    new_number=new_number)
-        session.add(OutgoingMessage(message.number,
+        session.add(klass(message.number,
                                     messageBody,
                                     incoming=message.uuid))
         if new_number != message.number:
-            session.add(OutgoingMessage(
+            session.add(klass(
                     new_number,
                     messageBody,
                     incoming=message.uuid))
         account = circuit.account
         account.phone = new_number
         session.merge(account)
-
 
 
 def add_credit(message, lang="en"):
