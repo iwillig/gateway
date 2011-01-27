@@ -205,7 +205,7 @@ class Circuit(Base):
         session.add(job)
         session.flush()
         session.add(msgClass(job, 
-                             self.circuit.meter.phone,
+                             self.meter.phone,
                              incoming=incoming))
 
     def turnOn(self, incoming=""):
