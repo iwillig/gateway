@@ -87,7 +87,7 @@ class Meter(Base):
             if self.communication == 'netbook':
                 return OutgoingMessage
             elif self.communication == 'kannel':
-                return KannelOutoingMessage
+                return KannelOutgoingMessage
             else:
                 raise NameError(error)
 
@@ -354,7 +354,7 @@ def kannel_send_message(message):
     return urllib2.urlopen(request)
 
 
-class KannelOutoingMessage(Message):
+class KannelOutgoingMessage(Message):
     """
     A class for sending messages to Kannel... Kind of a hack right now
     In the __init__ function we send a post to the Kannel address

@@ -7,7 +7,7 @@ from gateway.models import Token
 from gateway.models import AddCredit
 from gateway.models import OutgoingMessage
 from gateway.models import IncomingMessage
-from gateway.models import KannelOutoingMessage
+from gateway.models import KannelOutgoingMessage
 from gateway.models import KannelIncomingMessage
 from gateway.utils import make_message
 
@@ -18,7 +18,7 @@ def look_up_response_type(message):
     if isinstance(message, IncomingMessage):
         return OutgoingMessage
     elif isinstance(message, KannelIncomingMessage):
-        return KannelOutoingMessage
+        return KannelOutgoingMessage
 
 
 def get_circuit(message):
