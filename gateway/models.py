@@ -2,9 +2,17 @@ import transaction
 import random
 import uuid
 import datetime
+import urllib2
+import urllib
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, DateTime,\
-    ForeignKey, String, Float, Boolean, Numeric
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import DateTime
+from sqlalchemy import ForeignKey
+from sqlalchemy import String
+from sqlalchemy import Float
+from sqlalchemy import Boolean
+from sqlalchemy import Numeric
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session
@@ -62,6 +70,14 @@ class Meter(Base):
         self.communication = communication
         self.slug = Meter.slugify(name)
 
+    def getMessageType(self):
+        if self.communication == 'netbook':
+            return OutgoingMessage
+        elif self.communication == 'kannel':
+            return KannelOutoingMessage
+        else:
+            raise NameError('Unsupported communication type')
+
     def get_circuits(self):
         session = DBSession()
         return list(session.\
@@ -76,7 +92,6 @@ class Meter(Base):
              for x in session.query(Job).\
                  filter_by(circuit=circuit).filter_by(state=True)]
         return l
-
 
     @staticmethod
     def slugify(name):
@@ -94,29 +109,6 @@ class Meter(Base):
 
     def __str__(self):
         return "Meter %s" % self.name
-
-
-class Relay(Base):
-    """
-    """
-    __tablename__ = 'relay'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    country = Column(String)
-    type = Column(String)
-    meter = Column(Integer)
-
-    def __init__(self, name, location, type="netbook"):
-        self.name = name
-        self.location = location
-    
-    def sendMessage(self, message): 
-        if type == "netbook": 
-            pass
-        elif type == "smpp":
-            pass
-        else: 
-            raise NameError("Relay type not supported")
 
 
 class Account(Base):
@@ -292,21 +284,34 @@ class Message(Base):
 
 class IncomingMessage(Message):
     """
-    A class that repsents an incoming message
     """
     __tablename__ = "incoming_message"
     __mapper_args__ = {'polymorphic_identity': 'incoming_message'}
     id = Column(Integer, ForeignKey('message.id'), primary_key=True)
     text = Column(String)
 
-    def __init__(self, number, text, uuid, sent=True):
+    def __init__(self, number, text, uuid, sent=False):
+        Message.__init__(self, number, uuid)
+        self.text = text
+
+
+class KannelIncomingMessage(Message):
+    """
+    Type of tracking message from Kannel
+    XXX Hack right now
+    """
+    __tablename__ = "kannel_incoming__message"
+    __mapper_args__ = {'polymorphic_identity': 'kannel_incoming_message'}
+    id = Column(Integer, ForeignKey('message.id'), primary_key=True)
+    text = Column(String)
+
+    def __init__(self, number, text, uuid, sent=False):
         Message.__init__(self, number, uuid)
         self.text = text
 
 
 class OutgoingMessage(Message):
     """
-    A class that repents an outgoing sms message
     """
     __tablename__ = "outgoing_message"
     __mapper_args__ = {'polymorphic_identity': 'outgoing_message'}
@@ -320,7 +325,40 @@ class OutgoingMessage(Message):
         self.incoming = incoming
 
 
+class KannelOutoingMessage(Message):
+    """
+    A class for sending messages to Kannel... Kind of a hack right now
+    In the __init__ function we send a post to the Kannel address
+    """
+    __tablename__ = 'kannel_outgoing_message'
+    __mapper_args__ = {'polymorphic_identity': 'kannel_outgoing_message'}
+    id = Column(Integer, ForeignKey('message.id'), primary_key=True)
+    text = Column(String)
+    incoming = Column(String, nullable=True)
+
+    def __init__(self, number, text, incoming=None):
+        Message.__init__(self, number, str(uuid.uuid4()))
+        self.text = text
+        self.incoming = incoming
+        self.sendMessage()
+
+    def sendMessage(self):
+        """
+        function sends Message to kannel
+        """
+        kannel = '173.203.94.233'
+        port = '13013'
+        data = urllib.urlencode({'username': 'kannel', 'password': 'kannel',
+                                 'to': self.number, 'text': self.text })
+        request = urllib2.Request(
+               url='http://%s:%s/cgi-bin/sendsms?%s' % (kannel, port, data))
+        return urllib2.urlopen(request)
+
+
 class TokenBatch(Base):
+    """
+    A class that groups tokens based on when they are created
+    """
     __tablename__ = "tokenbatch"
     id = Column(Integer, primary_key=True)
     uuid = Column(String)
