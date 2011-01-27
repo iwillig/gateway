@@ -71,27 +71,24 @@ def set_primary_contact(message):
     """Allows users to set their primary contact number"""
     session = DBSession()
     circuit = get_circuit(message)
-    try:
-        int(message.number)
-        if circuit:        
-            new_number = message.text.split(delimiter)[2]
-            old_number = circuit.account.phone
-            messageBody = make_message("tel.txt", lang=message.langauge,
-                                       old_number=old_number,
-                                       new_number=new_number)
-            session.add(OutgoingMessage(message.number,
-                                        messageBody,
-                                        incoming=message.uuid))
-            if new_number != message.number:
-                session.add(OutgoingMessage(
-                        new_number,
-                        messageBody,
-                        incoming=message.uuid))
-            account = circuit.account
-            account.phone = new_number
-            session.merge(account)
-    except:
-        pass
+    if circuit:        
+        new_number = message.text.split(delimiter)[2]
+        old_number = circuit.account.phone
+        messageBody = make_message("tel.txt", lang=message.langauge,
+                                   old_number=old_number,
+                                   new_number=new_number)
+        session.add(OutgoingMessage(message.number,
+                                    messageBody,
+                                    incoming=message.uuid))
+        if new_number != message.number:
+            session.add(OutgoingMessage(
+                    new_number,
+                    messageBody,
+                    incoming=message.uuid))
+        account = circuit.account
+        account.phone = new_number
+        session.merge(account)
+
 
 
 def add_credit(message, lang="en"):
