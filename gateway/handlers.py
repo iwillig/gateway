@@ -4,6 +4,7 @@ Handler objects of web interface
 import datetime
 import csv
 from urlparse import parse_qs
+import uuid
 import cStringIO
 import simplejson
 from dateutil import parser
@@ -101,8 +102,8 @@ class Dashboard(object):
         for number in xrange(0, int(amount)):
             self.session.add(Token(
                     token=Token.get_random(),
-                    value = value,
-                    batch = batch))
+                    value=value,
+                    batch=batch))
         return HTTPFound(location=self.request.application_url)
 
     @action(permission="admin")
@@ -545,13 +546,13 @@ class MessageHandler(object):
             return {'message': self.message }
 
 
-def save_and_parse_message(MsgKlass, origin, text, session, uuid=None):
-    if uuid is None:
-        uuid = str(uuid.uuid4())
+def save_and_parse_message(MsgKlass, origin, text, session, id=None):
+    if id is None:
+        id = str(uuid.uuid4())
     message = MsgKlass(
         origin,
         text,
-        uuid)
+        id)
     session.add(message)
     session.flush()
     dispatcher.matchMessage(message)
