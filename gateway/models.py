@@ -70,13 +70,27 @@ class Meter(Base):
         self.communication = communication
         self.slug = Meter.slugify(name)
 
-    def getMessageType(self):
-        if self.communication == 'netbook':
-            return OutgoingMessage
-        elif self.communication == 'kannel':
-            return KannelOutoingMessage
+    def getMessageType(self, job=False):
+        """
+        Issue, I need one place to look up what type of Job is going out.
+        XXX hack 
+        """
+        error = 'Unsupported communication type'
+        if job:
+            if self.communication == 'netbook':
+                return JobMessage
+            elif self.communication == 'kannel':
+                return KannelJobMessage
+            else: 
+                raise NameError(error)
         else:
-            raise NameError('Unsupported communication type')
+            if self.communication == 'netbook':
+                return OutgoingMessage
+            elif self.communication == 'kannel':
+                return KannelOutoingMessage
+            else:
+                raise NameError(error)
+
 
     def get_circuits(self):
         session = DBSession()
@@ -186,10 +200,11 @@ class Circuit(Base):
 
     def genericJob(self, klass, incoming=""):
         session = DBSession()
+        msgClass = self.meter.getMessageType(job=True)
         job = klass(self)
         session.add(job)
         session.flush()
-        session.add(JobMessage(job, self.account.phone,
+        session.add(msgClass(job, self.account.phone,
                                incoming=incoming))
 
     def turnOn(self, incoming=""):
@@ -325,6 +340,19 @@ class OutgoingMessage(Message):
         self.incoming = incoming
 
 
+def kannel_send_message(message):
+    """
+    function sends Message to kannel
+    """
+    kannel = '173.203.94.233'
+    port = '13013'
+    data = urllib.urlencode({'username': 'kannel', 'password': 'kannel',
+                             'to': message.number, 'text': message.text })
+    request = urllib2.Request(
+           url='http://%s:%s/cgi-bin/sendsms?%s' % (kannel, port, data))
+    return urllib2.urlopen(request)
+
+
 class KannelOutoingMessage(Message):
     """
     A class for sending messages to Kannel... Kind of a hack right now
@@ -340,19 +368,7 @@ class KannelOutoingMessage(Message):
         Message.__init__(self, number, str(uuid.uuid4()))
         self.text = text
         self.incoming = incoming
-        self.sendMessage()
-
-    def sendMessage(self):
-        """
-        function sends Message to kannel
-        """
-        kannel = '173.203.94.233'
-        port = '13013'
-        data = urllib.urlencode({'username': 'kannel', 'password': 'kannel',
-                                 'to': self.number, 'text': self.text })
-        request = urllib2.Request(
-               url='http://%s:%s/cgi-bin/sendsms?%s' % (kannel, port, data))
-        return urllib2.urlopen(request)
+        kannel_send_message(self)
 
 
 class TokenBatch(Base):
@@ -629,6 +645,27 @@ class JobMessage(Message):
     def getIndexUrl(self, request):
         return "%s/message/index/%s" % (request.application_url, self.id)
 
+
+class KannelJobMessage(Message):
+    """
+    """
+    __tablename__ = "kannel_job_message"
+    __mapper_args__ = {'polymorphic_identity': 'kannel_job_message'}
+    id = Column(Integer,
+                ForeignKey('message.id'), primary_key=True)
+    job_id = Column(Integer, ForeignKey('jobs.id'))
+    job = relation(Job, lazy=False,
+                   backref='kannel_job_message', primaryjoin=job_id == Job.id)
+    incoming = Column(String)
+    text = Column(String)
+
+    def __init__(self, job, phone, incoming=""):
+        Message.__init__(self, phone, str(uuid.uuid4()))
+        self.uuid = str(uuid.uuid4())
+        self.job = job
+        self.incoming = incoming
+        self.text = job.__str__()
+        kannel_send_message(self)
 
 def populate():
     DBSession.flush()

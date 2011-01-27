@@ -6,7 +6,6 @@ from gateway.models import Circuit
 from gateway.models import Token
 from gateway.models import AddCredit
 from gateway.models import OutgoingMessage
-from gateway.models import JobMessage
 from gateway.models import IncomingMessage
 from gateway.models import KannelOutoingMessage
 from gateway.models import KannelIncomingMessage
@@ -108,11 +107,12 @@ def add_credit(message, lang="en"):
     circuit = get_circuit(message)
     token = get_token(message)
     if circuit:
+        msgClass = circuit.meter.getMessageType(job=True)
         if token:
             job = AddCredit(circuit=circuit, credit=token.value)
             session.add(job)
             session.flush()
-            session.add(JobMessage(job, circuit.account.phone,
+            session.add(msgClass(job, circuit.account.phone,
                                    incoming=message.uuid))
             token.state = "used"
             session.merge(token)
