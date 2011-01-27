@@ -32,8 +32,8 @@
       <td><label>Meter communication: </label></td>
       <td>
         <select name="communication"> 
-          <option value="sms">SMS</option> 
-          <option value="http">Http/Data</option>
+          <option value="kannel">Kannel</option> 
+          <option value="netbook">Netbook</option>
         </select>
       </td>
       <td class="hint">Define how the meter communicates with the
