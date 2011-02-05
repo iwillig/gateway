@@ -14,11 +14,13 @@ def clean_message(messageRaw):
     Step 2. Returns a new dict with only the first value
     of each key value pair
     """
+    messageBody = messageRaw.text.lower()
+    messageBody = messageBody.strip(")").strip("(")
     message = {}
-    messageBody = messageRaw.strip(")").strip("(")
     parsed_message = parse_qs(messageBody)
     for k, v in parsed_message.iteritems():
         message[k] = v[0]
+    message['meta'] = messageRaw
     return message
 
 
@@ -49,7 +51,7 @@ def parse_meter_message(message):
     meter = findMeter(message)
     messageBody = message.text.lower()
     if re.match("^\(.*\)$", message.text.lower()):
-        messageDict = clean_message(messageBody)
+        messageDict = clean_message(message)
         if messageDict["job"] == "delete":
             getattr(meter_funcs,
                     "make_" + messageDict["job"])(messageDict, session)
@@ -61,7 +63,7 @@ def parse_meter_message(message):
                             "make_" + messageDict["job"])(messageDict,
                                                          circuit,
                                                          session)
-                elif messageDict['job'] == "alert":
+                elif messageDict['job'] == "alerts":
                     getattr(meter_funcs,
                             "make_" + messageDict["alert"])(messageDict,
                                                            circuit,
