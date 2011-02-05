@@ -284,7 +284,11 @@ class MeterHandler(object):
 
 
 class CircuitHandler(object):
-
+    """
+    Circuit handler. Has all of the most
+    important urls for managing circuits
+    """
+    
     def __init__(self, request):
         self.session = DBSession()
         self.request = request
@@ -550,6 +554,12 @@ class MessageHandler(object):
 
 
 def save_and_parse_message(MsgKlass, origin, text, session, id=None):
+    """
+    Function to save incoming message based on relay type. Takes the
+    message class, the numner, the body of the message and a
+    session. Optional argument is the messages id. Parses the message
+    and return the message object.    
+    """
     if id is None:
         id = str(uuid.uuid4())
     message = MsgKlass(
@@ -610,10 +620,6 @@ class SMSHandler(object):
         return HTTPFound(
             location="%s/sms/index" % self.request.application_url)
 
-    @action(permission="admin")
-    def circuit_logs(self):
-        return Response('stuff')
-
     @action()
     def ping(self):
         return Response('ok')
@@ -626,7 +632,7 @@ class SMSHandler(object):
             msgJson['from'],
             msgJson['text'],
             self.session,
-            uuid=msgJson['uuid'])
+            id=msgJson['uuid'])
         return Response(message.uuid)
 
     @action()
