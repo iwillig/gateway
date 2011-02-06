@@ -90,7 +90,7 @@ class Widget(object):
                 return []
 
 
-def make_message(template="error.txt", lang="fr", **kwargs):
+def make_message_body(template="error.txt", lang="fr", **kwargs):
     """Builds a template based on name and langauge with kwargs passed
     to the template..  Returns a template object
     """

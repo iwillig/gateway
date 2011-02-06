@@ -3,13 +3,13 @@ Functions to response to consumer messages
 """
 from gateway.models import DBSession
 from gateway.models import Circuit
-from gateway.models import Token
+from gateway.momdels import Token
 from gateway.models import AddCredit
 from gateway.models import OutgoingMessage
 from gateway.models import IncomingMessage
 from gateway.models import KannelOutgoingMessage
 from gateway.models import KannelIncomingMessage
-from gateway.utils import make_message
+from gateway.utils import make_message_body
 
 delimiter = "."
 
@@ -34,7 +34,7 @@ def get_circuit(message):
         klass = look_up_response_type(message)
         msg = klass(
             message.number,
-            make_message("no-circuit.txt", lang=message.langauge),
+            make_message_body("no-circuit.txt", lang=message.langauge),
             incoming=message.uuid)
         session.add(msg)
         return False
@@ -49,10 +49,10 @@ def get_token(message):
     if token:
         return token
     else:
-        klass = look_up_response_type(message)
-        msg = klass(
+        msgClass = look_up_response_type(message)
+        msg = msgClass(
                 message.number,
-                make_message("no-token.txt", lang=message.langauge),
+                make_message_body("no-token.txt", lang=message.langauge),
                 incoming=message.uuid)
         session.add(msg)
         return False
@@ -64,10 +64,10 @@ def get_balance(message):
     circuit = get_circuit(message)
     langauge = message.langauge
     if circuit:
-        klass = circuit.meter.getMessageType()
-        msg = klass(
+        msgClass = circuit.meter.getMessageType()
+        msg = msgClass(
             message.number,
-            make_message("bal.txt",
+            make_message_body("bal.txt",
                          lang=langauge,
                          account=circuit.pin,
                          credit=circuit.credit),
@@ -80,17 +80,17 @@ def set_primary_contact(message):
     session = DBSession()
     circuit = get_circuit(message)
     if circuit:
-        klass = circuit.meter.getMessageType()
+        msgClass = circuit.meter.getMessageType()
         new_number = message.text.split(delimiter)[2]
         old_number = circuit.account.phone
-        messageBody = make_message("tel.txt", lang=message.langauge,
+        messageBody = make_message_body("tel.txt", lang=message.langauge,
                                    old_number=old_number,
                                    new_number=new_number)
-        session.add(klass(message.number,
+        session.add(msgClass(message.number,
                                     messageBody,
                                     incoming=message.uuid))
         if new_number != message.number:
-            session.add(klass(
+            session.add(msgClass(
                     new_number,
                     messageBody,
                     incoming=message.uuid))
@@ -112,8 +112,9 @@ def add_credit(message, lang="en"):
             job = AddCredit(circuit=circuit, credit=token.value)
             session.add(job)
             session.flush()
-            session.add(msgClass(job, circuit.account.phone,
-                                   incoming=message.uuid))
+            session.add(msgClass(job,
+                                 circuit.account.phone,
+                                 incoming=message.uuid))
             token.state = "used"
             session.merge(token)
             session.merge(circuit)
@@ -121,7 +122,6 @@ def add_credit(message, lang="en"):
 
 def turn_circuit_on(message):
     """Allows the consumer to turn their account on."""
-
     circuit = get_circuit(message)
     if circuit:
         circuit.turnOn(incoming=message.uuid)

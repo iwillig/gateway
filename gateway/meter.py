@@ -1,15 +1,12 @@
 """
 Module for SS Gateway.
-Handles all of the meter communcation 
-
+Handles all of the meter communcation
 """
 from gateway.models import Job
 from gateway.models import SystemLog
 from gateway.models import PrimaryLog
-from gateway.models import OutgoingMessage
-from gateway.models import DBSession
 from gateway.models import IncomingMessage
-from gateway.utils import make_message
+from gateway.utils import make_message_body
 from dateutil import parser
 
 
@@ -21,6 +18,9 @@ def valid(test, against):
 
 
 def make_delete(msgDict, session):
+    """
+    Responses to a delete messsage from the meter.
+    """
     session.add(SystemLog("%s" % msgDict))
     job = session.query(Job).get(msgDict["jobid"])
     incoming_uuid = job.job_message[0].incoming
@@ -32,18 +32,18 @@ def make_delete(msgDict, session):
         job.state = False
         messageBody = None
         # update circuit
-        circuit.status = int(msgDict.get("status",circuit.status))
-        circuit.credit = float(msgDict.get("cr",circuit.credit))
+        circuit.status = int(msgDict.get("status", circuit.status))
+        circuit.credit = float(msgDict.get("cr", circuit.credit))
         session.merge(circuit)
         session.flush()
         if job._type == "addcredit":
-            messageBody = make_message("credit.txt",
+            messageBody = make_message_body("credit.txt",
                                        lang=circuit.account.lang,
                                        account=circuit.pin,
                                        status=circuit.get_rich_status(),
                                        credit=circuit.credit)
         elif job._type == "turnon" or job._type  == "turnoff":
-            messageBody = make_message("toggle.txt",
+            messageBody = make_message_body("toggle.txt",
                                        lang=circuit.account.lang,
                                        account=circuit.pin,
                                        status=circuit.get_rich_status(),
@@ -51,10 +51,9 @@ def make_delete(msgDict, session):
         # double to check we have a message to send
         if messageBody and originMsg:
             outgoingMsg = msgClass(originMsg.number,
-                                          messageBody,
-                                          incoming=originMsg.uuid)
+                                   messageBody,
+                                   incoming=originMsg.uuid)
             session.add(outgoingMsg)
-        
         session.merge(job)
     else:
         session.add(SystemLog(
@@ -86,10 +85,11 @@ def make_pp(message, circuit, session):
 def make_nocw(message, circuit, session):
     msgClass = circuit.meter.getMessageType()
     msg = msgClass(
-            circuit.account.phone,
-            make_message("nocw-alert.txt",
-                         lang=circuit.account.lang,
-                         account=circuit.pin))
+        circuit.account.phone,
+        make_message_body("nocw-alert.txt",
+                     lang=circuit.account.lang,
+                     account=circuit.pin),
+        incoming=message['meta'].uuid)
     session.add(msg)
     session.flush()
     session.add(
@@ -97,12 +97,15 @@ def make_nocw(message, circuit, session):
             "Low credit alert for circuit %s sent to %s" % (circuit.pin,
                                                             msg.number)))
 
+
 def make_lcw(message, circuit, session):
     msgClass = circuit.meter.getMessageType()
-    msg = msgClass(circuit.account.phone,
-                          make_message("lcw-alert.txt",
-                                       lang=circuit.account.lang,
-                                       account=circuit.pin))
+    msg = msgClass(
+        circuit.account.phone,
+        make_message_body("lcw-alert.txt",
+                     lang=circuit.account.lang,
+                     account=circuit.pin),
+        incoming=message['meta'].uuid)
     session.add(msg)
     session.flush()
 
@@ -121,22 +124,27 @@ def make_ce(message, circuit, session):
 
 def make_pmax(message, circuit, session):
     msgClass = circuit.meter.getMessageType()
-    msg = msgClass(circuit.account.phone,
-                          make_message("power-max-alert.txt",
-                                       lang=circuit.account.lang,
-                                       account=circuit.pin))
+    msg = msgClass(
+        circuit.account.phone,
+        make_message_body("power-max-alert.txt",
+                     lang=circuit.account.lang,
+                     account=circuit.pin),
+        incoming=message['meta'].uuid)
     session.add(msg)
     session.flush()
+
 
 def make_emax(message, circuit, session):
     msgClass = circuit.meter.getMessageType()
-    msg = msgClass(circuit.account.phone,
-                          make_message("energy-max-alert.txt",
-                                       lang=circuit.account.lang,
-                                       account=circuit.pin))
+    msg = msgClass(
+        circuit.account.phone,
+        make_message_body("energy-max-alert.txt",
+                     lang=circuit.account.lang,
+                     account=circuit.pin),
+        incoming=message['meta'].uuid)
     session.add(msg)
     session.flush()
 
- 
-def make_sdc(message, circuit):
+
+def make_sdc(message, circuit, session):
     pass
