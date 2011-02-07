@@ -9,6 +9,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'dispatch',
+    'deform',
     'pyramid_handlers',
     'python-dateutil',
     'psycopg2',

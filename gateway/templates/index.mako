@@ -17,13 +17,19 @@
 
 
 % if logged_in:
-<div class="widgets">
- 
+<div class="widgets"> 
 <div id="manage-meter" class="widget">
   <div class="widget-header">Manage meters</div>
   <div class="widget-content">
+  <p><a class="button"
+        href="${request.application_url}/add?class=KannelInterface">
+      Add kannel interface</a></p>
+  <p><a class="button"
+        href="${request.application_url}/add?class=NetbookInterface">
+      Add netbook interface</a></p>
   <p><a class="button" 
-        href="${request.application_url}/add_meter"> Add a new meter</a></p>
+        href="${request.application_url}/add_meter"> 
+      Add a new meter</a></p>
   <table>
     <tr>
       <th>Meter name</th>
@@ -33,7 +39,7 @@
     <hr />
     % for meter in meters:
   <tr>
-    <td><a href="${meter.url()}">${meter.name}</a></td>
+    <td><a href="${meter.getUrl()}">${meter.name}</a></td>
     <td>${meter.location}</td>
     <td>${str(len(meter.get_circuits()))}</td>
   </tr>
@@ -88,7 +94,7 @@
     </tr>
   % for batch in tokenBatchs:   
     <tr>
-      <td><a href="${batch.url()}">${batch.uuid}</a></td>
+      <td><a href="${batch.getUrl()}">${batch.uuid}</a></td>
       <td>${str(batch.id)}</td>
       <td>${batch.created.ctime()}</td>
       <td>${str(batch.get_tokens().count())}</td>

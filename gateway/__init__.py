@@ -65,6 +65,8 @@ def main(global_config, **settings):
                       handler='gateway.handlers:Dashboard')
     config.add_handler('manage','/manage/:action',
                        handler='gateway.handlers:ManageHandler')
+    config.add_handler('interfaces','/interface/:action/:interface',
+                       handler='gateway.handlers:InterfaceHandler'),
     config.add_handler('export-load','sys/:action',
                        handler='gateway.sys:ExportLoadHandler')
     config.add_handler('kannel','kannel/:action',

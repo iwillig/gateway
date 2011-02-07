@@ -1,12 +1,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
    <%namespace name="headers" file="headers.mako"/>
-   ${headers.globalScripts(request)}
-   
+   ${headers.globalScripts(request)}   
    ${headers.styleSheets(request)} 
-   
-
-
    ${self.header()}
 
   </head>

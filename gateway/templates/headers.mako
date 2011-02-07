@@ -46,3 +46,9 @@
       type="text/css" 
       media="screen" />
 </%def> 
+
+<%def name="deformStyles(request)">
+<link rel="stylesheet" 
+      href="${request.application_url}/static/deform/css/form.css" 
+      type="text/css" />
+</%def>

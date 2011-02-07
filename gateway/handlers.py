@@ -32,12 +32,14 @@ from gateway.models import KannelIncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
 from gateway.models import Mping
+from gateway.models import KannelInterface
 from gateway.security import USERS
 from gateway.utils import get_fields
 from gateway.utils import model_from_request
 from gateway.utils import make_table_header
 from gateway.utils import make_table_data
 from gateway.utils import find_meter_logs
+from gateway.form import form_route
 
 breadcrumbs = [{"text":"Manage Home", "url":"/"}]
 
@@ -74,24 +76,24 @@ class Dashboard(object):
     def add_meter(self):
         breadcrumbs = self.breadcrumbs
         breadcrumbs.append({"text": "Add a new meter"})
-        if self.request.method == "POST":
-            params = self.request.params
-            meter = Meter(name=params.get("name"),
-                          phone=params.get("phone"),
-                          location=params.get("location"),
-                          battery=params.get("battery"),
-                          communication=params.get("communication"),
-                          panel_capacity=params.get("panel"))
-            self.session.add(meter)
-            self.session.flush()
-            return HTTPFound(
-                 location="%s%s" % (self.request.application_url,
-                                    meter.url()))
+        return form_route(self,
+                          Meter,
+                          buttons=['Add new circuit'],
+                          exludes=['slug',
+                                   'uuid',
+                                   'date'],
+                          breadcrumbs=breadcrumbs)
 
-        else:
-            return {
-                "logged_in": authenticated_userid(self.request),
-                "breadcrumbs": self.breadcrumbs}
+    @action(renderer='add_interface.mako', permission='admin')
+    def add(self):
+        _type = self.request.params.get('class')
+        cls = getattr(models, _type)
+        breadcrumbs = self.breadcrumbs[:]
+        breadcrumbs.append({'text': 'Add a new %s ' % _type})
+        return form_route(self,
+                          cls,
+                          buttons=['submit', 'Add new %s' % _type],
+                          breadcrumbs=breadcrumbs)
 
     @action(permission="admin")
     def add_tokens(self):
@@ -129,7 +131,7 @@ class Dashboard(object):
     @action(permission="admin")
     def send_message(self):
         params = self.request.params
-        msgClass = getattr(models,params['delivery-type'])        
+        msgClass = getattr(models, params['delivery-type'])
         msg = msgClass(
                 number=params.get("number"),
                 text=params.get("text"))
@@ -185,6 +187,19 @@ class UserHandler(object):
             location=self.request.application_url)
 
 
+class InterfaceHandler(object):
+    """
+    A handler for managing the interfaces.
+    """
+
+    def __init__(self, request):
+        self.request = request
+
+    @action()
+    def index(self):
+        return Response(self.request.matchdict)
+
+
 class MeterHandler(object):
     """
     Meter handler, allows for user to edit and manage meters
@@ -228,7 +243,7 @@ class MeterHandler(object):
         self.session.add(circuit)
         self.session.flush()
         return HTTPFound(location="%s%s" % (
-                self.request.application_url, self.meter.url()))
+                self.request.application_url, self.meter.getUrl()))
 
     @action(renderer="meter/edit.mako", permission="admin")
     def edit(self):
@@ -264,7 +279,7 @@ class MeterHandler(object):
                                    self.meter)
         self.session.merge(meter)
         return HTTPFound(
-            location="%s%s" % (self.request.application_url, self.meter.url()))
+            location="%s%s" % (self.request.application_url, self.meter.getUrl()))
 
     @action(permission="admin")
     def remove(self):
@@ -280,7 +295,7 @@ class MeterHandler(object):
         self.session.flush()
         msgClass = self.meter.getMessageType(job=True)
         self.session.add(msgClass(job, self.meter.phone, incoming=""))
-        return HTTPFound(location=self.meter.url())
+        return HTTPFound(location=self.meter.getUrl())
 
 
 class CircuitHandler(object):
@@ -301,7 +316,7 @@ class CircuitHandler(object):
     def index(self):
         breadcrumbs = self.breadcrumbs[:]
         breadcrumbs.extend([
-                    {"text": "Meter Overview", "url": self.meter.url()},
+                    {"text": "Meter Overview", "url": self.meter.getUrl()},
                     {"text": "Circuit Overview"}])
         return {
             "logged_in": authenticated_userid(self.request),
@@ -314,7 +329,7 @@ class CircuitHandler(object):
     def edit(self):
         breadcrumbs = self.breadcrumbs
         breadcrumbs.extend([
-                    {"text": "Meter Overview", "url": self.meter.url()},
+                    {"text": "Meter Overview", "url": self.meter.getUrl()},
                     {"text": "Circuit Overview", "url": self.circuit.url()},
                     {"text": "Circuit Edit"}])
         return {
@@ -330,29 +345,29 @@ class CircuitHandler(object):
         self.session.merge(circuit)
         return HTTPFound(
             location="%s%s" % (self.request.application_url,
-                           self.circuit.url()))
+                           self.circuit.getUrl()))
 
     @action(permission="admin")
     def turn_off(self):
         self.circuit.turnOff()
-        return HTTPFound(location=self.circuit.url())
+        return HTTPFound(location=self.circuit.getUrl())
 
     @action(permission="admin")
     def turn_on(self):
         self.circuit.turnOn()
-        return HTTPFound(location=self.circuit.url())
+        return HTTPFound(location=self.circuit.getUrl())
 
     @action(permission="admin")
     def ping(self):
         self.circuit.ping()
-        return HTTPFound(location=self.circuit.url())
+        return HTTPFound(location=self.circuit.getUrl())
 
     @action(permission="admin")
     def remove_jobs(self):
         [self.session.delete(job) for job in self.circuit.get_jobs()]
         return HTTPFound(
             location="%s%s" % (self.request.application_url,
-                                self.circuit.url()))
+                                self.circuit.getUrl()))
 
     @action(renderer="circuit/build_graph.mako", permission="admin")
     def build_graph(self):
@@ -390,12 +405,12 @@ class CircuitHandler(object):
         self.session.flush()
         msgClass = self.circuit.meter.getMessageType()
         self.session.add(msgClass(job, ""))
-        return HTTPFound(location=self.circuit.url())
+        return HTTPFound(location=self.circuit.getUrl())
 
     @action(permission="admin")
     def remove(self):
         self.session.delete(self.circuit)
-        return HTTPFound(location=self.meter.url())
+        return HTTPFound(location=self.meter.getUrl())
 
 
 class AccountHandler(object):

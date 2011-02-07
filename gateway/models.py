@@ -39,11 +39,95 @@ def get_now():
     return datetime.datetime.now()
 
 
+class CommunicationInterface(Base):
+    """
+    Configures how the Gateway communicates with a Meter
+    Subclasses
+       KannelInterface
+       Netbook interface
+    """
+    __tablename__ = 'communication_interface'
+    type = Column(String)
+    __mapper_args__ = {'polymorphic_on': type}
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    provider = Column(String)
+    location = Column(String)
+
+    def __init__(self, name, provider, location):
+        self.name = name
+        self.provider = provider
+        self.location = location
+
+    def getUrl(self):
+        return '/interface/index/%s' % self.id
+        
+
+class KannelInterface(CommunicationInterface):
+    """
+    Kannel Interface supports sending messages via a Kannel SMPP system.
+    Stores some basic information about where to post url
+    """
+    __tablename__ = 'kannel_interface'
+    __mapper_args__ = {'polymorphic_identity': 'kannel_interface'}
+
+    id = Column(Integer,
+                ForeignKey('communication_interface.id'),
+                primary_key=True)
+    host = Column(String)
+    port = Column(Integer)
+    username = Column(String)
+    password = Column(String)
+
+    def __init__(self, name, location, host, port,
+                 provider, username, password):
+        CommunicationInterface.__init__(self, name, provider, location)
+        self.host = host
+        self.port = port
+        self.username = username
+        self.passowrd = password
+        self.provider = provider
+
+    def sendMessage(self, message):
+        """
+        Method to post message object to a Kannel server
+        Requires a Message object
+        Returns the results of a post
+        XXX TODO, clean up results
+        """
+        data = urllib.urlencode({'username': self.username,
+                                 'password': self.password,
+                                 'to': message.number,
+                                 'text': message.text })
+        request = urllib2.Request(
+               url='http://%s:%s/cgi-bin/sendsms?%s' % (self.url,
+                                                        self.port,
+                                                        data))
+        return urllib2.urlopen(request)
+
+
+class NetbookInterface(CommunicationInterface):
+    """
+    Supports sending messages via a Netbook system.
+    """
+    __tablename__ = 'netbook_interface'
+    __mapper_args__ = {'polymorphic_identity': 'netbook_interface'}
+
+    id = Column(Integer, ForeignKey('communication_interface.id'),
+                primary_key=True)
+
+    def __init__(self, name, provider, location):
+        CommunicationInterface.__init__(self, name, provider, location)
+
+    def sendMessage(self, message):
+        pass
+
+
 class Meter(Base):
     """
-    A table that repsents a meter in the gateway
+    A class that repsents a meter in the gateway
     """
-    __tablename__ = "meter"
+    __tablename__ = 'meter'
 
     id = Column(Integer, primary_key=True)
     uuid = Column(String)
@@ -54,26 +138,32 @@ class Meter(Base):
     date = Column(DateTime)
     battery = Column(Integer)
     panel_capacity = Column(Integer)
-    communication = Column(String)  # sms or http
+    communication_interface_id = Column(
+        Integer,
+        ForeignKey('communication_interface.id'))
+
+    communication_interface = relation(
+        CommunicationInterface,
+        lazy=False,
+        primaryjoin=communication_interface_id == CommunicationInterface.id)
+
     slug = Column(String)
 
-    def __init__(self, name, phone, location, battery,
-                 panel_capacity, communication="sms"):
+    def __init__(self, name, phone, location, battery, status,
+                 panel_capacity, communication_interface_id):
         self.uuid = str(uuid.uuid4())
         self.name = name
         self.phone = phone
         self.location = location
-        self.status = False
         self.date = get_now()
         self.battery = battery
+        self.communication_interface_id = communication_interface_id
         self.panel_capacity = panel_capacity
-        self.communication = communication
         self.slug = Meter.slugify(name)
 
     def getMessageType(self, job=False):
         """
         Issue, I need one place to look up what type of Job is going out.
-        XXX hack 
         """
         error = 'Unsupported communication type'
         if job:
@@ -81,7 +171,7 @@ class Meter(Base):
                 return JobMessage
             elif self.communication == 'kannel':
                 return KannelJobMessage
-            else: 
+            else:
                 raise NameError(error)
         else:
             if self.communication == 'netbook':
@@ -90,7 +180,6 @@ class Meter(Base):
                 return KannelOutgoingMessage
             else:
                 raise NameError(error)
-
 
     def get_circuits(self):
         session = DBSession()
@@ -112,7 +201,7 @@ class Meter(Base):
         slug = name.lower()
         return slug.replace(' ', '-')
 
-    def url(self):
+    def getUrl(self):
         return "/meter/index/%s" % self.slug
 
     def edit_url(self):
@@ -204,7 +293,7 @@ class Circuit(Base):
         job = klass(self)
         session.add(job)
         session.flush()
-        session.add(msgClass(job, 
+        session.add(msgClass(job,
                              self.meter.phone,
                              incoming=incoming))
 
@@ -314,7 +403,6 @@ class IncomingMessage(Message):
 class KannelIncomingMessage(Message):
     """
     Type of tracking message from Kannel
-    XXX Hack right now
     """
     __tablename__ = "kannel_incoming__message"
     __mapper_args__ = {'polymorphic_identity': 'kannel_incoming_message'}
@@ -385,7 +473,7 @@ class TokenBatch(Base):
         self.uuid = str(uuid.uuid4())
         self.created = datetime.datetime.now()
 
-    def url(self):
+    def getUrl(self):
         return "token/show_batch/%s" % self.uuid
 
     def get_tokens(self):
@@ -415,8 +503,8 @@ class Token(Base):
 
     @staticmethod
     def get_random():
-        r = int(random.random() * 10**11)
-        if r > 10**10: return r
+        r = int(random.random() * 10 ** 11)
+        if r > 10 ** 10: return r
         else: return Token.get_random()
 
     def toDict(self):
