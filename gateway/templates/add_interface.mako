@@ -9,5 +9,6 @@
 
 <%def name="content()"> 
    <br />
-  ${form.render()}
+   <p>${cls.__doc__}</p>
+   ${form.render()}
 </%def>
