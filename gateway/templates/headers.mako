@@ -48,7 +48,12 @@
 </%def> 
 
 <%def name="deformStyles(request)">
+
 <link rel="stylesheet" 
-      href="${request.application_url}/static/deform/css/form.css" 
+      href="${request.application_url}/deform-static/css/form.css" 
       type="text/css" />
+
+<script type="text/javascript"
+        src="${request.application_url}/deform-static/scripts/deform.js"></script>
+
 </%def>

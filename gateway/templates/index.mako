@@ -18,15 +18,34 @@
 
 % if logged_in:
 <div class="widgets"> 
-<div id="manage-meter" class="widget">
-  <div class="widget-header">Manage meters</div>
+<div id="manage-interface" class="widget">
+  <div class="widget-header">Manage Interfaces</div>
   <div class="widget-content">
   <p><a class="button"
         href="${request.application_url}/add?class=KannelInterface">
       Add kannel interface</a></p>
   <p><a class="button"
         href="${request.application_url}/add?class=NetbookInterface">
-      Add netbook interface</a></p>
+      Add netbook interface</a></p>  
+  <hr />
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Location</th>
+    </tr>
+    % for interface in interfaces:
+    <tr>
+      <td><a href="${interface.getUrl()}">${interface.name}</a></td>
+      <td>${interface.location}</td>
+    </tr>
+    % endfor
+  </table>
+
+  </div>
+</div>
+<div id="manage-meter" class="widget">
+  <div class="widget-header">Manage meters</div>
+  <div class="widget-content">
   <p><a class="button" 
         href="${request.application_url}/add_meter"> 
       Add a new meter</a></p>

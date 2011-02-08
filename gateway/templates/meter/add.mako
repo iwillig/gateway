@@ -6,14 +6,16 @@
    ${headers.deformStyles(request)}
    <script type="text/javascript">
      $(function() { 
-         $('#add_meter').button(); 
+         $('#deformadd_meter').button(); 
      }); 
    </script>
 </%def>
 
 <%def name="content()"> 
 <h3>Add a new meter to the gateway</h3> 
-
 ${form.render()}
+<script type="text/javascript">
+   deform.load()
+</script>
 
 </%def> 
