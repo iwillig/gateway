@@ -15,6 +15,7 @@ from pyramid.security import authenticated_userid
 from pyramid.security import remember
 from pyramid.security import forget
 from sqlalchemy import or_, desc
+from deform import Form
 from gateway import dispatcher
 from gateway import models
 from gateway.models import DBSession
@@ -32,7 +33,7 @@ from gateway.models import KannelIncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
 from gateway.models import Mping
-from gateway.models import KannelInterface
+from gateway.models import CommunicationInterface
 from gateway.security import USERS
 from gateway.utils import get_fields
 from gateway.utils import model_from_request
@@ -40,6 +41,7 @@ from gateway.utils import make_table_header
 from gateway.utils import make_table_data
 from gateway.utils import find_meter_logs
 from gateway.form import form_route
+from gateway.form import TokenBatchSchema
 
 breadcrumbs = [{"text":"Manage Home", "url":"/"}]
 
@@ -55,16 +57,21 @@ class Dashboard(object):
 
     @action(renderer='index.mako', permission="view")
     def index(self):
+        batchSchema = TokenBatchSchema()
+        batchForm = Form(batchSchema, buttons=('Add tokens',))
         meters = self.session.query(Meter)
+        interfaces = self.session.query(CommunicationInterface).all()
         tokenBatchs = self.session.query(TokenBatch).all()
         system_logs = self.session.query(SystemLog).\
             order_by(desc(SystemLog.created)).all()
         return {
-            "logged_in": authenticated_userid(self.request),
-            "tokenBatchs": tokenBatchs,
-            "system_logs": system_logs,
-            "meters": meters,
-            "breadcrumbs": self.breadcrumbs }
+            'batchForm': batchForm,
+            'interfaces': interfaces,
+            'logged_in': authenticated_userid(self.request),
+            'tokenBatchs': tokenBatchs,
+            'system_logs': system_logs,
+            'meters': meters,
+            'breadcrumbs': self.breadcrumbs }
 
     @action(renderer="dashboard.mako", permission="admin")
     def dashboard(self):
@@ -78,7 +85,7 @@ class Dashboard(object):
         breadcrumbs.append({"text": "Add a new meter"})
         return form_route(self,
                           Meter,
-                          buttons=['Add new circuit'],
+                          buttons=['add_meter', 'Add new circuit'],
                           exludes=['slug',
                                    'uuid',
                                    'date'],
