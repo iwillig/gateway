@@ -3,6 +3,7 @@ Forms for the Gateway web interface
 """
 from webob.exc import HTTPFound
 from colander import Mapping
+from colander import MappingSchema
 from colander import SchemaNode
 from colander import String
 from colander import Integer
@@ -30,7 +31,10 @@ def form_route(handler, cls, **kwargs):
                          excludes=kwargs.get('exludes', []))
     breadcrumbs = kwargs.pop('breadcrumbs')
     button = Button(*kwargs.get('buttons', ['Submit', 'Submit']))
-    form = Form(schema, buttons=(button,))
+    if kwargs.has_key('action'):
+        action = kwargs.pop('action')
+    form = Form(schema,
+                buttons=(button,))
     if handler.request.method == 'POST':
         controls = handler.request.POST.items()
         try:
@@ -43,9 +47,10 @@ def form_route(handler, cls, **kwargs):
                                    model.getUrl()))
         except ValidationFailure, e:
             return {'form': e,
+                    'cls': cls,
                     'breadcrumbs': breadcrumbs}
     return {'form': form,
-            'class': cls,
+            'cls': cls,
             "logged_in": authenticated_userid(handler.request),
             'breadcrumbs': breadcrumbs}
 
@@ -99,3 +104,11 @@ def make_schema(cls, **kwargs):
         else:
             schema.add(SchemaNode(v(), name=k))
     return schema
+
+
+class TokenBatchSchema(MappingSchema):
+    number = Integer()
+    value = Integer()
+
+        
+        

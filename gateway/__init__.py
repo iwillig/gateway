@@ -54,10 +54,10 @@ def main(global_config, **settings):
     session_factory = session_factory_from_settings(settings)
     config.include(pyramid_handlers.includeme)
     config.set_session_factory(session_factory)
-    config.add_static_view(
-        'static',
-        'gateway:static/'
-        )
+
+    config.add_static_view('static','gateway:static/')
+    config.add_static_view('deform-static', 'deform:static')
+
     config.add_handler('dashboard','/',
                        'gateway.handlers:Dashboard',
                        action='index')
