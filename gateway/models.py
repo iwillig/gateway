@@ -61,7 +61,10 @@ class CommunicationInterface(Base):
 
     def getUrl(self):
         return '/interface/index/%s' % self.id
-        
+
+    def __str__(self):
+        return "Communication Interface %s" % self.name
+
 
 class KannelInterface(CommunicationInterface):
     """
@@ -85,10 +88,10 @@ class KannelInterface(CommunicationInterface):
         self.host = host
         self.port = port
         self.username = username
-        self.passowrd = password
+        self.password = password
         self.provider = provider
 
-    def sendMessage(self, message):
+    def sendData(self, message):
         """
         Method to post message object to a Kannel server
         Requires a Message object
@@ -100,10 +103,28 @@ class KannelInterface(CommunicationInterface):
                                  'to': message.number,
                                  'text': message.text })
         request = urllib2.Request(
-               url='http://%s:%s/cgi-bin/sendsms?%s' % (self.url,
+               url='http://%s:%s/cgi-bin/sendsms?%s' % (self.host,
                                                         self.port,
                                                         data))
         return urllib2.urlopen(request)
+
+    def sendMessage(self, number, text, incoming=None):
+        session = DBSession()
+        msg = KannelOutgoingMessage(
+            number,
+            text,
+            incoming)
+        session.add(msg)
+        session.flush()
+        self.sendData(msg)
+
+    def sendJob(self, job, incoming=None):
+        session = DBSession()
+        msg = KannelJobMessage(job,
+                               incoming=incoming)
+        session.add(msg)
+        session.flush()
+        self.sendData(msg)
 
 
 class NetbookInterface(CommunicationInterface):
@@ -119,7 +140,16 @@ class NetbookInterface(CommunicationInterface):
     def __init__(self, name, provider, location):
         CommunicationInterface.__init__(self, name, provider, location)
 
-    def sendMessage(self, message):
+    def sendMessage(self, number, text, incoming):
+        session = DBSession()
+        msg = OutgoingMessage(number,
+                        text,
+                        incoming=incoming)
+        session.add(msg)
+        session.flush()
+        return msg
+
+    def sendJob(self, job, incoming=None):
         pass
 
 
@@ -289,13 +319,12 @@ class Circuit(Base):
 
     def genericJob(self, klass, incoming=""):
         session = DBSession()
-        msgClass = self.meter.getMessageType(job=True)
+        interface = self.meter.communication_interface
         job = klass(self)
         session.add(job)
         session.flush()
-        session.add(msgClass(job,
-                             self.meter.phone,
-                             incoming=incoming))
+        interface.sendJob(job,
+                          incoming=incoming)
 
     def turnOn(self, incoming=""):
         self.genericJob(TurnOn, incoming)
@@ -363,7 +392,15 @@ class Message(Base):
 
     def get_incoming(self):
         session = DBSession()
-        if self.type == "outgoing_message" or self.type == "job_message":
+        # I hope no one ever sees this. God I am a hack.
+        if isinstance(self,
+                      OutgoingMessage)\
+                      or isinstance(self,
+                                    JobMessage)\
+                      or isinstance(self,
+                                    KannelOutgoingMessage)\
+                      or isinstance(self, KannelJobMessage):
+
             incoming = session.query(IncomingMessage).\
                        filter_by(uuid=self.incoming).first()
             if incoming:
@@ -394,24 +431,20 @@ class IncomingMessage(Message):
     __mapper_args__ = {'polymorphic_identity': 'incoming_message'}
     id = Column(Integer, ForeignKey('message.id'), primary_key=True)
     text = Column(String)
+    communication_interface_id = Column(
+        Integer,
+        ForeignKey('communication_interface.id'))
+    communication_interface = relation(
+        CommunicationInterface,
+        lazy=False,
+        primaryjoin=communication_interface_id == CommunicationInterface.id)
 
-    def __init__(self, number, text, uuid, sent=False):
+    def __init__(self, number, text, uuid,
+                 communication_interface,
+                 sent=True):
         Message.__init__(self, number, uuid)
         self.text = text
-
-
-class KannelIncomingMessage(Message):
-    """
-    Type of tracking message from Kannel
-    """
-    __tablename__ = "kannel_incoming__message"
-    __mapper_args__ = {'polymorphic_identity': 'kannel_incoming_message'}
-    id = Column(Integer, ForeignKey('message.id'), primary_key=True)
-    text = Column(String)
-
-    def __init__(self, number, text, uuid, sent=False):
-        Message.__init__(self, number, uuid)
-        self.text = text
+        self.communication_interface = communication_interface
 
 
 class OutgoingMessage(Message):
@@ -429,19 +462,6 @@ class OutgoingMessage(Message):
         self.incoming = incoming
 
 
-def kannel_send_message(message):
-    """
-    function sends Message to kannel
-    """
-    kannel = 'localhost'
-    port = '13013'
-    data = urllib.urlencode({'username': 'kannel', 'password': 'kannel',
-                             'to': message.number, 'text': message.text })
-    request = urllib2.Request(
-           url='http://%s:%s/cgi-bin/sendsms?%s' % (kannel, port, data))
-    return urllib2.urlopen(request)
-
-
 class KannelOutgoingMessage(Message):
     """
     A class for sending messages to Kannel... Kind of a hack right now
@@ -457,7 +477,6 @@ class KannelOutgoingMessage(Message):
         Message.__init__(self, number, str(uuid.uuid4()))
         self.text = text
         self.incoming = incoming
-        kannel_send_message(self)
 
 
 class TokenBatch(Base):
@@ -748,13 +767,13 @@ class KannelJobMessage(Message):
     incoming = Column(String)
     text = Column(String)
 
-    def __init__(self, job, phone, incoming=""):
-        Message.__init__(self, phone, str(uuid.uuid4()))
+    def __init__(self, job, incoming=""):
+        Message.__init__(self, job.circuit.meter.phone, str(uuid.uuid4()))
         self.uuid = str(uuid.uuid4())
         self.job = job
         self.incoming = incoming
         self.text = job.__str__()
-        kannel_send_message(self)
+
 
 def populate():
     DBSession.flush()
