@@ -29,7 +29,6 @@ from gateway.models import TokenBatch
 from gateway.models import Token
 from gateway.models import Message
 from gateway.models import IncomingMessage
-from gateway.models import KannelIncomingMessage
 from gateway.models import OutgoingMessage
 from gateway.models import SystemLog
 from gateway.models import Mping
@@ -200,11 +199,47 @@ class InterfaceHandler(object):
     """
 
     def __init__(self, request):
+        self.breadcrumbs = breadcrumbs
         self.request = request
+        self.session = DBSession()
+        self.interface = self.session.query(
+            CommunicationInterface).get(self.request.matchdict.get('id'))
+
+    @action(renderer='interface/index.mako', permission='admin')
+    def index(self):
+        breadcrumbs = self.breadcrumbs[:]
+        breadcrumbs.append({'text': 'Interface overview'})
+        return {'interface': self.interface,
+                'breadcrumbs': breadcrumbs,
+                'fields': get_fields(self.interface),
+                'logged_in': authenticated_userid(self.request)}
+
+    def save_and_parse_message(self, origin, text, id=None):
+        """
+        Function to save incoming message based on relay type. Takes the
+        message class, the numner, the body of the message and a
+        session. Optional argument is the messages id. Parses the message
+        and return the message object.
+        """
+        if id is None:
+            id = str(uuid.uuid4())
+        message = IncomingMessage(origin, text, id, self.interface)
+        self.session.add(message)
+        self.session.flush()
+        dispatcher.matchMessage(message)
+        return message
 
     @action()
-    def index(self):
-        return Response(self.request.matchdict)
+    def send(self):
+        msg = self.save_and_parse_message(self.request.params['number'],
+                                          self.request.params['message'])
+        return Response(msg.uuid)
+
+    @action()
+    def remove(self):
+        self.session.delete(self.interface)
+        self.session.flush()
+        return HTTPFound(location="%s/" % self.request.application_url)
 
 
 class MeterHandler(object):
@@ -286,7 +321,8 @@ class MeterHandler(object):
                                    self.meter)
         self.session.merge(meter)
         return HTTPFound(
-            location="%s%s" % (self.request.application_url, self.meter.getUrl()))
+            location="%s%s" % (self.request.application_url,
+                               self.meter.getUrl()))
 
     @action(permission="admin")
     def remove(self):
@@ -310,7 +346,7 @@ class CircuitHandler(object):
     Circuit handler. Has all of the most
     important urls for managing circuits
     """
-    
+
     def __init__(self, request):
         self.session = DBSession()
         self.request = request
@@ -575,42 +611,6 @@ class MessageHandler(object):
             return {'message': self.message }
 
 
-def save_and_parse_message(MsgKlass, origin, text, session, id=None):
-    """
-    Function to save incoming message based on relay type. Takes the
-    message class, the numner, the body of the message and a
-    session. Optional argument is the messages id. Parses the message
-    and return the message object.    
-    """
-    if id is None:
-        id = str(uuid.uuid4())
-    message = MsgKlass(
-        origin,
-        text,
-        id)
-    session.add(message)
-    session.flush()
-    dispatcher.matchMessage(message)
-    return message
-
-
-class KannelHandler(object):
-    """
-    Handler object for Kannel requests
-    """
-    def __init__(self, request):
-        self.request = request
-        self.session = DBSession()
-
-    @action()
-    def send(self):
-        msg = save_and_parse_message(KannelIncomingMessage,
-                                     self.request.params['number'],
-                                     self.request.params['message'],
-                                     self.session)
-        return Response(msg.uuid)
-
-
 class SMSHandler(object):
     """
     Handler for most SMS operations
@@ -645,17 +645,6 @@ class SMSHandler(object):
     @action()
     def ping(self):
         return Response('ok')
-
-    @action()
-    def send(self):
-        msgJson = simplejson.loads(self.request.body)
-        message = save_and_parse_message(
-            IncomingMessage,
-            msgJson['from'],
-            msgJson['text'],
-            self.session,
-            id=msgJson['uuid'])
-        return Response(message.uuid)
 
     @action()
     def received(self):
