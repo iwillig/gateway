@@ -317,10 +317,10 @@ class Circuit(Base):
         return session.query(PrimaryLog).\
             filter_by(circuit=self).order_by(PrimaryLog.id.desc())
 
-    def genericJob(self, klass, incoming=""):
+    def genericJob(self, cls, incoming=""):
         session = DBSession()
         interface = self.meter.communication_interface
-        job = klass(self)
+        job = cls(self)
         session.add(job)
         session.flush()
         interface.sendJob(job,
@@ -342,6 +342,9 @@ class Circuit(Base):
             return "On"
 
     def url(self):
+        return "/circuit/index/%s" % self.id
+
+    def getUrl(self):
         return "/circuit/index/%s" % self.id
 
     def edit_url(self):
