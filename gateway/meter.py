@@ -2,12 +2,12 @@
 Module for SS Gateway.
 Handles all of the meter communcation
 """
+from dateutil import parser
 from gateway.models import Job
 from gateway.models import SystemLog
 from gateway.models import PrimaryLog
 from gateway.models import IncomingMessage
 from gateway.utils import make_message_body
-from dateutil import parser
 
 
 def valid(test, against):
@@ -23,10 +23,13 @@ def make_delete(msgDict, session):
     """
     session.add(SystemLog("%s" % msgDict))
     job = session.query(Job).get(msgDict["jobid"])
-    incoming_uuid = job.job_message[0].incoming
-    originMsg = session.query(IncomingMessage).\
-        filter_by(uuid=incoming_uuid).first()
     if job:
+        if len(job.job_message) is not 0:
+            incoming_uuid = job.job_message[0]
+        elif len(job.kannel_job_message) is not 0:
+            incoming_uuid = job.kannel_job_message[0].incoming
+        originMsg = session.query(IncomingMessage).\
+                    filter_by(uuid=incoming_uuid).first()
         circuit = job.circuit
         interface = circuit.meter.communication_interface
         job.state = False
@@ -56,8 +59,7 @@ def make_delete(msgDict, session):
                 incoming=originMsg.uuid)
         session.merge(job)
     else:
-        session.add(SystemLog(
-                "Unable to find job message %s " % originMsg))
+        pass
 
 
 def make_pp(message, circuit, session):
