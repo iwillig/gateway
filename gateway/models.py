@@ -1,9 +1,12 @@
-import transaction
+"""
+Models for the Gateway software.
+"""
 import random
 import uuid
 import datetime
 import urllib2
 import urllib
+import transaction
 from sqlalchemy import create_engine
 from sqlalchemy import Column
 from sqlalchemy import Integer
