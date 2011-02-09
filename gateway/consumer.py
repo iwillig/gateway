@@ -3,22 +3,11 @@ Functions to response to consumer messages
 """
 from gateway.models import DBSession
 from gateway.models import Circuit
-from gateway.momdels import Token
+from gateway.models import Token
 from gateway.models import AddCredit
-from gateway.models import OutgoingMessage
-from gateway.models import IncomingMessage
-from gateway.models import KannelOutgoingMessage
-from gateway.models import KannelIncomingMessage
 from gateway.utils import make_message_body
 
 delimiter = "."
-
-
-def look_up_response_type(message):
-    if isinstance(message, IncomingMessage):
-        return OutgoingMessage
-    elif isinstance(message, KannelIncomingMessage):
-        return KannelOutgoingMessage
 
 
 def get_circuit(message):
@@ -31,12 +20,11 @@ def get_circuit(message):
     if circuit:
         return circuit
     else:
-        klass = look_up_response_type(message)
-        msg = klass(
+        interface = message.communication_interface
+        interface.sendMessage(
             message.number,
             make_message_body("no-circuit.txt", lang=message.langauge),
             incoming=message.uuid)
-        session.add(msg)
         return False
 
 
@@ -49,30 +37,27 @@ def get_token(message):
     if token:
         return token
     else:
-        msgClass = look_up_response_type(message)
-        msg = msgClass(
-                message.number,
-                make_message_body("no-token.txt", lang=message.langauge),
-                incoming=message.uuid)
-        session.add(msg)
+        interface = message.communication_interface
+        interface.sendMessage(
+            message.number,
+            make_message_body("no-token.txt", lang=message.langauge),
+            incoming=message.uuid)
         return False
 
 
 def get_balance(message):
     """Allows users to check blance"""
-    session = DBSession()
     circuit = get_circuit(message)
     langauge = message.langauge
     if circuit:
-        msgClass = circuit.meter.getMessageType()
-        msg = msgClass(
+        interface = circuit.meter.communication_interface
+        interface.sendMessage(
             message.number,
             make_message_body("bal.txt",
                          lang=langauge,
                          account=circuit.pin,
                          credit=circuit.credit),
             incoming=message.uuid)
-        session.add(msg)
 
 
 def set_primary_contact(message):
@@ -80,20 +65,21 @@ def set_primary_contact(message):
     session = DBSession()
     circuit = get_circuit(message)
     if circuit:
-        msgClass = circuit.meter.getMessageType()
+        interface = circuit.meter.communication_interface
         new_number = message.text.split(delimiter)[2]
         old_number = circuit.account.phone
         messageBody = make_message_body("tel.txt", lang=message.langauge,
                                    old_number=old_number,
                                    new_number=new_number)
-        session.add(msgClass(message.number,
-                                    messageBody,
-                                    incoming=message.uuid))
+        interface.sendMessage(
+            message.number,
+            messageBody,
+            incoming=message.uuid)
         if new_number != message.number:
-            session.add(msgClass(
-                    new_number,
-                    messageBody,
-                    incoming=message.uuid))
+            interface.sendMessage(
+                new_number,
+                messageBody,
+                incoming=message.uuid)
         account = circuit.account
         account.phone = new_number
         session.merge(account)
@@ -107,14 +93,13 @@ def add_credit(message, lang="en"):
     circuit = get_circuit(message)
     token = get_token(message)
     if circuit:
-        msgClass = circuit.meter.getMessageType(job=True)
+        interface = circuit.meter.communication_interface
         if token:
             job = AddCredit(circuit=circuit, credit=token.value)
             session.add(job)
             session.flush()
-            session.add(msgClass(job,
-                                 circuit.account.phone,
-                                 incoming=message.uuid))
+            interface.sendJob(job,
+                              incoming=message.uuid)
             token.state = "used"
             session.merge(token)
             session.merge(circuit)
