@@ -28,7 +28,7 @@ def make_delete(msgDict, session):
         filter_by(uuid=incoming_uuid).first()
     if job:
         circuit = job.circuit
-        msgClass = circuit.meter.getMessageType()
+        interface = circuit.meter.communication_interface
         job.state = False
         messageBody = None
         # update circuit
@@ -50,10 +50,10 @@ def make_delete(msgDict, session):
                                        credit=circuit.credit)
         # double to check we have a message to send
         if messageBody and originMsg:
-            outgoingMsg = msgClass(originMsg.number,
-                                   messageBody,
-                                   incoming=originMsg.uuid)
-            session.add(outgoingMsg)
+            interface.sendMessage(
+                originMsg.number,
+                messageBody,
+                incoming=originMsg.uuid)
         session.merge(job)
     else:
         session.add(SystemLog(
@@ -83,30 +83,28 @@ def make_pp(message, circuit, session):
 
 
 def make_nocw(message, circuit, session):
-    msgClass = circuit.meter.getMessageType()
-    msg = msgClass(
+    interface = circuit.meter.communication_interface
+    interface.sendMessage(
         circuit.account.phone,
         make_message_body("nocw-alert.txt",
                      lang=circuit.account.lang,
                      account=circuit.pin),
         incoming=message['meta'].uuid)
-    session.add(msg)
     session.flush()
-    session.add(
-        SystemLog(
-            "Low credit alert for circuit %s sent to %s" % (circuit.pin,
-                                                            msg.number)))
+    log = SystemLog(
+        "Low credit alert for circuit %s sent to %s" % (circuit.pin,
+                                                        circuit.account.phone))
+    session.add(log)
 
 
 def make_lcw(message, circuit, session):
-    msgClass = circuit.meter.getMessageType()
-    msg = msgClass(
+    interface = circuit.meter.communication_interface
+    interface.sendMessage(
         circuit.account.phone,
         make_message_body("lcw-alert.txt",
                      lang=circuit.account.lang,
                      account=circuit.pin),
         incoming=message['meta'].uuid)
-    session.add(msg)
     session.flush()
 
 
@@ -123,27 +121,23 @@ def make_ce(message, circuit, session):
 
 
 def make_pmax(message, circuit, session):
-    msgClass = circuit.meter.getMessageType()
-    msg = msgClass(
+    interface = circuit.meter.communication_interface
+    interface.sendMessage(
         circuit.account.phone,
         make_message_body("power-max-alert.txt",
                      lang=circuit.account.lang,
                      account=circuit.pin),
         incoming=message['meta'].uuid)
-    session.add(msg)
-    session.flush()
 
 
 def make_emax(message, circuit, session):
-    msgClass = circuit.meter.getMessageType()
-    msg = msgClass(
+    interface = circuit.meter.communication_interface
+    interface.sendMessage(
         circuit.account.phone,
         make_message_body("energy-max-alert.txt",
                      lang=circuit.account.lang,
                      account=circuit.pin),
         incoming=message['meta'].uuid)
-    session.add(msg)
-    session.flush()
 
 
 def make_sdc(message, circuit, session):
