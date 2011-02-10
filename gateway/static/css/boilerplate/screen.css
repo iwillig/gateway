@@ -19,7 +19,8 @@ p { margin: 2px; }
 
 .container { 
     margin: 10px auto; 
-    width: 1200px;} 
+    width: 99%;
+} 
 .header { 
     background: white; 
 } 
