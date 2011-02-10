@@ -648,6 +648,15 @@ class Job(Base):
         self.circuit = circuit
         self.state = state
 
+    def getMessage(self, session):
+        if len(self.job_message) is not 0:
+            incoming_uuid = job.job_message[0]
+        elif len(self.kannel_job_message) is not 0:
+            incoming_uuid = job.kannel_job_message[0].incoming
+        return session.query(IncomingMessage).\
+                            filter_by(uuid=incoming_uuid).first()
+
+
     def url(self):
         return "jobs/job/%s/" % self.id
 
