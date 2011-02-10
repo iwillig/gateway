@@ -9,26 +9,45 @@ from gateway.messaging import findMeter
 dispatcher = Dispatcher()
 dispatcher.addMatcher(findMeter,
                       'gateway.messaging.parse_meter_message')
+# Allow consumers to check their balance
 dispatcher.addMatcher(r'^(bal).(\w+)',
                       'gateway.consumer.get_balance', langauge='en')
 dispatcher.addMatcher(r'^(solde).(\w+)',
                       'gateway.consumer.get_balance', langauge='fr')
+dispatcher.addMatcher(r'^(2).(\w+)',
+                    'gateway.consumer.get_balance')
+
+# Allow consumers to add credit to their account
 dispatcher.addMatcher(r'^(add).(\w+).(\d+)',
-                      'gateway.consumer.add_credit',langauge='en')
+                      'gateway.consumer.add_credit', langauge='en')
 dispatcher.addMatcher(r'^(recharge).(\w+).(\d+)',
-                      'gateway.consumer.add_credit',langauge='fr')
+                      'gateway.consumer.add_credit', langauge='fr')
+dispatcher.addMatcher(r'^(9).(\w+).(\w+)',
+                    'gateway.consumer.add_credit')
+
+# Allow consumers to turn the circuit on
 dispatcher.addMatcher(r'^(on).(\w+)',
                       'gateway.consumer.turn_circuit_on', langauge='fr')
-dispatcher.addMatcher(r'(off).(\w+)',
+dispatcher.addMatcher(r'^(1).(\w+)',
+                      'gateway.consumer.turn_circuit_on')
+
+# Allow consumers to turn the circuit off
+dispatcher.addMatcher(r'^(off).(\w+)',
                       'gateway.consumer.turn_circuit_off', langauge='fr')
+dispatcher.addMatcher(r'^(0).(\w+)',
+                      'gateway.consumer.turn_circuit_off', langauge='fr')
+
+# Allow consumers to set their telephone numbers
 dispatcher.addMatcher(r'(prim).(\w+)',
-                      'gateway.consumer.set_primary_contact',langauge='en')
+                      'gateway.consumer.set_primary_contact', langauge='en')
 dispatcher.addMatcher(r'(tel).(\w+)',
-                      'gateway.consumer.set_primary_contact',langauge='fr')
+                      'gateway.consumer.set_primary_contact', langauge='fr')
+dispatcher.addMatcher(r'(4).(\w+)',
+                      'gateway.consumer.set_primary_contact', langauge='fr')
 
 
 def main(global_config, **settings):
-    """ 
+    """
     This function returns a Pylons WSGI application.
     """
     from paste.deploy.converters import asbool
@@ -55,37 +74,37 @@ def main(global_config, **settings):
     config.include(pyramid_handlers.includeme)
     config.set_session_factory(session_factory)
 
-    config.add_static_view('static','gateway:static/')
+    config.add_static_view('static', 'gateway:static/')
     config.add_static_view('deform-static', 'deform:static')
 
-    config.add_handler('dashboard','/',
+    config.add_handler('dashboard', '/',
                        'gateway.handlers:Dashboard',
                        action='index')
-    config.add_handler('main','/:action',
+    config.add_handler('main', '/:action',
                       handler='gateway.handlers:Dashboard')
-    config.add_handler('manage','/manage/:action',
+    config.add_handler('manage', '/manage/:action',
                        handler='gateway.handlers:ManageHandler')
-    config.add_handler('interfaces','/interface/:action/:id',
+    config.add_handler('interfaces', '/interface/:action/:id',
                        handler='gateway.handlers:InterfaceHandler'),
-    config.add_handler('export-load','sys/:action',
+    config.add_handler('export-load', 'sys/:action',
                        handler='gateway.sys:ExportLoadHandler')
-    config.add_handler('users','user/:action',
+    config.add_handler('users', 'user/:action',
                       handler='gateway.handlers:UserHandler')
-    config.add_handler('meter','meter/:action/:slug',
-                       handler='gateway.handlers:MeterHandler') 
-    config.add_handler('circuit','circuit/:action/:id',
+    config.add_handler('meter', 'meter/:action/:slug',
+                       handler='gateway.handlers:MeterHandler')
+    config.add_handler('circuit', 'circuit/:action/:id',
                        handler='gateway.handlers:CircuitHandler')
-    config.add_handler('logs','logs/:action/:meter/:circuit/',
-                       handler='gateway.handlers:LoggingHandler') 
-    config.add_handler('jobs','jobs/:action/:id/',
+    config.add_handler('logs', 'logs/:action/:meter/:circuit/',
+                       handler='gateway.handlers:LoggingHandler')
+    config.add_handler('jobs', 'jobs/:action/:id/',
                        handler='gateway.handlers:JobHandler')
-    config.add_handler('sms','sms/:action',
-                       handler='gateway.handlers:SMSHandler') 
-    config.add_handler('message','message/:action/:id',
-                       handler='gateway.handlers:MessageHandler') 
-    config.add_handler('account','account/:action/:id',
+    config.add_handler('sms', 'sms/:action',
+                       handler='gateway.handlers:SMSHandler')
+    config.add_handler('message', 'message/:action/:id',
+                       handler='gateway.handlers:MessageHandler')
+    config.add_handler('account', 'account/:action/:id',
                        handler='gateway.handlers:AccountHandler')
-    config.add_handler('token','token/:action/:id',
+    config.add_handler('token', 'token/:action/:id',
                        handler='gateway.handlers:TokenHandler')
     config.add_subscriber('gateway.subscribers.add_renderer_globals',
                           'pyramid.events.BeforeRender')
