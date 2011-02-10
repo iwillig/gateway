@@ -29,7 +29,7 @@ def make_delete(msgDict, session):
         elif len(job.kannel_job_message) is not 0:
             incoming_uuid = job.kannel_job_message[0].incoming
         originMsg = session.query(IncomingMessage).\
-                    filter_by(uuid=incoming_uuid).first()
+                            filter_by(uuid=incoming_uuid).first()
         circuit = job.circuit
         interface = circuit.meter.communication_interface
         job.state = False
