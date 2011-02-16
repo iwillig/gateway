@@ -153,6 +153,13 @@ class NetbookInterface(CommunicationInterface):
         return msg
 
     def sendJob(self, job, incoming=None):
+        session = DBSession()
+        msg =JobMessage(job,
+                        incoming=incoming)
+        session.add(msg)
+        session.flush()
+        
+
         pass
 
 
