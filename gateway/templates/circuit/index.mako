@@ -100,10 +100,7 @@
        <td></td>
     % endif 
        % if len(job.job_message) >= 1:   
-         <td>
-           <a href="${job.job_message[0].getIndexUrl(request)}">
-             ${job.kannel_job_message[0].text}
-         </a></td>
+         <td></td>
        % endif
   </tr> 
   % endfor 

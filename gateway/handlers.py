@@ -442,12 +442,12 @@ class CircuitHandler(object):
 
     @action(permission="admin")
     def add_credit(self):
+        interface = self.circuit.meter.communication_interface
         job = AddCredit(circuit=self.circuit,
                   credit=self.request.params.get("amount"))
         self.session.add(job)
         self.session.flush()
-        msgClass = self.circuit.meter.getMessageType()
-        self.session.add(msgClass(job, ""))
+        interface.sendJob(job)
         return HTTPFound(location=self.circuit.getUrl())
 
     @action(permission="admin")
