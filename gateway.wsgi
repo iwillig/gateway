@@ -3,5 +3,5 @@ import sys
 sys.stdout = sys.stderr
 
 application = get_app(
-  '/home/ivan/gateway/production.ini', 'main')
+  '/usr/local/gateway-env/gateway/production.ini', 'main')
 
