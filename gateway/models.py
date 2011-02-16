@@ -154,8 +154,8 @@ class NetbookInterface(CommunicationInterface):
 
     def sendJob(self, job, incoming=None):
         session = DBSession()
-        msg =JobMessage(job,
-                        incoming=incoming)
+        msg = JobMessage(job,
+                         incoming=incoming)
         session.add(msg)
         session.flush()
         
@@ -765,8 +765,8 @@ class JobMessage(Message):
     incoming = Column(String)
     text = Column(String)
 
-    def __init__(self, job, phone, incoming=""):
-        Message.__init__(self, phone, str(uuid.uuid4()))
+    def __init__(self, job, incoming=""):
+        Message.__init__(self, job.meter.phone, str(uuid.uuid4()))
         self.uuid = str(uuid.uuid4())
         self.job = job
         self.incoming = incoming
