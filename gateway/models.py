@@ -766,7 +766,7 @@ class JobMessage(Message):
     text = Column(String)
 
     def __init__(self, job, incoming=""):
-        Message.__init__(self, job.meter.phone, str(uuid.uuid4()))
+        Message.__init__(self, job.circuit.meter.phone, str(uuid.uuid4()))
         self.uuid = str(uuid.uuid4())
         self.job = job
         self.incoming = incoming
